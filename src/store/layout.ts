@@ -21,6 +21,9 @@ interface SpaceConfig {
 interface LayoutState {
   spaces: SpaceConfig[];
   activeSpaceId: string;
+  discoveryOffset: number;
+  isLoadingDiscovery: boolean;
+  loadDiscovery: () => Promise<void>;
   addSpace: (name: string) => void;
   removeSpace: (id: string) => void;
   renameSpace: (id: string, name: string) => void;
@@ -32,6 +35,11 @@ interface LayoutState {
   arrangeWindows: () => void;
   moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
   toggleAutoArrange: (spaceId: string) => void;
+  loadNextDiscovery: () => Promise<void>;
+  loadPrevDiscovery: () => Promise<void>;
+  discoveryLimit: number;  // 👈 novo
+  setDiscoveryLimit: (limit: number) => void;
+  loadDiscoveryPage: (offset: number) => Promise<void>;
 }
 
 const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
@@ -66,14 +74,17 @@ export const useLayoutStore = create<LayoutState>()(
     (set, get) => ({
       spaces: [
         {
-          id: 'default',
-          name: 'Space 1',
+          id: 'discovery',
+          name: 'Discovery',
           windows: [],
           zIndexes: {},
-          autoArrange: true
+          autoArrange: true,  // pode ativar auto grid sempre
         }
       ],
-      activeSpaceId: 'default',
+      activeSpaceId: 'discovery',
+      discoveryOffset: 0,
+      isLoadingDiscovery: false,
+      discoveryLimit: 6,  // 👈 novo
 
       addSpace: (name) => set((state) => {
         const id = Math.random().toString(36).substring(2, 9);
@@ -86,6 +97,11 @@ export const useLayoutStore = create<LayoutState>()(
       }),
 
       removeSpace: (id) => set((state) => {
+        if (id === 'discovery') {
+          // Nunca permite remover o discovery
+          return state;
+        }
+
         let newSpaces = state.spaces.filter(t => t.id !== id);
         if (newSpaces.length === 0) {
           newSpaces = [{ id: 'default', name: 'Space 1', windows: [], zIndexes: {}, autoArrange: true }];
@@ -96,11 +112,18 @@ export const useLayoutStore = create<LayoutState>()(
         };
       }),
 
+
       renameSpace: (id, name) => set((state) => ({
         spaces: state.spaces.map(t => t.id === id ? { ...t, name } : t)
       })),
 
-      switchSpace: (id) => set({ activeSpaceId: id }),
+      switchSpace: (id) => {
+        set({ activeSpaceId: id });
+
+        if (id === 'discovery' && get().discoveryOffset === 0 && !get().isLoadingDiscovery) {
+          setTimeout(() => get().loadDiscovery(), 0);
+        }
+      },
 
       addWindow: (room) => set((state) => {
         const space = state.spaces.find(t => t.id === state.activeSpaceId);
@@ -218,6 +241,115 @@ export const useLayoutStore = create<LayoutState>()(
           space.id === spaceId ? { ...space, autoArrange: !space.autoArrange } : space
         )
       })),
+
+      loadDiscovery: async () => {
+        const state = get();
+        if (state.isLoadingDiscovery) return;
+
+        set({ isLoadingDiscovery: true });
+
+        const offset = state.discoveryOffset;
+
+        const response = await fetch(`https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=10&offset=${offset}`);
+        const data = await response.json();
+
+        const existingIds = new Set(
+          state.spaces.find(s => s.id === 'discovery')?.windows.map(w => w.id) ?? []
+        );
+
+        const newWindows: WindowConfig[] = data.rooms
+          .filter((room: any) => !existingIds.has(room.username))
+          .map((room: any) => ({
+            id: room.username,
+            room: room.username,
+            x: 50,
+            y: 50,
+            width: 800,
+            height: 600
+          }));
+
+        const discoverySpace = state.spaces.find(s => s.id === 'discovery');
+        if (!discoverySpace) {
+          set({ isLoadingDiscovery: false });
+          return;
+        }
+
+        let updatedDiscovery = {
+          ...discoverySpace,
+          windows: [...discoverySpace.windows, ...newWindows],
+          zIndexes: {
+            ...discoverySpace.zIndexes,
+            ...Object.fromEntries(newWindows.map((w, idx) => [w.id, Object.keys(discoverySpace.zIndexes).length + idx + 1]))
+          }
+        };
+
+        updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
+
+        set({
+          discoveryOffset: offset + 10,
+          spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
+          isLoadingDiscovery: false
+        });
+      },
+
+      loadDiscoveryPage: async (newOffset: number) => {
+        const state = get();
+        if (state.isLoadingDiscovery) return;
+
+        set({ isLoadingDiscovery: true });
+
+        const limit = state.discoveryLimit;
+
+        const response = await fetch(`https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=${limit}&offset=${newOffset}`);
+        const data = await response.json();
+
+        const discoverySpace = state.spaces.find(s => s.id === 'discovery');
+        if (!discoverySpace) {
+          set({ isLoadingDiscovery: false });
+          return;
+        }
+
+        const newWindows: WindowConfig[] = data.rooms.map((room: any) => ({
+          id: room.username,
+          room: room.username,
+          x: 50,
+          y: 50,
+          width: 800,
+          height: 600
+        }));
+
+        let updatedDiscovery = {
+          ...discoverySpace,
+          windows: newWindows,
+          zIndexes: Object.fromEntries(newWindows.map((w, idx) => [w.id, idx + 1]))
+        };
+
+        updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
+
+        set({
+          discoveryOffset: newOffset,
+          spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
+          isLoadingDiscovery: false
+        });
+      },
+
+
+      loadNextDiscovery: async () => {
+        const state = get();
+        get().loadDiscoveryPage(state.discoveryOffset + 10);
+      },
+
+      loadPrevDiscovery: async () => {
+        const state = get();
+        const newOffset = Math.max(0, state.discoveryOffset - 10);
+        get().loadDiscoveryPage(newOffset);
+      },
+
+
+      setDiscoveryLimit: (limit) => {
+        set({ discoveryLimit: limit, discoveryOffset: 0 });
+        get().loadDiscoveryPage(0); // carrega novamente do zero
+      },
 
     }),
     { name: 'layout-storage' }

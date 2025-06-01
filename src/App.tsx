@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useLayoutStore } from './store/layout';
 import { VideoWindow } from './components/VideoWindow';
@@ -12,19 +12,56 @@ function App() {
   const switchSpace = useLayoutStore((s) => s.switchSpace);
   const addWindow = useLayoutStore((s) => s.addWindow);
   const arrangeWindows = useLayoutStore((s) => s.arrangeWindows);
-
+  const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
+  const discovery = spaces.find(s => s.id === 'discovery');
+  const loadDiscovery = useLayoutStore(s => s.loadDiscovery);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const [room, setRoom] = useState('');
   const [newSpaceName, setNewSpaceName] = useState('');
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const discoveryOffset = useLayoutStore(s => s.discoveryOffset);
+  const isLoadingDiscovery = useLayoutStore(s => s.isLoadingDiscovery);
+  const loadNextDiscovery = useLayoutStore(s => s.loadNextDiscovery);
+  const loadPrevDiscovery = useLayoutStore(s => s.loadPrevDiscovery);
+  const discoveryLimit = useLayoutStore(s => s.discoveryLimit);
+  const setDiscoveryLimit = useLayoutStore(s => s.setDiscoveryLimit);
 
-  const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
+
+  useEffect(() => {
+    if (discovery && discovery.windows.length === 0 && !isLoadingDiscovery) {
+      loadDiscovery();
+    }
+  }, [discovery?.windows.length, isLoadingDiscovery]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#222', position: 'relative' }}>
-      {/* Área de abas */}
+      {/* Área de Spaces */}
       <div style={{ padding: 10, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {activeSpaceId === 'discovery' && (
+          <div style={{ display: 'flex', gap: 10 }}>
+            <label style={{ color: 'white' }}>
+              Salas por página:
+              <select
+                value={discoveryLimit}
+                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+              >
+                {[...Array(12)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>{i + 1}</option>
+                ))}
+              </select>
+            </label>
+
+            <button onClick={() => loadPrevDiscovery()} disabled={isLoadingDiscovery || discoveryOffset === 0}>
+              Prev
+            </button>
+            <button onClick={() => loadNextDiscovery()} disabled={isLoadingDiscovery}>
+              Next
+            </button>
+          </div>
+        )}
+
+
         {spaces.map(space => (
           <div key={space.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {renamingSpaceId === space.id ? (
@@ -63,7 +100,6 @@ function App() {
               ✏️
             </button>
 
-            {/* Checkbox do AutoArrange */}
             <label style={{ fontSize: 12 }}>
               <input
                 type="checkbox"
@@ -77,20 +113,17 @@ function App() {
 
         <input
           type="text"
-          placeholder="Nova aba"
+          placeholder="Novo Space"
           value={newSpaceName}
           onChange={(e) => setNewSpaceName(e.target.value)}
         />
         <button onClick={() => { addSpace(newSpaceName); setNewSpaceName(''); }}>
-          Adicionar Aba
+          Adicionar Space
         </button>
         <button onClick={() => removeSpace(activeSpaceId)}>
-          Remover Aba
+          Remover Space
         </button>
-      </div>
 
-      {/* Área de janelas */}
-      <div style={{ padding: 10, display: 'flex', gap: 10 }}>
         <input
           type="text"
           placeholder="Nome da Sala"
@@ -108,7 +141,6 @@ function App() {
       {activeSpace?.windows.map(win => (
         <VideoWindow key={`${activeSpace.id}-${win.id}`} {...win} />
       ))}
-
     </div>
   );
 }
