@@ -264,7 +264,7 @@ export const useLayoutStore = create<LayoutState>()(
       loadDiscovery: async () => {
         const state = get();
         if (state.isLoadingDiscovery) return;
-
+        console.log('Loading discovery...');
         set({ isLoadingDiscovery: true });
 
         const offset = state.discoveryOffset;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { useLayoutStore } from '../store/layout';
 
@@ -23,7 +23,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
 
-  const iframeUrl = `https://pt.chaturbate.com/fullvideo/?campaign=XW3KB&signup_notice=1&tour=dU9X&track=default&disable_sound=0&b=${room}`;
+  // const iframeUrl = `https://chaturbate.com/fullvideo/?campaign=XW3KB&signup_notice=1&tour=dU9X&track=default&disable_sound=0&b=${room}`;
+  const iframeUrl = `http://localhost:3000/proxy/${room}`;
 
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
@@ -32,6 +33,29 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const toggleMaximize = () => setMaximized(!maximized);
   const togglePin = useLayoutStore(s => s.togglePin);
   const isPinned = pinned ?? false;
+
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const onIframeLoad = () => {
+    try {
+      const iframeDoc = iframeRef.current?.contentDocument || iframeRef.current?.contentWindow?.document;
+      const closeBtn = iframeDoc?.getElementById('chat-close-btn');
+      closeBtn?.click();
+    } catch (err) {
+      console.warn("Cross-origin - não foi possível acessar o iframe:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.addEventListener('load', onIframeLoad);
+    }
+    return () => {
+      if (iframeRef.current) {
+        iframeRef.current.removeEventListener('load', onIframeLoad);
+      }
+    };
+  }, []);
 
   return (
     <Rnd
@@ -98,6 +122,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
         {!minimized && (
           <div style={{ width: '100%', height: 'calc(100% - 30px)' }}>
             <iframe
+              ref={iframeRef}
               src={iframeUrl}
               width="100%"
               height="100%"
