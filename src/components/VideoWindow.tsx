@@ -15,10 +15,12 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
   const updateWindow = useLayoutStore((s) => s.updateWindow);
   const removeWindow = useLayoutStore((s) => s.removeWindow);
   const bringToFront = useLayoutStore((s) => s.bringToFront);
-  const activeTabId = useLayoutStore((s) => s.activeTabId);
-  const tabs = useLayoutStore((s) => s.tabs);
-  const activeTab = tabs.find(t => t.id === activeTabId);
-  const zIndex = activeTab?.zIndexes[id] ?? 1;
+  const moveWindowToSpace = useLayoutStore((s) => s.moveWindowToSpace);
+
+  const spaces = useLayoutStore((s) => s.spaces);
+  const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
+  const activeSpace = spaces.find(t => t.id === activeSpaceId);
+  const zIndex = activeSpace?.zIndexes[id] ?? 1;
 
   const iframeUrl = `https://pt.chaturbate.com/fullvideo/?campaign=XW3KB&signup_notice=1&tour=dU9X&track=default&disable_sound=0&b=${room}`;
 
@@ -45,11 +47,13 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
       }}
       bounds="parent"
       dragHandleClassName="window-header"
+      cancel=".no-drag"
       minWidth={320}
       minHeight={240}
       disableDragging={maximized}
       enableResizing={!maximized}
       style={{ zIndex }}
+
     >
       <div style={{ width: '100%', height: '100%', border: '1px solid #444', background: '#000' }}>
         <div
@@ -72,6 +76,16 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
             <button onClick={toggleMinimize} style={buttonStyle}>{minimized ? '🔼' : '🔽'}</button>
             <button onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
             <button onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>
+            <select
+              className="no-drag"
+              value={activeSpaceId}
+              onChange={(e) => moveWindowToSpace(id, e.target.value)}
+              style={{ fontSize: 12 }}
+            >
+              {spaces.map(space => (
+                <option key={space.id} value={space.id}>{space.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 

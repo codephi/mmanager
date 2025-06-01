@@ -4,46 +4,92 @@ import { useLayoutStore } from './store/layout';
 import { VideoWindow } from './components/VideoWindow';
 
 function App() {
-  const tabs = useLayoutStore((s) => s.tabs);
-  const activeTabId = useLayoutStore((s) => s.activeTabId);
-  const addTab = useLayoutStore((s) => s.addTab);
-  const removeTab = useLayoutStore((s) => s.removeTab);
-  const renameTab = useLayoutStore((s) => s.renameTab);
-  const switchTab = useLayoutStore((s) => s.switchTab);
+  const spaces = useLayoutStore((s) => s.spaces);
+  const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
+  const addSpace = useLayoutStore((s) => s.addSpace);
+  const removeSpace = useLayoutStore((s) => s.removeSpace);
+  const renameSpace = useLayoutStore((s) => s.renameSpace);
+  const switchSpace = useLayoutStore((s) => s.switchSpace);
   const addWindow = useLayoutStore((s) => s.addWindow);
   const arrangeWindows = useLayoutStore((s) => s.arrangeWindows);
 
-  const activeTab = tabs.find(t => t.id === activeTabId);
+  const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const [room, setRoom] = useState('');
-  const [newTabName, setNewTabName] = useState('');
+  const [newSpaceName, setNewSpaceName] = useState('');
+  const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#222', position: 'relative' }}>
+      {/* Área de abas */}
       <div style={{ padding: 10, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => switchTab(tab.id)}
-            style={{ fontWeight: tab.id === activeTabId ? 'bold' : 'normal' }}
-          >
-            {tab.name}
-          </button>
+        {spaces.map(space => (
+          <div key={space.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {renamingSpaceId === space.id ? (
+              <>
+                <input
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => {
+                    renameSpace(space.id, renameValue);
+                    setRenamingSpaceId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      renameSpace(space.id, renameValue);
+                      setRenamingSpaceId(null);
+                    }
+                  }}
+                  autoFocus
+                />
+              </>
+            ) : (
+              <button
+                onClick={() => switchSpace(space.id)}
+                style={{ fontWeight: space.id === activeSpaceId ? 'bold' : 'normal' }}
+              >
+                {space.name}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setRenamingSpaceId(space.id);
+                setRenameValue(space.name);
+              }}
+              style={{ fontSize: 12 }}
+            >
+              ✏️
+            </button>
+
+            {/* Checkbox do AutoArrange */}
+            <label style={{ fontSize: 12 }}>
+              <input
+                type="checkbox"
+                checked={space.autoArrange}
+                onChange={() => toggleAutoArrange(space.id)}
+              />
+              Auto Grid
+            </label>
+          </div>
         ))}
 
         <input
           type="text"
           placeholder="Nova aba"
-          value={newTabName}
-          onChange={(e) => setNewTabName(e.target.value)}
+          value={newSpaceName}
+          onChange={(e) => setNewSpaceName(e.target.value)}
         />
-        <button onClick={() => { addTab(newTabName); setNewTabName(''); }}>
+        <button onClick={() => { addSpace(newSpaceName); setNewSpaceName(''); }}>
           Adicionar Aba
         </button>
-        <button onClick={() => removeTab(activeTabId)}>
+        <button onClick={() => removeSpace(activeSpaceId)}>
           Remover Aba
         </button>
       </div>
 
+      {/* Área de janelas */}
       <div style={{ padding: 10, display: 'flex', gap: 10 }}>
         <input
           type="text"
@@ -59,9 +105,10 @@ function App() {
         </button>
       </div>
 
-      {activeTab?.windows.map(win => (
-        <VideoWindow key={win.id} {...win} />
+      {activeSpace?.windows.map(win => (
+        <VideoWindow key={`${activeSpace.id}-${win.id}`} {...win} />
       ))}
+
     </div>
   );
 }
