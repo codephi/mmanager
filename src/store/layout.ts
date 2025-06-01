@@ -78,7 +78,7 @@ export const useLayoutStore = create<LayoutState>()(
           name: 'Discovery',
           windows: [],
           zIndexes: {},
-          autoArrange: true,  // pode ativar auto grid sempre
+          autoArrange: true,
         }
       ],
       activeSpaceId: 'discovery',
@@ -91,7 +91,7 @@ export const useLayoutStore = create<LayoutState>()(
         const totalSpaces = state.spaces.length;
         const finalName = name.trim() !== '' ? name : `Space ${totalSpaces + 1}`;
         return {
-          spaces: [...state.spaces, { id, name: finalName, windows: [], zIndexes: {}, autoArrange: false }],
+          spaces: [...state.spaces, { id, name: finalName, windows: [], zIndexes: {}, autoArrange: true }],
           activeSpaceId: id
         };
       }),

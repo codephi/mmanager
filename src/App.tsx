@@ -27,6 +27,18 @@ function App() {
   const discoveryLimit = useLayoutStore(s => s.discoveryLimit);
   const setDiscoveryLimit = useLayoutStore(s => s.setDiscoveryLimit);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const active = spaces.find(t => t.id === activeSpaceId);
+      if (active?.autoArrange) {
+        arrangeWindows();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [spaces, activeSpaceId, arrangeWindows]);
+
 
   useEffect(() => {
     if (discovery && discovery.windows.length === 0 && !isLoadingDiscovery) {
