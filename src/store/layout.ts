@@ -178,16 +178,22 @@ export const useLayoutStore = create<LayoutState>()(
         if (!space) return state;
 
         const { [id]: _, ...newZIndexes } = space.zIndexes;
-        const updatedSpace = {
+        let updatedSpace = {
           ...space,
           windows: space.windows.filter(w => w.id !== id),
           zIndexes: newZIndexes
         };
 
+        if (updatedSpace.autoArrange) {
+          updatedSpace = arrangeWindowsInternal(updatedSpace);
+        }
+
         return {
           spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
         };
       }),
+
+
 
       bringToFront: (id) => set((state) => {
         const space = state.spaces.find(t => t.id === state.activeSpaceId);
