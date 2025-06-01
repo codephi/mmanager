@@ -9,9 +9,10 @@ interface Props {
   y: number;
   width: number;
   height: number;
+  pinned?: boolean;
 }
 
-export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) => {
+export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
   const updateWindow = useLayoutStore((s) => s.updateWindow);
   const removeWindow = useLayoutStore((s) => s.removeWindow);
   const bringToFront = useLayoutStore((s) => s.bringToFront);
@@ -29,6 +30,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
 
   const toggleMinimize = () => setMinimized(!minimized);
   const toggleMaximize = () => setMaximized(!maximized);
+  const togglePin = useLayoutStore(s => s.togglePin);
+  const isPinned = pinned ?? false;
 
   return (
     <Rnd
@@ -73,6 +76,9 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
         >
           <div>{room}</div>
           <div style={{ display: 'flex', gap: 5 }}>
+            <button onClick={() => togglePin(id)}>
+              {isPinned ? "📌" : "📍"}
+            </button>
             <button onClick={toggleMinimize} style={buttonStyle}>{minimized ? '🔼' : '🔽'}</button>
             <button onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
             <button onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>

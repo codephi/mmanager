@@ -8,6 +8,7 @@ interface WindowConfig {
   y: number;
   width: number;
   height: number;
+  pinned?: boolean;  // 👈 novo
 }
 
 interface SpaceConfig {
@@ -23,6 +24,7 @@ interface LayoutState {
   activeSpaceId: string;
   discoveryOffset: number;
   isLoadingDiscovery: boolean;
+  discoveryLimit: number;  // 👈 novo
   loadDiscovery: () => Promise<void>;
   addSpace: (name: string) => void;
   removeSpace: (id: string) => void;
@@ -37,9 +39,10 @@ interface LayoutState {
   toggleAutoArrange: (spaceId: string) => void;
   loadNextDiscovery: () => Promise<void>;
   loadPrevDiscovery: () => Promise<void>;
-  discoveryLimit: number;  // 👈 novo
   setDiscoveryLimit: (limit: number) => void;
   loadDiscoveryPage: (offset: number) => Promise<void>;
+  togglePin: (windowId: string) => void;
+  addSpaceFromPinned: () => void;
 }
 
 const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
@@ -118,12 +121,22 @@ export const useLayoutStore = create<LayoutState>()(
       })),
 
       switchSpace: (id) => {
+        const state = get();
         set({ activeSpaceId: id });
 
-        if (id === 'discovery' && get().discoveryOffset === 0 && !get().isLoadingDiscovery) {
-          setTimeout(() => get().loadDiscovery(), 0);
+        if (id === 'discovery' && state.discoveryOffset === 0 && !state.isLoadingDiscovery) {
+          setTimeout(() => state.loadDiscovery(), 0);
+        }
+
+        const targetSpace = state.spaces.find(s => s.id === id);
+        if (targetSpace?.autoArrange) {
+          setTimeout(() => {
+            // Garante que o arrange roda após o estado activeSpaceId já ter sido atualizado
+            get().arrangeWindows();
+          }, 0);
         }
       },
+
 
       addWindow: (room) => set((state) => {
         const space = state.spaces.find(t => t.id === state.activeSpaceId);
@@ -298,18 +311,42 @@ export const useLayoutStore = create<LayoutState>()(
 
         set({ isLoadingDiscovery: true });
 
-        const limit = state.discoveryLimit;
+        const discovery = state.spaces.find(s => s.id === 'discovery');
+        const pinned = discovery?.windows.filter(w => w.pinned) ?? [];
+        const diffLimitPinned = state.discoveryLimit - pinned.length;
+        const availableSlots = diffLimitPinned <= 0 ? 0 : Math.max(0, diffLimitPinned);
 
-        const response = await fetch(`https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=${limit}&offset=${newOffset}`);
-        const data = await response.json();
+        // 🚩 Proteção aqui:
+        if (availableSlots === 0) {
+          let updatedDiscovery = {
+            ...discovery!,
+            windows: [...pinned],
+            zIndexes: Object.fromEntries(
+              pinned.map((w, idx) => [w.id, idx + 1])
+            )
+          };
 
-        const discoverySpace = state.spaces.find(s => s.id === 'discovery');
-        if (!discoverySpace) {
-          set({ isLoadingDiscovery: false });
-          return;
+          updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
+
+          set({
+            discoveryOffset: 0, // opcional: reset offset nesse caso
+            spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
+            isLoadingDiscovery: false
+          });
+
+          return; // 👈 não faz fetch se não há slots
         }
 
-        const newWindows: WindowConfig[] = data.rooms.map((room: any) => ({
+        const response = await fetch(
+          `https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=${availableSlots}&offset=${newOffset}`
+        );
+
+        const data = await response.json();
+
+        const fetchedRooms = data.rooms
+          .filter((room: any) => !pinned.some(p => p.id === room.username));
+
+        const newWindows: WindowConfig[] = fetchedRooms.map((room: any) => ({
           id: room.username,
           room: room.username,
           x: 50,
@@ -319,9 +356,11 @@ export const useLayoutStore = create<LayoutState>()(
         }));
 
         let updatedDiscovery = {
-          ...discoverySpace,
-          windows: newWindows,
-          zIndexes: Object.fromEntries(newWindows.map((w, idx) => [w.id, idx + 1]))
+          ...discovery!,
+          windows: [...pinned, ...newWindows],
+          zIndexes: Object.fromEntries(
+            [...pinned, ...newWindows].map((w, idx) => [w.id, idx + 1])
+          )
         };
 
         updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
@@ -332,7 +371,6 @@ export const useLayoutStore = create<LayoutState>()(
           isLoadingDiscovery: false
         });
       },
-
 
       loadNextDiscovery: async () => {
         const state = get();
@@ -351,6 +389,50 @@ export const useLayoutStore = create<LayoutState>()(
         get().loadDiscoveryPage(0); // carrega novamente do zero
       },
 
+      togglePin: (windowId: string) => set((state) => {
+        const discovery = state.spaces.find(s => s.id === 'discovery');
+        if (!discovery) return state;
+
+        const updatedWindows = discovery.windows.map(w =>
+          w.id === windowId ? { ...w, pinned: !w.pinned } : w
+        );
+
+        return {
+          spaces: state.spaces.map(s =>
+            s.id === 'discovery' ? { ...discovery, windows: updatedWindows } : s
+          )
+        };
+      }),
+
+      addSpaceFromPinned: () => set((state) => {
+        const discovery = state.spaces.find(s => s.id === 'discovery');
+        if (!discovery) return state;
+
+        const pinnedWindows = discovery.windows.filter(w => w.pinned);
+        if (pinnedWindows.length === 0) return state; // nada a fazer
+
+        const id = Math.random().toString(36).substring(2, 9);
+        const totalSpaces = state.spaces.length;
+        const finalName = `Space ${totalSpaces + 1}`;
+
+        const newSpace: SpaceConfig = {
+          id,
+          name: finalName,
+          windows: pinnedWindows.map(w => ({
+            ...w,
+            pinned: undefined // remover a flag pinned para o novo space
+          })),
+          zIndexes: Object.fromEntries(
+            pinnedWindows.map((w, idx) => [w.id, idx + 1])
+          ),
+          autoArrange: true
+        };
+
+        return {
+          spaces: [...state.spaces, newSpace],
+          activeSpaceId: id
+        };
+      }),
     }),
     { name: 'layout-storage' }
   )

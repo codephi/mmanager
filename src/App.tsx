@@ -26,6 +26,9 @@ function App() {
   const loadPrevDiscovery = useLayoutStore(s => s.loadPrevDiscovery);
   const discoveryLimit = useLayoutStore(s => s.discoveryLimit);
   const setDiscoveryLimit = useLayoutStore(s => s.setDiscoveryLimit);
+  const discoverySpace = spaces.find(s => s.id === 'discovery');
+  const pinnedCount = discoverySpace?.windows.filter(w => w.pinned).length ?? 0;
+  const addSpaceFromPinned = useLayoutStore((s) => s.addSpaceFromPinned);
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,10 +61,13 @@ function App() {
                 value={discoveryLimit}
                 onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
               >
-                {[...Array(12)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>{i + 1}</option>
-                ))}
+                {Array.from({ length: 12 }, (_, i) => i + 1)
+                  .filter(value => value >= Math.max(1, pinnedCount))
+                  .map(value => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
               </select>
+
             </label>
 
             <button onClick={() => loadPrevDiscovery()} disabled={isLoadingDiscovery || discoveryOffset === 0}>
@@ -70,6 +76,11 @@ function App() {
             <button onClick={() => loadNextDiscovery()} disabled={isLoadingDiscovery}>
               Next
             </button>
+
+            <button onClick={addSpaceFromPinned} disabled={pinnedCount === 0}>
+              Criar Space com Pinned
+            </button>
+
           </div>
         )}
 
