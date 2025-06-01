@@ -15,7 +15,10 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
   const updateWindow = useLayoutStore((s) => s.updateWindow);
   const removeWindow = useLayoutStore((s) => s.removeWindow);
   const bringToFront = useLayoutStore((s) => s.bringToFront);
-  const zIndex = useLayoutStore((s) => s.zIndexes[id] ?? 1);
+  const activeTabId = useLayoutStore((s) => s.activeTabId);
+  const tabs = useLayoutStore((s) => s.tabs);
+  const activeTab = tabs.find(t => t.id === activeTabId);
+  const zIndex = activeTab?.zIndexes[id] ?? 1;
 
   const iframeUrl = `https://pt.chaturbate.com/fullvideo/?campaign=XW3KB&signup_notice=1&tour=dU9X&track=default&disable_sound=0&b=${room}`;
 
@@ -62,7 +65,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height }) 
             cursor: maximized ? 'default' : 'move',
             fontSize: 14
           }}
-          onMouseDown={() => bringToFront(id)} // <-- clique normal também traz para frente
+          onMouseDown={() => bringToFront(id)}
         >
           <div>{room}</div>
           <div style={{ display: 'flex', gap: 5 }}>
