@@ -12,7 +12,6 @@ function App() {
   const switchSpace = useLayoutStore((s) => s.switchSpace);
   const addWindow = useLayoutStore((s) => s.addWindow);
   const arrangeWindows = useLayoutStore((s) => s.arrangeWindows);
-  const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
   const discovery = spaces.find(s => s.id === 'discovery');
   const loadDiscovery = useLayoutStore(s => s.loadDiscovery);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
@@ -29,6 +28,13 @@ function App() {
   const discoverySpace = spaces.find(s => s.id === 'discovery');
   const pinnedCount = discoverySpace?.windows.filter(w => w.pinned).length ?? 0;
   const addSpaceFromPinned = useLayoutStore((s) => s.addSpaceFromPinned);
+  const arrangeFilteredWindows = useLayoutStore(s => s.arrangeFilteredWindows);
+  const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
+  const setFilterMode = useLayoutStore(s => s.setFilterMode);
+  const filterMode = useLayoutStore(s => s.filterMode);
+  const globalMuted = useLayoutStore(s => s.globalMuted);
+  const toggleGlobalMuted = useLayoutStore(s => s.toggleGlobalMuted);
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -84,6 +90,15 @@ function App() {
           </div>
         )}
 
+        <button onClick={toggleGlobalMuted}>
+          {globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}
+        </button>
+
+        <select value={filterMode} onChange={e => setFilterMode(e.target.value as any)}>
+          <option value="all">Todas as salas</option>
+          <option value="online">Somente online</option>
+          <option value="offline">Somente offline</option>
+        </select>
 
         {spaces.map(space => (
           <div key={space.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -156,17 +171,24 @@ function App() {
         <button onClick={() => { addWindow(room); setRoom(''); }}>
           Adicionar Stream
         </button>
-        <button onClick={arrangeWindows}>
+        <button onClick={arrangeFilteredWindows}>
           Organizar em Grid
         </button>
       </div>
 
       {(() => {
-        return activeSpace?.windows.map(win => (
+        let windows = activeSpace?.windows ?? [];
+
+        if (filterMode === 'online') {
+          windows = windows.filter(w => w.isOnline === true);
+        } else if (filterMode === 'offline') {
+          windows = windows.filter(w => w.isOnline === false);
+        }
+
+        return windows.map(win => (
           <VideoWindow key={`${activeSpace?.id}-${win.id}`} {...win} />
         ));
       })()}
-
 
     </div>
   );

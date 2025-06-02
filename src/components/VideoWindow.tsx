@@ -23,32 +23,36 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
-
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
-
   const [hlsSource, setHlsSource] = useState<string | null>(null);
-
+  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const globalMuted = useLayoutStore(s => s.globalMuted);
   const toggleMinimize = () => setMinimized(!minimized);
   const toggleMaximize = () => setMaximized(!maximized);
 
-  // Aqui buscamos o HLS source
   useEffect(() => {
     async function fetchHls() {
       try {
         const res = await fetch(`https://chaturbate.com/api/chatvideocontext/${room}/`);
         const data = await res.json();
+
         if (data.hls_source) {
           setHlsSource(data.hls_source);
+          // Atualiza estado online no store
+          useLayoutStore.getState().updateWindow(id, { isOnline: true });
+        } else {
+          useLayoutStore.getState().updateWindow(id, { isOnline: false });
         }
       } catch (err) {
         console.error('Erro carregando HLS:', err);
+        useLayoutStore.getState().updateWindow(id, { isOnline: false });
       }
     }
-
     fetchHls();
-  }, [room]);
+  }, [room, id]);
+
 
   return (
     <Rnd
@@ -112,11 +116,13 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
         </div>
 
         {!minimized && (
-          <div style={{ width: '100%', height: 'calc(100% - 30px)' }}>
-            {hlsSource ? (
-              <HlsPlayer src={hlsSource} />
+          <div style={{ width: '100%', height: 'calc(100% - 30px)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            {isOffline ? (
+              <div style={{ color: '#fff', fontSize: 24 }}>OFFLINE</div>
+            ) : hlsSource ? (
+              <HlsPlayer src={hlsSource} muted={globalMuted} />
             ) : (
-              <div style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>Carregando vídeo...</div>
+              <div style={{ color: '#fff' }}>Carregando vídeo...</div>
             )}
           </div>
         )}

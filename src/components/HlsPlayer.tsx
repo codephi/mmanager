@@ -1,39 +1,26 @@
-// components/HlsPlayer.tsx
-
 import React, { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 
-interface HlsPlayerProps {
+interface Props {
   src: string;
+  muted?: boolean;
 }
 
-export const HlsPlayer: React.FC<HlsPlayerProps> = ({ src }) => {
+export const HlsPlayer: React.FC<Props> = ({ src, muted = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    let hls: Hls | null = null;
-
     if (videoRef.current) {
       if (Hls.isSupported()) {
-        hls = new Hls();
+        const hls = new Hls();
         hls.loadSource(src);
         hls.attachMedia(videoRef.current);
+        return () => hls.destroy();
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
         videoRef.current.src = src;
       }
     }
-
-    return () => {
-      hls?.destroy();
-    };
   }, [src]);
 
-  return (
-    <video
-      ref={videoRef}
-      controls
-      autoPlay
-      style={{ width: '100%', height: '100%' }}
-    />
-  );
+  return <video ref={videoRef} style={{ width: '100%', height: '100%' }} autoPlay muted={muted} controls />;
 };

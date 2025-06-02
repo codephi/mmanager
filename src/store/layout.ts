@@ -8,7 +8,8 @@ interface WindowConfig {
   y: number;
   width: number;
   height: number;
-  pinned?: boolean;  // 👈 novo
+  pinned?: boolean;
+  isOnline?: boolean;  // <-- novo
 }
 
 interface SpaceConfig {
@@ -25,6 +26,11 @@ interface LayoutState {
   discoveryOffset: number;
   isLoadingDiscovery: boolean;
   discoveryLimit: number;
+  globalMuted: boolean;
+  filterMode: 'all' | 'online' | 'offline';
+  setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
+  arrangeFilteredWindows: () => void;
+  toggleGlobalMuted: () => void;
   loadDiscovery: () => Promise<void>;
   addSpace: (name: string) => void;
   removeSpace: (id: string) => void;
@@ -84,10 +90,68 @@ export const useLayoutStore = create<LayoutState>()(
           autoArrange: true,
         }
       ],
+      globalMuted: false,
       activeSpaceId: 'discovery',
       discoveryOffset: 0,
       isLoadingDiscovery: false,
       discoveryLimit: 6,  // 👈 novo
+      filterMode: 'all',
+
+      arrangeFilteredWindows: () => {
+        const state = get();
+        const activeSpace = state.spaces.find(t => t.id === state.activeSpaceId);
+        if (!activeSpace) return;
+
+        let filteredWindows = activeSpace.windows;
+
+        if (state.filterMode === 'online') {
+          filteredWindows = filteredWindows.filter(w => w.isOnline === true);
+        } else if (state.filterMode === 'offline') {
+          filteredWindows = filteredWindows.filter(w => w.isOnline === false);
+        }
+
+        const total = filteredWindows.length;
+        if (total === 0) return;
+
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight - 50;
+        const cols = Math.ceil(Math.sqrt(total));
+        const rows = Math.ceil(total / cols);
+        const cellWidth = Math.floor(screenWidth / cols);
+        const cellHeight = Math.floor(screenHeight / rows);
+
+        const updatedWindows = activeSpace.windows.map(win => {
+          const index = filteredWindows.findIndex(w => w.id === win.id);
+          if (index === -1) return win; // mantém as janelas fora do filtro como estão
+          const col = index % cols;
+          const row = Math.floor(index / cols);
+          return {
+            ...win,
+            x: col * cellWidth,
+            y: row * cellHeight + 50,
+            width: cellWidth,
+            height: cellHeight
+          };
+        });
+
+        set({
+          spaces: state.spaces.map(s =>
+            s.id === activeSpace.id ? { ...activeSpace, windows: updatedWindows } : s
+          )
+        });
+      },
+
+      setFilterMode: (mode) => {
+        set({ filterMode: mode });
+        const space = get().spaces.find(s => s.id === get().activeSpaceId);
+        if (space?.autoArrange) {
+          get().arrangeFilteredWindows();
+        }
+      },
+
+      toggleGlobalMuted: () => set((state) => ({
+        globalMuted: !state.globalMuted
+      })),
 
       addSpace: (name) => set((state) => {
         const id = Math.random().toString(36).substring(2, 9);
