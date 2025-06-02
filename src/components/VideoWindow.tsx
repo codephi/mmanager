@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 import { useLayoutStore } from '../store/layout';
+import { HlsPlayer } from './HlsPlayer';
 
 interface Props {
   id: string;
@@ -17,45 +18,37 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const removeWindow = useLayoutStore((s) => s.removeWindow);
   const bringToFront = useLayoutStore((s) => s.bringToFront);
   const moveWindowToSpace = useLayoutStore((s) => s.moveWindowToSpace);
-
+  const togglePin = useLayoutStore(s => s.togglePin);
   const spaces = useLayoutStore((s) => s.spaces);
   const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
 
-  // const iframeUrl = `https://chaturbate.com/fullvideo/?campaign=XW3KB&signup_notice=1&tour=dU9X&track=default&disable_sound=0&b=${room}`;
-  const iframeUrl = `http://localhost:3000/proxy/${room}`;
-
   const [minimized, setMinimized] = useState(false);
   const [maximized, setMaximized] = useState(false);
+  const isPinned = pinned ?? false;
+
+  const [hlsSource, setHlsSource] = useState<string | null>(null);
 
   const toggleMinimize = () => setMinimized(!minimized);
   const toggleMaximize = () => setMaximized(!maximized);
-  const togglePin = useLayoutStore(s => s.togglePin);
-  const isPinned = pinned ?? false;
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const onIframeLoad = () => {
-    try {
-      const iframeDoc = iframeRef.current?.contentDocument || iframeRef.current?.contentWindow?.document;
-      const closeBtn = iframeDoc?.getElementById('chat-close-btn');
-      closeBtn?.click();
-    } catch (err) {
-      console.warn("Cross-origin - não foi possível acessar o iframe:", err);
-    }
-  };
-
+  // Aqui buscamos o HLS source
   useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.addEventListener('load', onIframeLoad);
-    }
-    return () => {
-      if (iframeRef.current) {
-        iframeRef.current.removeEventListener('load', onIframeLoad);
+    async function fetchHls() {
+      try {
+        const res = await fetch(`https://chaturbate.com/api/chatvideocontext/${room}/`);
+        const data = await res.json();
+        if (data.hls_source) {
+          setHlsSource(data.hls_source);
+        }
+      } catch (err) {
+        console.error('Erro carregando HLS:', err);
       }
-    };
-  }, []);
+    }
+
+    fetchHls();
+  }, [room]);
 
   return (
     <Rnd
@@ -80,7 +73,6 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
       disableDragging={maximized}
       enableResizing={!maximized}
       style={{ zIndex }}
-
     >
       <div style={{ width: '100%', height: '100%', border: '1px solid #444', background: '#000' }}>
         <div
@@ -121,15 +113,11 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
 
         {!minimized && (
           <div style={{ width: '100%', height: 'calc(100% - 30px)' }}>
-            <iframe
-              ref={iframeRef}
-              src={iframeUrl}
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              scrolling="no"
-              allowFullScreen
-            />
+            {hlsSource ? (
+              <HlsPlayer src={hlsSource} />
+            ) : (
+              <div style={{ color: '#fff', textAlign: 'center', marginTop: 20 }}>Carregando vídeo...</div>
+            )}
           </div>
         )}
       </div>

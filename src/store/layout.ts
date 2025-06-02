@@ -24,7 +24,7 @@ interface LayoutState {
   activeSpaceId: string;
   discoveryOffset: number;
   isLoadingDiscovery: boolean;
-  discoveryLimit: number;  // 👈 novo
+  discoveryLimit: number;
   loadDiscovery: () => Promise<void>;
   addSpace: (name: string) => void;
   removeSpace: (id: string) => void;
@@ -40,7 +40,7 @@ interface LayoutState {
   loadNextDiscovery: () => Promise<void>;
   loadPrevDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
-  loadDiscoveryPage: (offset: number) => Promise<void>;
+  loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   togglePin: (windowId: string) => void;
   addSpaceFromPinned: () => void;
 }
@@ -94,10 +94,20 @@ export const useLayoutStore = create<LayoutState>()(
         const totalSpaces = state.spaces.length;
         const finalName = name.trim() !== '' ? name : `Space ${totalSpaces + 1}`;
         return {
-          spaces: [...state.spaces, { id, name: finalName, windows: [], zIndexes: {}, autoArrange: true }],
+          spaces: [...state.spaces, {
+            id,
+            name: finalName,
+            windows: [],
+            zIndexes: {},
+            autoArrange: true,
+            spaceLimit: 12,  // default de paginação
+            spaceOffset: 0
+          }],
           activeSpaceId: id
         };
       }),
+
+
 
       removeSpace: (id) => set((state) => {
         if (id === 'discovery') {
@@ -126,17 +136,16 @@ export const useLayoutStore = create<LayoutState>()(
 
         if (id === 'discovery' && state.discoveryOffset === 0 && !state.isLoadingDiscovery) {
           setTimeout(() => state.loadDiscovery(), 0);
-        }
-
-        const targetSpace = state.spaces.find(s => s.id === id);
-        if (targetSpace?.autoArrange) {
-          setTimeout(() => {
-            // Garante que o arrange roda após o estado activeSpaceId já ter sido atualizado
-            get().arrangeWindows();
-          }, 0);
+        } else {
+          // ⚠ carregamento da paginação ao trocar de space
+          const targetSpace = state.spaces.find(s => s.id === id);
+          if (targetSpace?.autoArrange) {
+            setTimeout(() => {
+              get().arrangeWindows();
+            }, 0);
+          }
         }
       },
-
 
       addWindow: (room) => set((state) => {
         const space = state.spaces.find(t => t.id === state.activeSpaceId);
@@ -311,9 +320,9 @@ export const useLayoutStore = create<LayoutState>()(
         });
       },
 
-      loadDiscoveryPage: async (newOffset: number) => {
+      loadDiscoveryPage: async (newOffset: number, force = false) => {
         const state = get();
-        if (state.isLoadingDiscovery) return;
+        if (!force && state.isLoadingDiscovery) return;
 
         set({ isLoadingDiscovery: true });
 
@@ -350,7 +359,8 @@ export const useLayoutStore = create<LayoutState>()(
         const data = await response.json();
 
         const fetchedRooms = data.rooms
-          .filter((room: any) => !pinned.some(p => p.id === room.username));
+          .filter((room: any) => !pinned.some(p => p.id === room.username))
+          .slice(0, availableSlots);
 
         const newWindows: WindowConfig[] = fetchedRooms.map((room: any) => ({
           id: room.username,
@@ -380,13 +390,13 @@ export const useLayoutStore = create<LayoutState>()(
 
       loadNextDiscovery: async () => {
         const state = get();
-        get().loadDiscoveryPage(state.discoveryOffset + 10);
+        get().loadDiscoveryPage(state.discoveryOffset + 10, true);
       },
 
       loadPrevDiscovery: async () => {
         const state = get();
         const newOffset = Math.max(0, state.discoveryOffset - 10);
-        get().loadDiscoveryPage(newOffset);
+        get().loadDiscoveryPage(newOffset, true);
       },
 
 

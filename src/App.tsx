@@ -70,10 +70,10 @@ function App() {
 
             </label>
 
-            <button onClick={() => loadPrevDiscovery()} disabled={isLoadingDiscovery || discoveryOffset === 0}>
+            <button onClick={() => loadPrevDiscovery()} disabled={discoveryOffset === 0}>
               Prev
             </button>
-            <button onClick={() => loadNextDiscovery()} disabled={isLoadingDiscovery}>
+            <button onClick={() => loadNextDiscovery()}>
               Next
             </button>
 
@@ -161,9 +161,13 @@ function App() {
         </button>
       </div>
 
-      {activeSpace?.windows.map(win => (
-        <VideoWindow key={`${activeSpace.id}-${win.id}`} {...win} />
-      ))}
+      {(() => {
+        return activeSpace?.windows.map(win => (
+          <VideoWindow key={`${activeSpace?.id}-${win.id}`} {...win} />
+        ));
+      })()}
+
+
     </div>
   );
 }
