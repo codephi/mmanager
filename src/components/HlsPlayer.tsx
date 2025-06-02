@@ -4,9 +4,10 @@ import Hls from 'hls.js';
 interface Props {
   src: string;
   muted?: boolean;
+  volume?: number;
 }
 
-export const HlsPlayer: React.FC<Props> = ({ src, muted = false }) => {
+export const HlsPlayer: React.FC<Props> = ({ src, muted = false, volume = 1.0 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -22,5 +23,18 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted = false }) => {
     }
   }, [src]);
 
-  return <video ref={videoRef} style={{ width: '100%', height: '100%' }} autoPlay muted={muted} controls />;
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = muted;
+    }
+  }, [muted]);
+
+
+  return <video ref={videoRef} style={{ width: '100%', height: '100%' }} autoPlay controls={false} />;
 };

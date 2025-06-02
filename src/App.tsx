@@ -90,7 +90,7 @@ function App() {
           </div>
         )}
 
-        <button onClick={toggleGlobalMuted}>
+        <button onClick={() => useLayoutStore.getState().toggleGlobalMuted()}>
           {globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}
         </button>
 
@@ -179,10 +179,12 @@ function App() {
       {(() => {
         let windows = activeSpace?.windows ?? [];
 
-        if (filterMode === 'online') {
-          windows = windows.filter(w => w.isOnline === true);
-        } else if (filterMode === 'offline') {
-          windows = windows.filter(w => w.isOnline === false);
+        if (activeSpaceId !== 'discovery') {
+          if (filterMode === 'online') {
+            windows = windows.filter(w => w.isOnline === true);
+          } else if (filterMode === 'offline') {
+            windows = windows.filter(w => w.isOnline === false);
+          }
         }
 
         return windows.map(win => (

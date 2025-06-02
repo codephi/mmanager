@@ -9,8 +9,11 @@ interface WindowConfig {
   width: number;
   height: number;
   pinned?: boolean;
-  isOnline?: boolean;  // <-- novo
+  isOnline?: boolean;
+  isMuted?: boolean;
+  volume?: number;
 }
+
 
 interface SpaceConfig {
   id: string;
@@ -49,6 +52,8 @@ interface LayoutState {
   loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   togglePin: (windowId: string) => void;
   addSpaceFromPinned: () => void;
+  setWindowVolume: (windowId: string, volume: number) => void;
+  toggleWindowMute: (windowId: string) => void;
 }
 
 const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
@@ -149,9 +154,42 @@ export const useLayoutStore = create<LayoutState>()(
         }
       },
 
-      toggleGlobalMuted: () => set((state) => ({
-        globalMuted: !state.globalMuted
-      })),
+      setWindowVolume: (id, volume) => set((state) => {
+        const spaces = state.spaces.map(space => {
+          if (space.id !== state.activeSpaceId) return space;
+          const windows = space.windows.map(win =>
+            win.id === id ? { ...win, volume, isMuted: volume === 0 } : win
+          );
+          return { ...space, windows };
+        });
+        return { spaces };
+      }),
+
+      toggleWindowMute: (id) => set((state) => {
+        const spaces = state.spaces.map(space => {
+          if (space.id !== state.activeSpaceId) return space;
+          const windows = space.windows.map(win =>
+            win.id === id ? { ...win, isMuted: !win.isMuted } : win
+          );
+          return { ...space, windows };
+        });
+        return { spaces };
+      }),
+
+      toggleGlobalMuted: () => set(state => {
+        const newMuted = !state.globalMuted;
+        return {
+          globalMuted: newMuted,
+          spaces: state.spaces.map(space => ({
+            ...space,
+            windows: space.windows.map(window => ({
+              ...window,
+              isMuted: newMuted
+            }))
+          }))
+        }
+      }),
+
 
       addSpace: (name) => set((state) => {
         const id = Math.random().toString(36).substring(2, 9);
@@ -201,19 +239,30 @@ export const useLayoutStore = create<LayoutState>()(
         if (id === 'discovery' && state.discoveryOffset === 0 && !state.isLoadingDiscovery) {
           setTimeout(() => state.loadDiscovery(), 0);
         } else {
-          // ⚠ carregamento da paginação ao trocar de space
           const targetSpace = state.spaces.find(s => s.id === id);
           if (targetSpace?.autoArrange) {
             setTimeout(() => {
-              get().arrangeWindows();
+              if (state.filterMode === 'all') {
+                get().arrangeWindows();
+              } else {
+                get().arrangeFilteredWindows();
+              }
             }, 0);
           }
         }
       },
 
+
       addWindow: (room) => set((state) => {
         const space = state.spaces.find(t => t.id === state.activeSpaceId);
         if (!space) return state;
+
+        // Verifica se a sala já existe
+        const alreadyExists = space.windows.some(w => w.room === room);
+        if (alreadyExists) {
+          console.log(`Room ${room} já existe no space ${space.name}`);
+          return state;
+        }
 
         const id = Math.random().toString(36).substring(2, 9);
         const maxZ = Math.max(0, ...Object.values(space.zIndexes));
@@ -232,6 +281,7 @@ export const useLayoutStore = create<LayoutState>()(
           spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
         };
       }),
+
 
 
       updateWindow: (id, pos) => set((state) => {
@@ -358,7 +408,9 @@ export const useLayoutStore = create<LayoutState>()(
             y: 50,
             width: 800,
             height: 600
+            // NÃO precisamos do isOnline aqui
           }));
+
 
         const discoverySpace = state.spaces.find(s => s.id === 'discovery');
         if (!discoverySpace) {
