@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useRootStore } from '../store/rootStore';
 import { useWindowsStore } from '../store/windowsStore';
 import { useDiscoveryStore } from '../store/discoveryStore';
+import { useSpacesStore } from '../store/spacesStore';
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -40,7 +41,6 @@ const RenameButton = styled.button`
     font-size: 12px;
 `;
 
-// Subcomponente de edição de space
 function SpaceOption({
     space,
     renamingSpaceId,
@@ -71,27 +71,18 @@ function SpaceOption({
                     autoFocus
                 />
             ) : (
-                <SpaceButton
-                    onClick={() => switchSpace(space.id)}
-                    active={space.id === activeSpaceId}
-                >
+                <SpaceButton onClick={() => switchSpace(space.id)} active={space.id === activeSpaceId}>
                     {space.name}
                 </SpaceButton>
             )}
-            <RenameButton
-                onClick={() => {
-                    setRenamingSpaceId(space.id);
-                    setRenameValue(space.name);
-                }}
-            >
+            <RenameButton onClick={() => {
+                setRenamingSpaceId(space.id);
+                setRenameValue(space.name);
+            }}>
                 ✏️
             </RenameButton>
             <Label>
-                <input
-                    type="checkbox"
-                    checked={space.autoArrange}
-                    onChange={() => toggleAutoArrange(space.id)}
-                />
+                <input type="checkbox" checked={space.autoArrange} onChange={() => toggleAutoArrange(space.id)} />
                 Auto Grid
             </Label>
         </SpaceContainer>
@@ -99,29 +90,24 @@ function SpaceOption({
 }
 
 function Toolbar() {
-    const spaces = useRootStore((s) => s.spaces);
-    const activeSpaceId = useRootStore((s) => s.activeSpaceId);
-    const addSpace = useRootStore((s) => s.addSpace);
-    const removeSpace = useRootStore((s) => s.removeSpace);
-    const renameSpace = useRootStore((s) => s.renameSpace);
-    const switchSpace = useRootStore((s) => s.switchSpace);
+    // Spaces agora vindo do spacesStore
+    const spaces = useSpacesStore(s => s.getSpaces());
+    const activeSpaceId = useSpacesStore(s => s.getActiveSpaceId());
+    const addSpace = useSpacesStore(s => s.addSpace);
+    const removeSpace = useSpacesStore(s => s.removeSpace);
+    const renameSpace = useSpacesStore(s => s.renameSpace);
+    const switchSpace = useSpacesStore(s => s.setActiveSpace);
+    const toggleAutoArrange = useSpacesStore(s => s.toggleAutoArrange);
+
+    // Windows e Discovery seguem igual
     const addWindow = useWindowsStore((s) => s.addWindow);
     const arrangeWindows = useRootStore((s) => s.arrangeWindows);
-    const discovery = spaces.find(s => s.id === 'discovery');
-    const [room, setRoom] = useState('');
-    const [newSpaceName, setNewSpaceName] = useState('');
-    const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
-    const [renameValue, setRenameValue] = useState('');
-    const discoverySpace = spaces.find(s => s.id === 'discovery');
-    const pinnedCount = discoverySpace?.windows.filter(w => w.pinned).length ?? 0;
     const arrangeFilteredWindows = useRootStore(s => s.arrangeFilteredWindows);
-    const toggleAutoArrange = useRootStore((s) => s.toggleAutoArrange);
     const setFilterMode = useRootStore(s => s.setFilterMode);
     const filterMode = useRootStore(s => s.filterMode);
     const globalMuted = useRootStore(s => s.globalMuted);
     const toggleGlobalMuted = useRootStore(s => s.toggleGlobalMuted);
 
-    // DiscoveryState hooks
     const discoveryOffset = useDiscoveryStore(s => s.discoveryOffset);
     const isLoadingDiscovery = useDiscoveryStore(s => s.isLoadingDiscovery);
     const loadDiscovery = useDiscoveryStore(s => s.loadDiscovery);
@@ -130,6 +116,14 @@ function Toolbar() {
     const discoveryLimit = useDiscoveryStore(s => s.discoveryLimit);
     const setDiscoveryLimit = useDiscoveryStore(s => s.setDiscoveryLimit);
     const addSpaceFromPinned = useDiscoveryStore(s => s.addSpaceFromPinned);
+
+    const discovery = spaces.find(s => s.id === 'discovery');
+    const pinnedCount = discovery?.windows.filter(w => w.pinned).length ?? 0;
+
+    const [room, setRoom] = useState('');
+    const [newSpaceName, setNewSpaceName] = useState('');
+    const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState('');
 
     useEffect(() => {
         const handleResize = () => {
@@ -142,7 +136,6 @@ function Toolbar() {
                 }
             }
         };
-
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [spaces, activeSpaceId, arrangeWindows, arrangeFilteredWindows, filterMode]);
@@ -161,10 +154,7 @@ function Toolbar() {
                 <DiscoveryControls>
                     <Label>
                         Salas por página:
-                        <select
-                            value={discoveryLimit}
-                            onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
-                        >
+                        <select value={discoveryLimit} onChange={(e) => setDiscoveryLimit(Number(e.target.value))}>
                             {Array.from({ length: 12 }, (_, i) => i + 1)
                                 .filter(value => value >= Math.max(1, pinnedCount))
                                 .map(value => (
@@ -172,43 +162,25 @@ function Toolbar() {
                                 ))}
                         </select>
                     </Label>
-
-                    <button onClick={() => loadPrevDiscovery()} disabled={discoveryOffset === 0}>
-                        Prev
-                    </button>
-                    <button onClick={() => loadNextDiscovery()}>
-                        Next
-                    </button>
-
-                    <button onClick={addSpaceFromPinned} disabled={pinnedCount === 0}>
-                        Criar Space com Pinned
-                    </button>
+                    <button onClick={loadPrevDiscovery} disabled={discoveryOffset === 0}>Prev</button>
+                    <button onClick={loadNextDiscovery}>Next</button>
+                    <button onClick={addSpaceFromPinned} disabled={pinnedCount === 0}>Criar Space com Pinned</button>
                 </DiscoveryControls>
             )}
 
-            <button onClick={() => toggleGlobalMuted()}>
-                {globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}
-            </button>
-
+            <button onClick={toggleGlobalMuted}>{globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}</button>
             <select value={filterMode} onChange={e => setFilterMode(e.target.value as any)}>
                 <option value="all">Todas as salas</option>
                 <option value="online">Somente online</option>
                 <option value="offline">Somente offline</option>
             </select>
 
-            {/* Select principal de escolha de space */}
-            <select
-                value={activeSpaceId}
-                onChange={e => switchSpace(e.target.value)}
-            >
+            <select value={activeSpaceId} onChange={e => switchSpace(e.target.value)}>
                 {spaces.map(space => (
-                    <option key={space.id} value={space.id}>
-                        {space.name}
-                    </option>
+                    <option key={space.id} value={space.id}>{space.name}</option>
                 ))}
             </select>
 
-            {/* Área de renomear/configurar o space */}
             {selectedSpace && (
                 <SpaceOption
                     space={selectedSpace}
@@ -223,31 +195,13 @@ function Toolbar() {
                 />
             )}
 
-            <input
-                type="text"
-                placeholder="Novo Space"
-                value={newSpaceName}
-                onChange={(e) => setNewSpaceName(e.target.value)}
-            />
-            <button onClick={() => { addSpace(newSpaceName); setNewSpaceName(''); }}>
-                Adicionar Space
-            </button>
-            <button onClick={() => removeSpace(activeSpaceId)}>
-                Remover Space
-            </button>
+            <input type="text" placeholder="Novo Space" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} />
+            <button onClick={() => { addSpace(newSpaceName); setNewSpaceName(''); }}>Adicionar Space</button>
+            <button onClick={() => removeSpace(activeSpaceId)}>Remover Space</button>
 
-            <input
-                type="text"
-                placeholder="Nome da Sala"
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-            />
-            <button onClick={() => { addWindow(room); setRoom(''); }}>
-                Adicionar Stream
-            </button>
-            <button onClick={arrangeFilteredWindows}>
-                Organizar em Grid
-            </button>
+            <input type="text" placeholder="Nome da Sala" value={room} onChange={(e) => setRoom(e.target.value)} />
+            <button onClick={() => { addWindow(room); setRoom(''); }}>Adicionar Stream</button>
+            <button onClick={arrangeFilteredWindows}>Organizar em Grid</button>
         </ToolbarContainer>
     );
 }
