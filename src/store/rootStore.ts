@@ -23,7 +23,7 @@ interface SpaceConfig {
   autoArrange: boolean;
 }
 
-interface LayoutState {
+interface RootState {
   spaces: SpaceConfig[];
   activeSpaceId: string;
   discoveryOffset: number;
@@ -83,7 +83,7 @@ const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
 };
 
 
-export const useLayoutStore = create<LayoutState>()(
+export const useRootStore = create<RootState>()(
   persist(
     (set, get) => ({
       spaces: [
@@ -566,6 +566,6 @@ export const useLayoutStore = create<LayoutState>()(
         };
       }),
     }),
-    { name: 'layout-storage' }
+    { name: 'root-storage' }
   )
 );

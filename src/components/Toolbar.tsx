@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useLayoutStore } from '../store/layout';
+import { useRootStore } from '../store/rootStore';
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -97,35 +97,35 @@ function SpaceOption({
 }
 
 function Toolbar() {
-    const spaces = useLayoutStore((s) => s.spaces);
-    const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
-    const addSpace = useLayoutStore((s) => s.addSpace);
-    const removeSpace = useLayoutStore((s) => s.removeSpace);
-    const renameSpace = useLayoutStore((s) => s.renameSpace);
-    const switchSpace = useLayoutStore((s) => s.switchSpace);
-    const addWindow = useLayoutStore((s) => s.addWindow);
-    const arrangeWindows = useLayoutStore((s) => s.arrangeWindows);
+    const spaces = useRootStore((s) => s.spaces);
+    const activeSpaceId = useRootStore((s) => s.activeSpaceId);
+    const addSpace = useRootStore((s) => s.addSpace);
+    const removeSpace = useRootStore((s) => s.removeSpace);
+    const renameSpace = useRootStore((s) => s.renameSpace);
+    const switchSpace = useRootStore((s) => s.switchSpace);
+    const addWindow = useRootStore((s) => s.addWindow);
+    const arrangeWindows = useRootStore((s) => s.arrangeWindows);
     const discovery = spaces.find(s => s.id === 'discovery');
-    const loadDiscovery = useLayoutStore(s => s.loadDiscovery);
+    const loadDiscovery = useRootStore(s => s.loadDiscovery);
     const [room, setRoom] = useState('');
     const [newSpaceName, setNewSpaceName] = useState('');
     const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
-    const discoveryOffset = useLayoutStore(s => s.discoveryOffset);
-    const isLoadingDiscovery = useLayoutStore(s => s.isLoadingDiscovery);
-    const loadNextDiscovery = useLayoutStore(s => s.loadNextDiscovery);
-    const loadPrevDiscovery = useLayoutStore(s => s.loadPrevDiscovery);
-    const discoveryLimit = useLayoutStore(s => s.discoveryLimit);
-    const setDiscoveryLimit = useLayoutStore(s => s.setDiscoveryLimit);
+    const discoveryOffset = useRootStore(s => s.discoveryOffset);
+    const isLoadingDiscovery = useRootStore(s => s.isLoadingDiscovery);
+    const loadNextDiscovery = useRootStore(s => s.loadNextDiscovery);
+    const loadPrevDiscovery = useRootStore(s => s.loadPrevDiscovery);
+    const discoveryLimit = useRootStore(s => s.discoveryLimit);
+    const setDiscoveryLimit = useRootStore(s => s.setDiscoveryLimit);
     const discoverySpace = spaces.find(s => s.id === 'discovery');
     const pinnedCount = discoverySpace?.windows.filter(w => w.pinned).length ?? 0;
-    const addSpaceFromPinned = useLayoutStore((s) => s.addSpaceFromPinned);
-    const arrangeFilteredWindows = useLayoutStore(s => s.arrangeFilteredWindows);
-    const toggleAutoArrange = useLayoutStore((s) => s.toggleAutoArrange);
-    const setFilterMode = useLayoutStore(s => s.setFilterMode);
-    const filterMode = useLayoutStore(s => s.filterMode);
-    const globalMuted = useLayoutStore(s => s.globalMuted);
-    const toggleGlobalMuted = useLayoutStore(s => s.toggleGlobalMuted);
+    const addSpaceFromPinned = useRootStore((s) => s.addSpaceFromPinned);
+    const arrangeFilteredWindows = useRootStore(s => s.arrangeFilteredWindows);
+    const toggleAutoArrange = useRootStore((s) => s.toggleAutoArrange);
+    const setFilterMode = useRootStore(s => s.setFilterMode);
+    const filterMode = useRootStore(s => s.filterMode);
+    const globalMuted = useRootStore(s => s.globalMuted);
+    const toggleGlobalMuted = useRootStore(s => s.toggleGlobalMuted);
 
     useEffect(() => {
         const handleResize = () => {

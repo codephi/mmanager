@@ -1,4 +1,8 @@
-import type { SpaceConfig, WindowConfig } from "../store/types";
+import type { SpaceConfig, WindowConfig } from "./types";
+
+export function generateId(): string {
+    return Math.random().toString(36).substring(2, 9);
+}
 
 export function arrangeWindows(space: SpaceConfig): SpaceConfig {
     const total = space.windows.length;

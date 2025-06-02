@@ -1,11 +1,11 @@
 import React from 'react';
-import { useLayoutStore } from '../store/layout';
+import { useRootStore } from '../store/rootStore';
 import { VideoWindow } from './VideoWindow';
 
 export const WindowsGrid: React.FC = () => {
-    const spaces = useLayoutStore((s) => s.spaces);
-    const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
-    const filterMode = useLayoutStore(s => s.filterMode);
+    const spaces = useRootStore((s) => s.spaces);
+    const activeSpaceId = useRootStore((s) => s.activeSpaceId);
+    const filterMode = useRootStore(s => s.filterMode);
 
     const activeSpace = spaces.find(t => t.id === activeSpaceId);
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
-import { useLayoutStore } from '../store/layout';
+import { useRootStore } from '../store/rootStore';
 import { HlsPlayer } from './HlsPlayer';
 import { VolumeControl } from './VolumeControl';
 
@@ -15,13 +15,13 @@ interface Props {
 }
 
 export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
-  const updateWindow = useLayoutStore((s) => s.updateWindow);
-  const removeWindow = useLayoutStore((s) => s.removeWindow);
-  const bringToFront = useLayoutStore((s) => s.bringToFront);
-  const moveWindowToSpace = useLayoutStore((s) => s.moveWindowToSpace);
-  const togglePin = useLayoutStore(s => s.togglePin);
-  const spaces = useLayoutStore((s) => s.spaces);
-  const activeSpaceId = useLayoutStore((s) => s.activeSpaceId);
+  const updateWindow = useRootStore((s) => s.updateWindow);
+  const removeWindow = useRootStore((s) => s.removeWindow);
+  const bringToFront = useRootStore((s) => s.bringToFront);
+  const moveWindowToSpace = useRootStore((s) => s.moveWindowToSpace);
+  const togglePin = useRootStore(s => s.togglePin);
+  const spaces = useRootStore((s) => s.spaces);
+  const activeSpaceId = useRootStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
   const [maximized, setMaximized] = useState(false);
@@ -29,13 +29,13 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
-  const globalMuted = useLayoutStore(s => s.globalMuted);
+  const globalMuted = useRootStore(s => s.globalMuted);
   const [mutedState, setMutedState] = useState(globalMuted);
   const [isPrivate, setIsPrivate] = useState(false);
   const isDiscovery = activeSpaceId === 'discovery';
 
 
-  const windowState = useLayoutStore(s => {
+  const windowState = useRootStore(s => {
     const space = s.spaces.find(sp => sp.id === s.activeSpaceId);
     return space?.windows.find(w => w.id === id);
   });
@@ -45,11 +45,11 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const effectiveMuted = isDiscovery ? globalMuted : muted;
 
   const setVolume = (v: number) => {
-    useLayoutStore.getState().setWindowVolume(id, v);
+    useRootStore.getState().setWindowVolume(id, v);
   };
 
   const toggleMute = () => {
-    useLayoutStore.getState().toggleWindowMute(id);
+    useRootStore.getState().toggleWindowMute(id);
   };
 
 
@@ -66,24 +66,24 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
 
         if (data.hls_source) {
           setHlsSource(data.hls_source);
-          useLayoutStore.getState().updateWindow(id, { isOnline: true });
+          useRootStore.getState().updateWindow(id, { isOnline: true });
           setIsOffline(false);  // <== importante
         } else if (data.room_status === 'private') {
           setHlsSource(null);   // importante garantir que é null
           setIsPrivate(true);   // <== novo estado
-          useLayoutStore.getState().updateWindow(id, { isOnline: false });
+          useRootStore.getState().updateWindow(id, { isOnline: false });
         } else {
           setHlsSource(null);
           setIsOffline(true);
           setIsPrivate(false);
-          useLayoutStore.getState().updateWindow(id, { isOnline: false });
+          useRootStore.getState().updateWindow(id, { isOnline: false });
         }
       } catch (err) {
         console.error('Erro carregando HLS:', err);
         setHlsSource(null);
         setIsOffline(true);
         setIsPrivate(false);
-        useLayoutStore.getState().updateWindow(id, { isOnline: false });
+        useRootStore.getState().updateWindow(id, { isOnline: false });
       }
     }
     fetchHls();
