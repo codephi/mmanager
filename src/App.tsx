@@ -40,13 +40,18 @@ function App() {
     const handleResize = () => {
       const active = spaces.find(t => t.id === activeSpaceId);
       if (active?.autoArrange) {
-        arrangeWindows();
+        if (filterMode === 'all') {
+          arrangeWindows();
+        } else {
+          arrangeFilteredWindows();
+        }
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [spaces, activeSpaceId, arrangeWindows]);
+  }, [spaces, activeSpaceId, arrangeWindows, arrangeFilteredWindows, filterMode]);
+
 
 
   useEffect(() => {
@@ -90,7 +95,7 @@ function App() {
           </div>
         )}
 
-        <button onClick={() => useLayoutStore.getState().toggleGlobalMuted()}>
+        <button onClick={() => toggleGlobalMuted()}>
           {globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}
         </button>
 

@@ -32,6 +32,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const globalMuted = useLayoutStore(s => s.globalMuted);
   const [mutedState, setMutedState] = useState(globalMuted);
   const [isPrivate, setIsPrivate] = useState(false);
+  const isDiscovery = activeSpaceId === 'discovery';
+
 
   const windowState = useLayoutStore(s => {
     const space = s.spaces.find(sp => sp.id === s.activeSpaceId);
@@ -40,6 +42,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
 
   const muted = windowState?.isMuted ?? false;
   const volume = windowState?.volume ?? 1.0;
+  const effectiveMuted = isDiscovery ? globalMuted : muted;
 
   const setVolume = (v: number) => {
     useLayoutStore.getState().setWindowVolume(id, v);
@@ -130,7 +133,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
           onMouseDown={() => bringToFront(id)}
         >
           <div>{room}</div>
-          <VolumeControl muted={muted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
+          <VolumeControl muted={effectiveMuted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
 
 
           <div style={{ display: 'flex', gap: 5 }}>
@@ -162,7 +165,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
               </a>
             </div>
           ) : hlsSource ? (
-            <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
+            <HlsPlayer src={hlsSource} muted={effectiveMuted} volume={volume} />
           ) : (
             <div style={{ color: '#fff' }}>Carregando vídeo...</div>
           )}
