@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRootStore } from '../store/rootStore';
+import { useWindowsStore } from '../store/windowsStore';
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -103,7 +104,7 @@ function Toolbar() {
     const removeSpace = useRootStore((s) => s.removeSpace);
     const renameSpace = useRootStore((s) => s.renameSpace);
     const switchSpace = useRootStore((s) => s.switchSpace);
-    const addWindow = useRootStore((s) => s.addWindow);
+    const addWindow = useWindowsStore((s) => s.addWindow);
     const arrangeWindows = useRootStore((s) => s.arrangeWindows);
     const discovery = spaces.find(s => s.id === 'discovery');
     const loadDiscovery = useRootStore(s => s.loadDiscovery);

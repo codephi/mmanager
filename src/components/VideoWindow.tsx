@@ -3,6 +3,7 @@ import { Rnd } from 'react-rnd';
 import { useRootStore } from '../store/rootStore';
 import { HlsPlayer } from './HlsPlayer';
 import { VolumeControl } from './VolumeControl';
+import { useWindowsStore } from '../store/windowsStore';
 
 interface Props {
   id: string;
@@ -16,7 +17,7 @@ interface Props {
 
 export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
   const updateWindow = useRootStore((s) => s.updateWindow);
-  const removeWindow = useRootStore((s) => s.removeWindow);
+  const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useRootStore((s) => s.bringToFront);
   const moveWindowToSpace = useRootStore((s) => s.moveWindowToSpace);
   const togglePin = useRootStore(s => s.togglePin);

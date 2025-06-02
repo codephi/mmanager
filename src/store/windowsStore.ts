@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import type { SpaceConfig, WindowConfig } from './types';
-import { useSpacesStore } from './spacesStore';
-import { useGlobalStore } from './globalStore';
 import { generateId } from './utils';
 import { arrangeWindowsInternal } from './arrangeUtils';
+import { useRootStore } from './rootStore';
 
 interface WindowsState {
     addWindow: (room: string) => void;
@@ -12,8 +11,8 @@ interface WindowsState {
 
 export const useWindowsStore = create<WindowsState>((set, get) => ({
     addWindow: (room) => {
-        const { spaces } = useSpacesStore.getState();
-        const { activeSpaceId } = useGlobalStore.getState();
+        const { spaces } = useRootStore.getState();
+        const { activeSpaceId } = useRootStore.getState();
         const space = spaces.find(s => s.id === activeSpaceId);
         if (!space) return;
 
@@ -40,14 +39,14 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
 
         const finalSpace = updatedSpace.autoArrange ? arrangeWindowsInternal(updatedSpace) : updatedSpace;
 
-        useSpacesStore.setState({
+        useRootStore.setState({
             spaces: spaces.map(s => s.id === space.id ? finalSpace : s)
         });
     },
 
     removeWindow: (id) => {
-        const { spaces } = useSpacesStore.getState();
-        const { activeSpaceId } = useGlobalStore.getState();
+        const { spaces } = useRootStore.getState();
+        const { activeSpaceId } = useRootStore.getState();
         const space = spaces.find(s => s.id === activeSpaceId);
         if (!space) return;
 
@@ -61,7 +60,7 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
 
         const finalSpace = updatedSpace.autoArrange ? arrangeWindowsInternal(updatedSpace) : updatedSpace;
 
-        useSpacesStore.setState({
+        useRootStore.setState({
             spaces: spaces.map(s => s.id === space.id ? finalSpace : s)
         });
     },
