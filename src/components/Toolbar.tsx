@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useRootStore } from '../store/rootStore';
 import { useWindowsStore } from '../store/windowsStore';
+import { useDiscoveryStore } from '../store/discoveryStore';
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -107,26 +108,28 @@ function Toolbar() {
     const addWindow = useWindowsStore((s) => s.addWindow);
     const arrangeWindows = useRootStore((s) => s.arrangeWindows);
     const discovery = spaces.find(s => s.id === 'discovery');
-    const loadDiscovery = useRootStore(s => s.loadDiscovery);
     const [room, setRoom] = useState('');
     const [newSpaceName, setNewSpaceName] = useState('');
     const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState('');
-    const discoveryOffset = useRootStore(s => s.discoveryOffset);
-    const isLoadingDiscovery = useRootStore(s => s.isLoadingDiscovery);
-    const loadNextDiscovery = useRootStore(s => s.loadNextDiscovery);
-    const loadPrevDiscovery = useRootStore(s => s.loadPrevDiscovery);
-    const discoveryLimit = useRootStore(s => s.discoveryLimit);
-    const setDiscoveryLimit = useRootStore(s => s.setDiscoveryLimit);
     const discoverySpace = spaces.find(s => s.id === 'discovery');
     const pinnedCount = discoverySpace?.windows.filter(w => w.pinned).length ?? 0;
-    const addSpaceFromPinned = useRootStore((s) => s.addSpaceFromPinned);
     const arrangeFilteredWindows = useRootStore(s => s.arrangeFilteredWindows);
     const toggleAutoArrange = useRootStore((s) => s.toggleAutoArrange);
     const setFilterMode = useRootStore(s => s.setFilterMode);
     const filterMode = useRootStore(s => s.filterMode);
     const globalMuted = useRootStore(s => s.globalMuted);
     const toggleGlobalMuted = useRootStore(s => s.toggleGlobalMuted);
+
+    // DiscoveryState hooks
+    const discoveryOffset = useDiscoveryStore(s => s.discoveryOffset);
+    const isLoadingDiscovery = useDiscoveryStore(s => s.isLoadingDiscovery);
+    const loadDiscovery = useDiscoveryStore(s => s.loadDiscovery);
+    const loadNextDiscovery = useDiscoveryStore(s => s.loadNextDiscovery);
+    const loadPrevDiscovery = useDiscoveryStore(s => s.loadPrevDiscovery);
+    const discoveryLimit = useDiscoveryStore(s => s.discoveryLimit);
+    const setDiscoveryLimit = useDiscoveryStore(s => s.setDiscoveryLimit);
+    const addSpaceFromPinned = useDiscoveryStore(s => s.addSpaceFromPinned);
 
     useEffect(() => {
         const handleResize = () => {

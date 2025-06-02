@@ -24,27 +24,46 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
         const totalSpaces = get().spaces.length;
         const finalName = name.trim() !== '' ? name : `Space ${totalSpaces + 1}`;
         set(state => ({
-            spaces: [...state.spaces, { id, name: finalName, windows: [], zIndexes: {}, autoArrange: true }],
+            spaces: [...state.spaces, {
+                id,
+                name: finalName,
+                windows: [],
+                zIndexes: {},
+                autoArrange: true,
+                spaceLimit: 12,  // default de paginação
+                spaceOffset: 0
+            }],
+            activeSpaceId: id
         }));
     },
 
     removeSpace: (id) => {
         if (id === 'discovery') return;
         set(state => {
-            const newSpaces = state.spaces.filter(s => s.id !== id);
-            return { spaces: newSpaces.length ? newSpaces : [{ id: 'default', name: 'Space 1', windows: [], zIndexes: {}, autoArrange: true }] };
+            let newSpaces = state.spaces.filter(s => s.id !== id);
+
+            if (newSpaces.length === 0) {
+                newSpaces = [{ id: 'default', name: 'Space 1', windows: [], zIndexes: {}, autoArrange: true }];
+            }
+
+            return {
+                spaces: newSpaces,
+                activeSpaceId: newSpaces[0].id
+            };
         });
     },
 
     renameSpace: (id, name) => {
         set(state => ({
-            spaces: state.spaces.map(s => s.id === id ? { ...s, name } : s),
+            spaces: state.spaces.map(t => t.id === id ? { ...t, name } : t)
         }));
     },
 
     toggleAutoArrange: (spaceId) => {
         set(state => ({
-            spaces: state.spaces.map(s => s.id === spaceId ? { ...s, autoArrange: !s.autoArrange } : s),
+            spaces: state.spaces.map(space =>
+                space.id === spaceId ? { ...space, autoArrange: !space.autoArrange } : space
+            )
         }));
     }
 }));

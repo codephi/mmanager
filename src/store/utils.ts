@@ -4,7 +4,7 @@ export function generateId(): string {
     return Math.random().toString(36).substring(2, 9);
 }
 
-export function arrangeWindows(space: SpaceConfig): SpaceConfig {
+export function arrangeWindowsInternal(space: SpaceConfig): SpaceConfig {
     const total = space.windows.length;
     if (total === 0) return space;
 
