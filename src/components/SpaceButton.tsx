@@ -1,16 +1,12 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useSpacesStore } from "../store/spacesStore";
 import type { SpaceConfig } from "../store/types";
 
 const SpaceContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 5px;
-`;
-
-const Label = styled.label`
-  color: white;
-  font-size: 12px;
 `;
 
 const RenameInput = styled.input`
@@ -21,31 +17,26 @@ const RenameButton = styled.button`
   font-size: 12px;
 `;
 
-interface SpaceOptionProps {
-  space?: SpaceConfig;
-  renameValue: string;
-  setRenameValue: (value: string) => void;
-  renameSpace: (id: string, name: string) => void;
-  toggleAutoArrange: (id: string) => void;
-  removeSpace: (id: string) => void;
+export const Button = styled.button<{ $active?: boolean }>`
+  background-color: ${({ $active }) =>
+    $active ? "var(--primary-color-hover)" : "var(--primary-color)"};
+`;
+
+interface SpaceButtonProps {
+  space: SpaceConfig;
+  active: boolean;
 }
 
-export function SpaceOption({
-  space,
-  renameValue,
-  setRenameValue,
-  renameSpace,
-  toggleAutoArrange,
-  removeSpace,
-}: SpaceOptionProps) {
+export function SpaceButton({ space, active }: SpaceButtonProps) {
+  const [renameValue, setRenameValue] = useState("");
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
+  const renameSpace = useSpacesStore((s) => s.renameSpace);
+  const switchSpace = useSpacesStore((s) => s.setActiveSpace);
 
   if (!space) return null;
 
   return (
     <SpaceContainer>
-      <button onClick={() => removeSpace(space.id)}>Remove space</button>
-
       {renamingSpaceId === space.id ? (
         <RenameInput
           value={renameValue}
@@ -63,7 +54,13 @@ export function SpaceOption({
           autoFocus
         />
       ) : (
-        space.name
+        <Button
+          key={space.id}
+          onClick={() => switchSpace(space.id)}
+          $active={active}
+        >
+          {space.name} ({space.windows.length})
+        </Button>
       )}
       <RenameButton
         onClick={() => {
@@ -73,14 +70,6 @@ export function SpaceOption({
       >
         ✏️
       </RenameButton>
-      <Label>
-        <input
-          type="checkbox"
-          checked={space.autoArrange}
-          onChange={() => toggleAutoArrange(space.id)}
-        />
-        Auto Grid
-      </Label>
     </SpaceContainer>
   );
 }

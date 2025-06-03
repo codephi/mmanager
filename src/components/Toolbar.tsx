@@ -1,35 +1,52 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useWindowsStore } from "../store/windowsStore";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import { SpaceOption } from "./SpaceOption";
 import { Pagination } from "./Pagination";
+import SpaceButtons from "./SpaceButtons";
 
 // Styled Components
 const ToolbarContainer = styled.div`
   padding: 10px;
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
   flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const DiscoveryControls = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
 `;
 
 const LeftOptions = styled.div`
   display: flex;
-  gap: 10px;
+  flex: 1;
   align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 0.5rem;
 `;
 
 const RightOptions = styled.div`
   display: flex;
-  gap: 10px;
   align-items: center;
-  margin-left: auto;
+  flex-direction: row;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 0.5rem;
+`;
+
+const CenterOptions = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 function Toolbar() {
@@ -39,11 +56,9 @@ function Toolbar() {
   const addSpace = useSpacesStore((s) => s.addSpace);
   const removeSpace = useSpacesStore((s) => s.removeSpace);
   const renameSpace = useSpacesStore((s) => s.renameSpace);
-  const switchSpace = useSpacesStore((s) => s.setActiveSpace);
   const toggleAutoArrange = useSpacesStore((s) => s.toggleAutoArrange);
 
   // Windows e Discovery seguem igual
-  const addWindow = useWindowsStore((s) => s.addWindow);
   const arrangeWindows = useSpacesStore((s) => s.arrangeWindows);
   const arrangeFilteredWindows = useSpacesStore(
     (s) => s.arrangeFilteredWindows
@@ -63,7 +78,6 @@ function Toolbar() {
   const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
 
   const [newSpaceName, setNewSpaceName] = useState("");
-  const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
   useEffect(() => {
@@ -102,17 +116,6 @@ function Toolbar() {
   return (
     <ToolbarContainer>
       <LeftOptions>
-        <select
-          value={activeSpaceId}
-          onChange={(e) => switchSpace(e.target.value)}
-        >
-          {spaces.map((space) => (
-            <option key={space.id} value={space.id}>
-              {space.name} ({space.windows.length})
-            </option>
-          ))}
-        </select>
-
         <button onClick={handlerGlobalMuted}>{"🔇 Mute All"}</button>
 
         <select
@@ -121,12 +124,16 @@ function Toolbar() {
             setFilterMode(e.target.value as "all" | "online" | "offline")
           }
         >
-          <option value="all">Todas as salas</option>
-          <option value="online">Somente online</option>
-          <option value="offline">Somente offline</option>
+          <option value="all">All rooms</option>
+          <option value="online">Online rooms</option>
+          <option value="offline">Offline rooms</option>
         </select>
 
         <button onClick={arrangeFilteredWindows}>Grid</button>
+      </LeftOptions>
+
+      <CenterOptions>
+        <SpaceButtons />
 
         <button
           onClick={() => {
@@ -134,9 +141,9 @@ function Toolbar() {
             setNewSpaceName("");
           }}
         >
-          Adicionar Space
+          + Add Space
         </button>
-      </LeftOptions>
+      </CenterOptions>
 
       <RightOptions>
         {activeSpaceId === "discovery" ? (
@@ -163,16 +170,11 @@ function Toolbar() {
         ) : (
           <SpaceOption
             space={selectedSpace}
-            renamingSpaceId={renamingSpaceId}
-            setRenamingSpaceId={setRenamingSpaceId}
             renameValue={renameValue}
             setRenameValue={setRenameValue}
             renameSpace={renameSpace}
             toggleAutoArrange={toggleAutoArrange}
             removeSpace={removeSpace}
-            addStream={(room: string) => {
-              addWindow(room.trim());
-            }}
           />
         )}
       </RightOptions>

@@ -1,6 +1,6 @@
 :root {
   --primary-color: #29074b;
-  --primary-color-hover: #1669c1;
+  --primary-color-hover: #700774;
   --dark-color: #100020;
   --success-color: #0f9d58;
   --warning-color: #fbbc05;
@@ -97,6 +97,7 @@ button {
   border: 1px solid #ccc;
   background: var(--text-color);
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 /* FORMULÁRIOS */

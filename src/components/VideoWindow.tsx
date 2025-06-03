@@ -94,17 +94,14 @@ const CopyMessage = styled.div`
   z-index: 9999;
 `;
 
-const buttonStyle: React.CSSProperties = {
-  background: "#444",
-  color: "#fff",
-  border: "none",
-  borderRadius: 3,
-  cursor: "pointer",
-  width: 25,
-  height: 25,
-  padding: 0,
-  fontSize: 16,
-};
+export const WindowHeaderButton = styled.button`
+  border: none;
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  font-size: 16px;
+`;
 
 export const VideoWindow: React.FC<Props> = ({
   id,
@@ -149,37 +146,38 @@ export const VideoWindow: React.FC<Props> = ({
     useSpacesStore.getState().toggleWindowMute(id);
   };
 
-  useEffect(() => {
-    async function fetchHls() {
-      try {
-        const res = await fetch(
-          `https://chaturbate.com/api/chatvideocontext/${room}/`
-        );
-        const data = await res.json();
+  const fetchHls = async (room: string, id: string) => {
+    try {
+      const res = await fetch(
+        `https://chaturbate.com/api/chatvideocontext/${room}/`
+      );
+      const data = await res.json();
 
-        if (data.hls_source) {
-          setHlsSource(data.hls_source);
-          useWindowsStore.getState().updateWindow(id, { isOnline: true });
-          setIsOffline(false);
-        } else if (data.room_status === "private") {
-          setHlsSource(null);
-          setIsPrivate(true);
-          useWindowsStore.getState().updateWindow(id, { isOnline: false });
-        } else {
-          setHlsSource(null);
-          setIsOffline(true);
-          setIsPrivate(false);
-          useWindowsStore.getState().updateWindow(id, { isOnline: false });
-        }
-      } catch (err) {
-        console.error("Erro carregando HLS:", err);
+      if (data.hls_source) {
+        setHlsSource(data.hls_source);
+        useWindowsStore.getState().updateWindow(id, { isOnline: true });
+        setIsOffline(false);
+      } else if (data.room_status === "private") {
+        setHlsSource(null);
+        setIsPrivate(true);
+        useWindowsStore.getState().updateWindow(id, { isOnline: false });
+      } else {
         setHlsSource(null);
         setIsOffline(true);
         setIsPrivate(false);
         useWindowsStore.getState().updateWindow(id, { isOnline: false });
       }
+    } catch (err) {
+      console.error("Erro carregando HLS:", err);
+      setHlsSource(null);
+      setIsOffline(true);
+      setIsPrivate(false);
+      useWindowsStore.getState().updateWindow(id, { isOnline: false });
     }
-    fetchHls();
+  };
+
+  useEffect(() => {
+    fetchHls(room, id);
   }, [room, id]);
 
   const copyWindowToSpaceLocal = (windowId: string, targetSpaceId: string) => {
@@ -192,9 +190,9 @@ export const VideoWindow: React.FC<Props> = ({
   const renderPinButton = () => {
     if (isDiscovery) {
       return (
-        <button onClick={() => togglePin(id)} style={buttonStyle}>
+        <WindowHeaderButton onClick={() => togglePin(id)}>
           {isPinned ? "📌" : "📍"}
-        </button>
+        </WindowHeaderButton>
       );
     }
   };
@@ -250,20 +248,15 @@ export const VideoWindow: React.FC<Props> = ({
               onVolumeChange={setVolume}
             />
             {renderPinButton()}
-            <button
-              className="no-drag"
-              onClick={toggleMaximize}
-              style={buttonStyle}
-            >
+            <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
               {maximized ? "🗗" : "🗖"}
-            </button>
-            <button
+            </WindowHeaderButton>
+            <WindowHeaderButton
               className="no-drag"
               onClick={() => removeWindow(id)}
-              style={buttonStyle}
             >
               ❌
-            </button>
+            </WindowHeaderButton>
             <StyledSelect
               className="no-drag"
               value={activeSpaceId}
