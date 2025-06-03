@@ -180,6 +180,11 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             const targetSpace = state.spaces.find(s => s.id === targetSpaceId);
             if (!activeSpace || !targetSpace) return state;
 
+            // Verifica se o window já existe no targetSpace
+            if (targetSpace.windows.some(w => w.id === windowId)) {
+                return state;
+            }
+
             const windowToCopy = activeSpace.windows.find(w => w.id === windowId);
             if (!windowToCopy) return state;
 
