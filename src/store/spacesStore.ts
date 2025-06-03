@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { useRootStore } from './rootStore';
 import type { SpaceConfig, WindowConfig } from './types';
 
 interface SpacesState {
+    spaces: SpaceConfig[];
     getSpaces: () => SpaceConfig[];
     getActiveSpaceId: () => string;
     getSpace: (id: string) => SpaceConfig | undefined;
@@ -13,31 +13,42 @@ interface SpacesState {
     renameSpace: (id: string, name: string) => void;
     toggleAutoArrange: (spaceId: string) => void;
     createSpaceFromPinned: (pinnedWindows: WindowConfig[]) => void;
+    activeSpaceId: string;
 }
 
 export const useSpacesStore = create<SpacesState>((set, get) => ({
-    getSpaces: () => useRootStore.getState().spaces,
+    spaces: [
+        {
+            id: 'discovery',
+            name: 'Discovery',
+            windows: [],
+            zIndexes: {},
+            autoArrange: true,
+        }
+    ],
+    activeSpaceId: 'discovery',
 
-    getActiveSpaceId: () => useRootStore.getState().activeSpaceId,
+    getSpaces: () => get().spaces,
+
+    getActiveSpaceId: () => get().activeSpaceId,
 
     getSpace: (id) => {
-        const spaces = useRootStore.getState().spaces;
+        const spaces = get().spaces;
         return spaces.find(s => s.id === id);
     },
 
     updateSpace: (id, updated) => {
-        const state = useRootStore.getState();
-        useRootStore.setState({
+        set(state => ({
             spaces: state.spaces.map(s => (s.id === id ? updated : s)),
-        });
+        }));
     },
 
     setActiveSpace: (id) => {
-        useRootStore.setState({ activeSpaceId: id });
+        set({ activeSpaceId: id });
     },
 
     addSpace: (name) => {
-        const state = useRootStore.getState();
+        const state = get();
         const id = Math.random().toString(36).substring(2, 9);
         const totalSpaces = state.spaces.length;
         const finalName = name.trim() !== '' ? name : `Space ${totalSpaces + 1}`;
@@ -50,14 +61,14 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             autoArrange: true,
         };
 
-        useRootStore.setState({
+        set({
             spaces: [...state.spaces, newSpace],
             activeSpaceId: id,
         });
     },
 
     removeSpace: (id) => {
-        const state = useRootStore.getState();
+        const state = get();
         if (id === 'discovery') return; // nunca remove discovery
 
         let newSpaces = state.spaces.filter((s) => s.id !== id);
@@ -73,33 +84,30 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             ];
         }
 
-        useRootStore.setState({
+        set({
             spaces: newSpaces,
             activeSpaceId: newSpaces[0].id,
         });
     },
 
     renameSpace: (id, name) => {
-        const state = useRootStore.getState();
-        useRootStore.setState({
+        set(state => ({
             spaces: state.spaces.map((s) => (s.id === id ? { ...s, name } : s)),
-        });
+        }));
     },
 
     toggleAutoArrange: (spaceId) => {
-        const state = useRootStore.getState();
-        useRootStore.setState({
+        set(state => ({
             spaces: state.spaces.map((space) =>
                 space.id === spaceId
                     ? { ...space, autoArrange: !space.autoArrange }
                     : space
             ),
-        });
+        }));
     },
 
-
     createSpaceFromPinned: (pinnedWindows) => {
-        const state = useRootStore.getState();
+        const state = get();
         const id = Math.random().toString(36).substring(2, 9);
         const totalSpaces = state.spaces.length;
         const finalName = `Space ${totalSpaces + 1}`;
@@ -114,7 +122,7 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             autoArrange: true,
         };
 
-        useRootStore.setState({
+        set({
             spaces: [...state.spaces, newSpace],
             activeSpaceId: id,
         });

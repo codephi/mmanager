@@ -5,6 +5,7 @@ import { HlsPlayer } from './HlsPlayer';
 import { VolumeControl } from './VolumeControl';
 import { useWindowsStore } from '../store/windowsStore';
 import { useDiscoveryStore } from '../store/discoveryStore';
+import { useSpacesStore } from '../store/spacesStore';
 
 interface Props {
   id: string;
@@ -22,8 +23,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const bringToFront = useRootStore((s) => s.bringToFront);
   const moveWindowToSpace = useRootStore((s) => s.moveWindowToSpace);
   const togglePin = useDiscoveryStore(s => s.togglePin);
-  const spaces = useRootStore((s) => s.spaces);
-  const activeSpaceId = useRootStore((s) => s.activeSpaceId);
+  const spaces = useSpacesStore((s) => s.spaces);
+  const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find(t => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
   const [maximized, setMaximized] = useState(false);
@@ -37,7 +38,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const isDiscovery = activeSpaceId === 'discovery';
 
 
-  const windowState = useRootStore(s => {
+  const windowState = useSpacesStore(s => {
     const space = s.spaces.find(sp => sp.id === s.activeSpaceId);
     return space?.windows.find(w => w.id === id);
   });

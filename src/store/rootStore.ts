@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useSpacesStore } from './spacesStore';
-
 interface WindowConfig {
   id: string;
   room: string;
@@ -25,8 +24,6 @@ interface SpaceConfig {
 }
 
 interface RootState {
-  spaces: SpaceConfig[];
-  activeSpaceId: string;
   globalMuted: boolean;
   filterMode: 'all' | 'online' | 'offline';
   setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
@@ -65,27 +62,12 @@ const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
   return { ...space, windows: newWindows };
 };
 
-
 export const useRootStore = create<RootState>()(
   persist(
     (set, get) => ({
-      spaces: [
-        {
-          id: 'discovery',
-          name: 'Discovery',
-          windows: [],
-          zIndexes: {},
-          autoArrange: true,
-        }
-      ],
       globalMuted: false,
       activeSpaceId: 'discovery',
-      discoveryOffset: 0,
-      isLoadingDiscovery: false,
-      discoveryLimit: 6,  // 👈 novo
       filterMode: 'all',
-
-
 
       setFilterMode: (mode) => {
         set({ filterMode: mode });
@@ -139,27 +121,29 @@ export const useRootStore = create<RootState>()(
         spacesState.updateSpace(activeSpaceId, { ...activeSpace, windows: updatedWindows });
       },
 
-      setWindowVolume: (id, volume) => set((state) => {
-        const spaces = state.spaces.map(space => {
-          if (space.id !== state.activeSpaceId) return space;
-          const windows = space.windows.map(win =>
-            win.id === id ? { ...win, volume, isMuted: volume === 0 } : win
-          );
-          return { ...space, windows };
-        });
-        return { spaces };
-      }),
+      setWindowVolume: (id, volume) => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        if (!activeSpace) return;
 
-      toggleWindowMute: (id) => set((state) => {
-        const spaces = state.spaces.map(space => {
-          if (space.id !== state.activeSpaceId) return space;
-          const windows = space.windows.map(win =>
-            win.id === id ? { ...win, isMuted: !win.isMuted } : win
-          );
-          return { ...space, windows };
-        });
-        return { spaces };
-      }),
+        const windows = activeSpace.windows.map(win =>
+          win.id === id ? { ...win, volume, isMuted: volume === 0 } : win
+        );
+        spacesState.updateSpace(activeSpaceId, { ...activeSpace, windows });
+      },
+
+      toggleWindowMute: (id) => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        if (!activeSpace) return;
+
+        const windows = activeSpace.windows.map(win =>
+          win.id === id ? { ...win, isMuted: !win.isMuted } : win
+        );
+        spacesState.updateSpace(activeSpaceId, { ...activeSpace, windows });
+      },
 
       toggleGlobalMuted: () => {
         const spacesState = useSpacesStore.getState();
@@ -174,40 +158,36 @@ export const useRootStore = create<RootState>()(
         set({ globalMuted: newMuted });
       },
 
+      bringToFront: (id) => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        if (!activeSpace) return;
 
-      bringToFront: (id) => set((state) => {
-        const space = state.spaces.find(t => t.id === state.activeSpaceId);
-        if (!space) return state;
+        const maxZ = Math.max(0, ...Object.values(activeSpace.zIndexes));
+        const zIndexes = { ...activeSpace.zIndexes, [id]: maxZ + 1 };
+        spacesState.updateSpace(activeSpaceId, { ...activeSpace, zIndexes });
+      },
 
-        const maxZ = Math.max(0, ...Object.values(space.zIndexes));
-        const updatedSpace = {
-          ...space,
-          zIndexes: { ...space.zIndexes, [id]: maxZ + 1 }
-        };
+      arrangeWindows: () => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        if (!activeSpace) return;
 
-        return {
-          spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
-        };
-      }),
+        const updatedSpace = arrangeWindowsInternal(activeSpace);
+        spacesState.updateSpace(activeSpaceId, updatedSpace);
+      },
 
-      arrangeWindows: () => set((state) => {
-        const space = state.spaces.find(t => t.id === state.activeSpaceId);
-        if (!space) return state;
-
-        const updatedSpace = arrangeWindowsInternal(space);
-        return {
-          spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
-        };
-      }),
-
-
-      moveWindowToSpace: (windowId, targetSpaceId) => set((state) => {
-        const activeSpace = state.spaces.find(s => s.id === state.activeSpaceId);
-        const targetSpace = state.spaces.find(s => s.id === targetSpaceId);
-        if (!activeSpace || !targetSpace) return state;
+      moveWindowToSpace: (windowId, targetSpaceId) => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        const targetSpace = spacesState.getSpace(targetSpaceId);
+        if (!activeSpace || !targetSpace) return;
 
         const windowToMove = activeSpace.windows.find(w => w.id === windowId);
-        if (!windowToMove) return state;
+        if (!windowToMove) return;
 
         let newTargetSpace = {
           ...targetSpace,
@@ -225,18 +205,9 @@ export const useRootStore = create<RootState>()(
           zIndexes: Object.fromEntries(Object.entries(activeSpace.zIndexes).filter(([id]) => id !== windowId))
         };
 
-        return {
-          spaces: state.spaces.map(s => {
-            if (s.id === newActiveSpace.id) return newActiveSpace;
-            if (s.id === newTargetSpace.id) return newTargetSpace;
-            return s;
-          })
-        };
-      }),
-
-
-
-
+        spacesState.updateSpace(newActiveSpace.id, newActiveSpace);
+        spacesState.updateSpace(newTargetSpace.id, newTargetSpace);
+      },
     }),
     { name: 'root-storage' }
   )

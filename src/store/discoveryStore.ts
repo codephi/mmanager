@@ -7,7 +7,6 @@ interface DiscoveryState {
     discoveryOffset: number;
     isLoadingDiscovery: boolean;
     discoveryLimit: number;
-
     loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
     loadDiscovery: () => Promise<void>;
     loadNextDiscovery: () => Promise<void>;

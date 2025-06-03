@@ -14,6 +14,9 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
     addWindow: (room) => {
         const spacesState = useSpacesStore.getState();
         const activeSpaceId = spacesState.getActiveSpaceId();
+
+        if (!activeSpaceId) return;
+
         const space = spacesState.getSpace(activeSpaceId);
         if (!space) return;
 
@@ -48,6 +51,9 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
     removeWindow: (id) => {
         const spacesState = useSpacesStore.getState();
         const activeSpaceId = spacesState.getActiveSpaceId();
+
+        if (!activeSpaceId) return;
+
         const space = spacesState.getSpace(activeSpaceId);
         if (!space) return;
 
@@ -69,6 +75,9 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
     updateWindow: (id, pos) => {
         const spacesState = useSpacesStore.getState();
         const activeSpaceId = spacesState.getActiveSpaceId();
+
+        if (!activeSpaceId) return;
+
         const space = spacesState.getSpace(activeSpaceId);
         if (!space) return;
 
