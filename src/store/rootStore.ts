@@ -9,9 +9,7 @@ interface RootState {
   setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
   arrangeFilteredWindows: () => void;
   toggleGlobalMuted: () => void;
-  bringToFront: (id: string) => void;
-  arrangeWindows: () => void;
-  moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
+
   setWindowVolume: (windowId: string, volume: number) => void;
   toggleWindowMute: (windowId: string) => void;
 }
@@ -112,56 +110,7 @@ export const useRootStore = create<RootState>()(
         set({ globalMuted: newMuted });
       },
 
-      bringToFront: (id) => {
-        const spacesState = useSpacesStore.getState();
-        const activeSpaceId = spacesState.getActiveSpaceId();
-        const activeSpace = spacesState.getSpace(activeSpaceId);
-        if (!activeSpace) return;
 
-        const maxZ = Math.max(0, ...Object.values(activeSpace.zIndexes));
-        const zIndexes = { ...activeSpace.zIndexes, [id]: maxZ + 1 };
-        spacesState.updateSpace(activeSpaceId, { ...activeSpace, zIndexes });
-      },
-
-      arrangeWindows: () => {
-        const spacesState = useSpacesStore.getState();
-        const activeSpaceId = spacesState.getActiveSpaceId();
-        const activeSpace = spacesState.getSpace(activeSpaceId);
-        if (!activeSpace) return;
-
-        const updatedSpace = arrangeWindowsInternal(activeSpace);
-        spacesState.updateSpace(activeSpaceId, updatedSpace);
-      },
-
-      moveWindowToSpace: (windowId, targetSpaceId) => {
-        const spacesState = useSpacesStore.getState();
-        const activeSpaceId = spacesState.getActiveSpaceId();
-        const activeSpace = spacesState.getSpace(activeSpaceId);
-        const targetSpace = spacesState.getSpace(targetSpaceId);
-        if (!activeSpace || !targetSpace) return;
-
-        const windowToMove = activeSpace.windows.find(w => w.id === windowId);
-        if (!windowToMove) return;
-
-        let newTargetSpace = {
-          ...targetSpace,
-          windows: [...targetSpace.windows, windowToMove],
-          zIndexes: { ...targetSpace.zIndexes, [windowId]: Math.max(0, ...Object.values(targetSpace.zIndexes)) + 1 }
-        };
-
-        if (newTargetSpace.autoArrange) {
-          newTargetSpace = arrangeWindowsInternal(newTargetSpace);
-        }
-
-        const newActiveSpace = {
-          ...activeSpace,
-          windows: activeSpace.windows.filter(w => w.id !== windowId),
-          zIndexes: Object.fromEntries(Object.entries(activeSpace.zIndexes).filter(([id]) => id !== windowId))
-        };
-
-        spacesState.updateSpace(newActiveSpace.id, newActiveSpace);
-        spacesState.updateSpace(newTargetSpace.id, newTargetSpace);
-      },
     }),
     { name: 'root-storage' }
   )

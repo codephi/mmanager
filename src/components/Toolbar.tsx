@@ -101,7 +101,7 @@ function Toolbar() {
 
     // Windows e Discovery seguem igual
     const addWindow = useWindowsStore((s) => s.addWindow);
-    const arrangeWindows = useRootStore((s) => s.arrangeWindows);
+    const arrangeWindows = useSpacesStore((s) => s.arrangeWindows);
     const arrangeFilteredWindows = useRootStore(s => s.arrangeFilteredWindows);
     const setFilterMode = useRootStore(s => s.setFilterMode);
     const filterMode = useRootStore(s => s.filterMode);

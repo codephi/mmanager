@@ -20,8 +20,8 @@ interface Props {
 export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
   const updateWindow = useWindowsStore((s) => s.updateWindow);
   const removeWindow = useWindowsStore((s) => s.removeWindow);
-  const bringToFront = useRootStore((s) => s.bringToFront);
-  const moveWindowToSpace = useRootStore((s) => s.moveWindowToSpace);
+  const bringToFront = useSpacesStore((s) => s.bringToFront);
+  const moveWindowToSpace = useSpacesStore((s) => s.moveWindowToSpace);
   const togglePin = useDiscoveryStore(s => s.togglePin);
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
