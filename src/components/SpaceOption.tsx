@@ -65,14 +65,6 @@ export function SpaceOption({
       ) : (
         space.name
       )}
-      <RenameButton
-        onClick={() => {
-          setRenamingSpaceId(space.id);
-          setRenameValue(space.name);
-        }}
-      >
-        ✏️
-      </RenameButton>
       <Label>
         <input
           type="checkbox"

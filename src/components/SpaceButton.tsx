@@ -11,6 +11,7 @@ const SpaceContainer = styled.div`
 
 const RenameInput = styled.input`
   font-size: 14px;
+  text-align: center;
 `;
 
 const RenameButton = styled.button`
@@ -20,6 +21,16 @@ const RenameButton = styled.button`
 export const Button = styled.button<{ $active?: boolean }>`
   background-color: ${({ $active }) =>
     $active ? "var(--primary-color-hover)" : "var(--primary-color)"};
+`;
+
+const AutoArrange = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  white-space: nowrap;
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
 `;
 
 interface SpaceButtonProps {
@@ -32,6 +43,8 @@ export function SpaceButton({ space, active }: SpaceButtonProps) {
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
   const renameSpace = useSpacesStore((s) => s.renameSpace);
   const switchSpace = useSpacesStore((s) => s.setActiveSpace);
+  const removeSpace = useSpacesStore((s) => s.removeSpace);
+  const toggleAutoArrange = useSpacesStore((s) => s.toggleAutoArrange);
 
   if (!space) return null;
 
@@ -62,14 +75,32 @@ export function SpaceButton({ space, active }: SpaceButtonProps) {
           {space.name} ({space.windows.length})
         </Button>
       )}
-      <RenameButton
-        onClick={() => {
-          setRenamingSpaceId(space.id);
-          setRenameValue(space.name);
-        }}
-      >
-        ✏️
-      </RenameButton>
+      {active && (
+        <>
+          <RenameButton
+            onClick={() => {
+              setRenamingSpaceId(space.id);
+              setRenameValue(space.name);
+            }}
+          >
+            ✏️
+          </RenameButton>
+          <button onClick={() => removeSpace(space.id)} title="Remover espaço">
+            ❌
+          </button>
+          <AutoArrange
+            className="button"
+            onClick={() => toggleAutoArrange(space.id)}
+          >
+            <input
+              type="checkbox"
+              checked={space.autoArrange}
+              onChange={() => toggleAutoArrange(space.id)}
+            />
+            Auto Arrange
+          </AutoArrange>
+        </>
+      )}
     </SpaceContainer>
   );
 }

@@ -24,7 +24,7 @@ interface DiscoveryState {
 export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   discoveryOffset: 0,
   isLoadingDiscovery: false,
-  discoveryLimit: 6,
+  discoveryLimit: 12,
   totalPages: 1,
   totalRooms: 0,
   currentPage: 1,
@@ -49,10 +49,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     if (!force && state.isLoadingDiscovery) return;
     set({ isLoadingDiscovery: true });
 
-    const pinned = discovery.windows.filter((w) => w.pinned);
+    const pinned = spacesState.pinnedWindows; // 🔥 agora vem do global store
     const diffLimitPinned = state.discoveryLimit - pinned.length;
-    const availableSlots =
-      diffLimitPinned <= 0 ? 0 : Math.max(0, diffLimitPinned);
+    const availableSlots = diffLimitPinned <= 0 ? 0 : diffLimitPinned;
 
     if (availableSlots === 0) {
       const updatedDiscovery = arrangeWindowsInternal({
@@ -88,17 +87,16 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const updatedDiscovery = arrangeWindowsInternal({
       ...discovery,
       windows: [...pinned, ...newWindows],
-      zIndexes: Object.fromEntries(
-        [...pinned, ...newWindows].map((w, idx) => [w.id, idx + 1])
-      ),
+      zIndexes: Object.fromEntries([
+        ...pinned.map((w) => [w.id, 9999]), // 🔥 aqui você preserva o zIndex do pinned
+        ...newWindows.map((w, idx) => [w.id, idx + 1]), // 🔥 só aplica zIndex incremental nos novos
+      ]),
     });
 
     spacesState.updateSpace("discovery", updatedDiscovery);
 
     const totalRooms = data.total_count || 0;
     const totalPages = Math.ceil(totalRooms / state.discoveryLimit);
-
-    console.log({ totalPages, totalRooms, discoveryOffset: newOffset });
 
     set({
       discoveryOffset: newOffset,
@@ -126,25 +124,12 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   togglePin: (windowId: string) => {
     const spacesState = useSpacesStore.getState();
-    const discovery = spacesState.getSpace("discovery");
-    if (!discovery) return;
-
-    const updatedWindows = discovery.windows.map((w) =>
-      w.id === windowId ? { ...w, pinned: !w.pinned } : w
-    );
-
-    spacesState.updateSpace("discovery", {
-      ...discovery,
-      windows: updatedWindows,
-    });
+    spacesState.togglePin(windowId); // 🔥 delega completamente pro spacesStore
   },
 
   addSpaceFromPinned: () => {
     const spacesState = useSpacesStore.getState();
-    const discovery = spacesState.getSpace("discovery");
-    if (!discovery) return;
-
-    const pinnedWindows = discovery.windows.filter((w) => w.pinned);
+    const pinnedWindows = spacesState.pinnedWindows;
     if (pinnedWindows.length === 0) return;
 
     const id = Math.random().toString(36).substring(2, 9);
@@ -161,7 +146,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       autoArrange: true,
     };
 
-    spacesState.addSpace(finalName); // já respeitando o novo spacesStore
+    spacesState.addSpace(finalName);
     spacesState.updateSpace(id, newSpace);
   },
 

@@ -5,16 +5,41 @@ interface Props {
   src: string;
   muted: boolean;
   volume: number;
-  onError?: () => void; // <-- Adicionamos esse callback
+  onError?: () => void;
 }
 
 export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
+  const getTargetResolution = (h: number): number => {
+    if (h <= 240) return 240;
+    if (h <= 480) return 480;
+    if (h <= 720) return 720;
+    if (h <= 1080) return 1080;
+    return Infinity;
+  };
+
+  const selectLevel = (height: number) => {
+    const hls = hlsRef.current;
+    if (!hls) return;
+
+    const levels = hls.levels;
+    const targetResolution = getTargetResolution(height);
+
+    let levelIndex = levels.findIndex((l) => l.height >= targetResolution);
+    if (levelIndex === -1) {
+      levelIndex = levels.length - 1;
+    }
+    hls.currentLevel = levelIndex;
+    console.log(`Switched to level ${levelIndex} for height ${height}`);
+  };
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    const container = containerRef.current;
+    if (!video || !container) return;
 
     if (Hls.isSupported()) {
       const hls = new Hls();
@@ -22,20 +47,35 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
       hls.loadSource(src);
       hls.attachMedia(video);
 
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        selectLevel(container.clientHeight);
+      });
+
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error("HLS error:", data);
+        console.log({ data });
         if (data.fatal && onError) {
-          onError(); // chama o callback no VideoWindow
+          onError();
         }
       });
+
+      // Observe resize no container, não no video
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const height = entry.contentRect.height;
+          selectLevel(height);
+        }
+      });
+
+      resizeObserver.observe(container);
+
+      return () => {
+        resizeObserver.disconnect();
+        hls.destroy();
+      };
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
     }
-
-    return () => {
-      hlsRef.current?.destroy();
-    };
-  }, [src]);
+  }, [src, onError]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -45,11 +85,13 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
   }, [muted, volume]);
 
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      controls={false}
-      style={{ width: "100%", height: "100%" }}
-    />
+    <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
+      <video
+        ref={videoRef}
+        autoPlay
+        controls={false}
+        style={{ width: "100%", height: "100%" }}
+      />
+    </div>
   );
 };

@@ -6,6 +6,7 @@ import { useWindowsStore } from "../store/windowsStore";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
+import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 
 interface Props {
   id: string;
@@ -42,10 +43,6 @@ const WindowHeader = styled.div<{ maximized: boolean }>`
 const HeaderRight = styled.div`
   display: flex;
   gap: 5px;
-`;
-
-const StyledSelect = styled.select`
-  font-size: 12px;
 `;
 
 const WindowContent = styled.div`
@@ -120,14 +117,13 @@ export const VideoWindow: React.FC<Props> = ({
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find((t) => t.id === activeSpaceId);
-  const zIndex = activeSpace?.zIndexes[id] ?? 1;
+  const zIndex = activeSpace?.zIndexes[id] ?? 10;
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
-  const isDiscovery = activeSpaceId === "discovery";
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const windowState = useSpacesStore((s) => {
@@ -188,13 +184,11 @@ export const VideoWindow: React.FC<Props> = ({
   };
 
   const renderPinButton = () => {
-    if (isDiscovery) {
-      return (
-        <WindowHeaderButton onClick={() => togglePin(id)}>
-          {isPinned ? "📌" : "📍"}
-        </WindowHeaderButton>
-      );
-    }
+    return (
+      <WindowHeaderButton onClick={() => togglePin(id)}>
+        {isPinned ? "📌" : "📍"}
+      </WindowHeaderButton>
+    );
   };
 
   return (
@@ -207,14 +201,29 @@ export const VideoWindow: React.FC<Props> = ({
       position={maximized ? { x: 0, y: 50 } : { x, y }}
       onDragStart={() => bringToFront(id)}
       onResizeStart={() => bringToFront(id)}
-      onDragStop={(e, d) => updateWindow(id, { x: d.x, y: d.y })}
+      onDragStop={(e, d) => {
+        if (isPinned) {
+          useSpacesStore.getState().updatePinnedWindow(id, { x: d.x, y: d.y });
+        } else {
+          updateWindow(id, { x: d.x, y: d.y });
+        }
+      }}
       onResizeStop={(e, direction, ref, delta, pos) => {
-        updateWindow(id, {
-          width: ref.offsetWidth,
-          height: ref.offsetHeight,
-          x: pos.x,
-          y: pos.y,
-        });
+        if (isPinned) {
+          useSpacesStore.getState().updatePinnedWindow(id, {
+            x: pos.x,
+            y: pos.y,
+            width: ref.offsetWidth,
+            height: ref.offsetHeight,
+          });
+        } else {
+          updateWindow(id, {
+            width: ref.offsetWidth,
+            height: ref.offsetHeight,
+            x: pos.x,
+            y: pos.y,
+          });
+        }
       }}
       bounds="parent"
       dragHandleClassName="window-header"
@@ -248,6 +257,13 @@ export const VideoWindow: React.FC<Props> = ({
               onVolumeChange={setVolume}
             />
             {renderPinButton()}
+            <CopyToSpaceDropdown
+              spaces={spaces}
+              windowId={id}
+              onCopy={copyWindowToSpaceLocal}
+              className="no-drag"
+            />
+
             <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
               {maximized ? "🗗" : "🗖"}
             </WindowHeaderButton>
@@ -257,17 +273,6 @@ export const VideoWindow: React.FC<Props> = ({
             >
               ❌
             </WindowHeaderButton>
-            <StyledSelect
-              className="no-drag"
-              value={activeSpaceId}
-              onChange={(e) => copyWindowToSpaceLocal(id, e.target.value)}
-            >
-              {spaces.map((space) => (
-                <option key={space.id} value={space.id}>
-                  {space.name}
-                </option>
-              ))}
-            </StyledSelect>
           </HeaderRight>
         </WindowHeader>
         <WindowContent>

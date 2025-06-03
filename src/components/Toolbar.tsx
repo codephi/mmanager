@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
-import { SpaceOption } from "./SpaceOption";
 import { Pagination } from "./Pagination";
 import SpaceButtons from "./SpaceButtons";
 
@@ -15,6 +14,7 @@ const ToolbarContainer = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  z-index: 10;
 `;
 
 const DiscoveryControls = styled.div`
@@ -54,10 +54,6 @@ function Toolbar() {
   const spaces = useSpacesStore((s) => s.getSpaces());
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const addSpace = useSpacesStore((s) => s.addSpace);
-  const removeSpace = useSpacesStore((s) => s.removeSpace);
-  const renameSpace = useSpacesStore((s) => s.renameSpace);
-  const toggleAutoArrange = useSpacesStore((s) => s.toggleAutoArrange);
-
   // Windows e Discovery seguem igual
   const arrangeWindows = useSpacesStore((s) => s.arrangeWindows);
   const arrangeFilteredWindows = useSpacesStore(
@@ -73,12 +69,9 @@ function Toolbar() {
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
   const currentPage = useDiscoveryStore((s) => s.currentPage);
   const totalPages = useDiscoveryStore((s) => s.totalPages);
-
   const discovery = spaces.find((s) => s.id === "discovery");
   const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
-
   const [newSpaceName, setNewSpaceName] = useState("");
-  const [renameValue, setRenameValue] = useState("");
 
   useEffect(() => {
     const handleResize = () => {
@@ -106,8 +99,6 @@ function Toolbar() {
       loadDiscovery();
     }
   }, [discovery, discovery?.windows.length, isLoadingDiscovery, loadDiscovery]);
-
-  const selectedSpace = spaces.find((s) => s.id === activeSpaceId);
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
@@ -152,7 +143,7 @@ function Toolbar() {
               value={discoveryLimit}
               onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
             >
-              {Array.from({ length: 12 }, (_, i) => i + 1)
+              {[6, 12, 24]
                 .filter((value) => value >= Math.max(1, pinnedCount))
                 .map((value) => (
                   <option key={value} value={value}>
@@ -167,16 +158,7 @@ function Toolbar() {
               onPageChange={(page) => goToDiscoveryPage(page)}
             />
           </DiscoveryControls>
-        ) : (
-          <SpaceOption
-            space={selectedSpace}
-            renameValue={renameValue}
-            setRenameValue={setRenameValue}
-            renameSpace={renameSpace}
-            toggleAutoArrange={toggleAutoArrange}
-            removeSpace={removeSpace}
-          />
-        )}
+        ) : null}
       </RightOptions>
     </ToolbarContainer>
   );
