@@ -20,17 +20,16 @@ interface Props {
 const WindowContainer = styled.div`
   width: 100%;
   height: 100%;
-  border: 1px solid #444;
   background: #000;
   position: relative;
   border-radius: var(--border-radius);
   overflow: hidden;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
 `;
 
 const WindowHeader = styled.div<{ maximized: boolean }>`
   height: 30px;
-  background: #333;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -87,7 +86,7 @@ const CopyMessage = styled.div`
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--dark-color);
   color: #fff;
   padding: 8px 16px;
   border-radius: 4px;
