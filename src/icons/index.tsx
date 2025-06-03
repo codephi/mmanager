@@ -4,6 +4,9 @@ import AudioMuteSVG from "./audio-mute.svg?react";
 import AudioUnmuteSVG from "./audio-unmute.svg?react";
 import PinSVG from "./pin.svg?react";
 import UnpinSVG from "./unpin.svg?react";
+import CloseSVG from "./close.svg?react";
+import MaximizeSVG from "./maximize.svg?react";
+import MinimizeSVG from "./minimize.svg?react";
 
 export interface IconProps {
   size?: number;
@@ -12,7 +15,7 @@ export interface IconProps {
   style?: React.CSSProperties;
 }
 
-export const Copy = ({ size = 16, ...props }: IconProps) => (
+export const Copy = ({ size = 18, ...props }: IconProps) => (
   <CopySVG {...props} width={size} height={size} />
 );
 
@@ -24,10 +27,21 @@ export const AudioUnmute = ({ size = 25, ...props }: IconProps) => (
   <AudioUnmuteSVG {...props} width={size} height={size} />
 );
 
-export const Pin = ({ size = 25, ...props }: IconProps) => (
+export const Pin = ({ size = 22, ...props }: IconProps) => (
   <PinSVG {...props} width={size} height={size} />
 );
 
-export const Unpin = ({ size = 25, ...props }: IconProps) => (
+export const Unpin = ({ size = 22, ...props }: IconProps) => (
   <UnpinSVG {...props} width={size} height={size} />
+);
+
+export const Close = ({ size = 22, ...props }: IconProps) => (
+  <CloseSVG {...props} width={size} height={size} />
+);
+
+export const Maximize = ({ size = 22, ...props }: IconProps) => (
+  <MaximizeSVG {...props} width={size} height={size} />
+);
+export const Minimize = ({ size = 22, ...props }: IconProps) => (
+  <MinimizeSVG {...props} width={size} height={size} />
 );

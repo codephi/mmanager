@@ -3,11 +3,10 @@ import { Rnd } from "react-rnd";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
 import { useWindowsStore } from "../store/windowsStore";
-import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
 import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
-import { Pin, Unpin } from "../icons";
+import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 
 interface Props {
   id: string;
@@ -44,6 +43,8 @@ const WindowHeader = styled.div<{ $maximized: boolean }>`
 const HeaderRight = styled.div`
   display: flex;
   gap: 5px;
+  align-items: center;
+  justify-content: center;
 `;
 
 const WindowContent = styled.div`
@@ -95,9 +96,12 @@ const CopyMessage = styled.div`
 export const WindowHeaderButton = styled.button`
   border: none;
   cursor: pointer;
-  width: 25px;
-  height: 25px;
-  padding: 3px;
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,14 +190,6 @@ export const VideoWindow: React.FC<Props> = ({
     setTimeout(() => setCopyMessage(null), 3000);
   };
 
-  const renderPinButton = () => {
-    return (
-      <WindowHeaderButton onClick={() => togglePin(id)}>
-        {isPinned ? <Pin /> : <Unpin />}
-      </WindowHeaderButton>
-    );
-  };
-
   return (
     <Rnd
       size={
@@ -265,16 +261,18 @@ export const VideoWindow: React.FC<Props> = ({
               onMuteToggle={toggleMute}
               onVolumeChange={setVolume}
             />
-            {renderPinButton()}
+            <WindowHeaderButton onClick={() => togglePin(id)}>
+              {isPinned ? <Pin /> : <Unpin />}
+            </WindowHeaderButton>
 
             <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
-              {maximized ? "🗗" : "🗖"}
+              {maximized ? <Minimize /> : <Maximize />}
             </WindowHeaderButton>
             <WindowHeaderButton
               className="no-drag"
               onClick={() => removeWindow(id)}
             >
-              ❌
+              <Close />
             </WindowHeaderButton>
           </HeaderRight>
         </WindowHeader>

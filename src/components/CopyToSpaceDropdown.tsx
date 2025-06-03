@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { Copy } from "../icons";
 import type { SpaceConfig } from "../store/types";
+import { WindowHeaderButton } from "./VideoWindow";
 
 const DropdownContainer = styled.div`
   position: relative;
@@ -41,10 +42,6 @@ const DropdownMenu = styled.div`
       border-bottom-right-radius: 5px;
     }
   }
-`;
-
-const ButtonCopy = styled.button`
-  padding: 5px;
 `;
 
 interface Props {
@@ -106,9 +103,9 @@ export const CopyToSpaceDropdown: React.FC<Props> = ({
       }}
       onMouseLeave={() => delayedClose()}
     >
-      <ButtonCopy>
+      <WindowHeaderButton>
         <Copy />
-      </ButtonCopy>
+      </WindowHeaderButton>
       {open && (
         <DropdownMenu>
           {spaces
