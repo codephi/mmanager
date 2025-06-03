@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { useSpacesStore } from './spacesStore';
-import { arrangeWindowsInternal } from './arrangeUtils';
 import type { WindowConfig, SpaceConfig } from './types';
+import { arrangeWindowsInternal } from './utils';
 
 interface DiscoveryState {
     discoveryOffset: number;

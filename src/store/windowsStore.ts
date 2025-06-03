@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { SpaceConfig, WindowConfig } from './types';
-import { generateId } from './utils';
-import { arrangeWindowsInternal } from './arrangeUtils';
+import { arrangeWindowsInternal, generateId } from './utils';
 import { useSpacesStore } from './spacesStore';
 
 interface WindowsState {

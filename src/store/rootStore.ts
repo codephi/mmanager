@@ -1,27 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useSpacesStore } from './spacesStore';
-interface WindowConfig {
-  id: string;
-  room: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  pinned?: boolean;
-  isOnline?: boolean;
-  isMuted?: boolean;
-  volume?: number;
-}
-
-
-interface SpaceConfig {
-  id: string;
-  name: string;
-  windows: WindowConfig[];
-  zIndexes: Record<string, number>;
-  autoArrange: boolean;
-}
+import { arrangeWindowsInternal } from './utils';
 
 interface RootState {
   globalMuted: boolean;
@@ -36,31 +16,6 @@ interface RootState {
   toggleWindowMute: (windowId: string) => void;
 }
 
-const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
-  const total = space.windows.length;
-  if (total === 0) return space;
-
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight - 50;
-  const cols = Math.ceil(Math.sqrt(total));
-  const rows = Math.ceil(total / cols);
-  const cellWidth = Math.floor(screenWidth / cols);
-  const cellHeight = Math.floor(screenHeight / rows);
-
-  const newWindows = space.windows.map((win, index) => {
-    const col = index % cols;
-    const row = Math.floor(index / cols);
-    return {
-      ...win,
-      x: col * cellWidth,
-      y: row * cellHeight + 50,
-      width: cellWidth,
-      height: cellHeight
-    };
-  });
-
-  return { ...space, windows: newWindows };
-};
 
 export const useRootStore = create<RootState>()(
   persist(
