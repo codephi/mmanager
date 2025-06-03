@@ -1,4 +1,4 @@
-import type { SpaceConfig, WindowConfig } from "./types";
+import type { SpaceConfig } from "./types";
 
 export function generateId(): string {
     return Math.random().toString(36).substring(2, 9);

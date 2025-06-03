@@ -25,7 +25,6 @@ interface SpacesState {
     setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
     toggleGlobalMuted: () => void;
     toggleWindowMute: (windowId: string) => void;
-
 }
 
 export const useSpacesStore = create<SpacesState>((set, get) => ({
