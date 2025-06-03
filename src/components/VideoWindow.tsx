@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Rnd } from 'react-rnd';
-import { HlsPlayer } from './HlsPlayer';
-import { VolumeControl } from './VolumeControl';
-import { useWindowsStore } from '../store/windowsStore';
-import { useDiscoveryStore } from '../store/discoveryStore';
-import { useSpacesStore } from '../store/spacesStore';
-import styled from 'styled-components';
+import React, { useState, useEffect } from "react";
+import { Rnd } from "react-rnd";
+import { HlsPlayer } from "./HlsPlayer";
+import { VolumeControl } from "./VolumeControl";
+import { useWindowsStore } from "../store/windowsStore";
+import { useDiscoveryStore } from "../store/discoveryStore";
+import { useSpacesStore } from "../store/spacesStore";
+import styled from "styled-components";
 
 interface Props {
   id: string;
@@ -35,8 +35,9 @@ const WindowHeader = styled.div<{ maximized: boolean }>`
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  cursor: ${({ maximized }) => (maximized ? 'default' : 'move')};
+  cursor: ${({ maximized }) => (maximized ? "default" : "move")};
   font-size: 14px;
+  background-color: var(--primary-color);
 `;
 
 const HeaderRight = styled.div`
@@ -86,7 +87,7 @@ const CopyMessage = styled.div`
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0,0,0,0.7);
+  background-color: rgba(0, 0, 0, 0.7);
   color: #fff;
   padding: 8px 16px;
   border-radius: 4px;
@@ -95,26 +96,34 @@ const CopyMessage = styled.div`
 `;
 
 const buttonStyle: React.CSSProperties = {
-  background: '#444',
-  color: '#fff',
-  border: 'none',
+  background: "#444",
+  color: "#fff",
+  border: "none",
   borderRadius: 3,
-  cursor: 'pointer',
+  cursor: "pointer",
   width: 25,
   height: 25,
   padding: 0,
-  fontSize: 16
+  fontSize: 16,
 };
 
-export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
+export const VideoWindow: React.FC<Props> = ({
+  id,
+  room,
+  x,
+  y,
+  width,
+  height,
+  pinned,
+}) => {
   const updateWindow = useWindowsStore((s) => s.updateWindow);
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
   const copyWindowToSpace = useSpacesStore((s) => s.copyWindowToSpace);
-  const togglePin = useDiscoveryStore(s => s.togglePin);
+  const togglePin = useDiscoveryStore((s) => s.togglePin);
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
-  const activeSpace = spaces.find(t => t.id === activeSpaceId);
+  const activeSpace = spaces.find((t) => t.id === activeSpaceId);
   const zIndex = activeSpace?.zIndexes[id] ?? 1;
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
@@ -122,12 +131,12 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
-  const isDiscovery = activeSpaceId === 'discovery';
+  const isDiscovery = activeSpaceId === "discovery";
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
-  const windowState = useSpacesStore(s => {
-    const space = s.spaces.find(sp => sp.id === s.activeSpaceId);
-    return space?.windows.find(w => w.id === id);
+  const windowState = useSpacesStore((s) => {
+    const space = s.spaces.find((sp) => sp.id === s.activeSpaceId);
+    return space?.windows.find((w) => w.id === id);
   });
 
   const muted = windowState?.isMuted ?? true;
@@ -141,18 +150,19 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
     useSpacesStore.getState().toggleWindowMute(id);
   };
 
-
   useEffect(() => {
     async function fetchHls() {
       try {
-        const res = await fetch(`https://chaturbate.com/api/chatvideocontext/${room}/`);
+        const res = await fetch(
+          `https://chaturbate.com/api/chatvideocontext/${room}/`
+        );
         const data = await res.json();
 
         if (data.hls_source) {
           setHlsSource(data.hls_source);
           useWindowsStore.getState().updateWindow(id, { isOnline: true });
           setIsOffline(false);
-        } else if (data.room_status === 'private') {
+        } else if (data.room_status === "private") {
           setHlsSource(null);
           setIsPrivate(true);
           useWindowsStore.getState().updateWindow(id, { isOnline: false });
@@ -163,7 +173,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
           useWindowsStore.getState().updateWindow(id, { isOnline: false });
         }
       } catch (err) {
-        console.error('Erro carregando HLS:', err);
+        console.error("Erro carregando HLS:", err);
         setHlsSource(null);
         setIsOffline(true);
         setIsPrivate(false);
@@ -175,10 +185,10 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
 
   const copyWindowToSpaceLocal = (windowId: string, targetSpaceId: string) => {
     copyWindowToSpace(windowId, targetSpaceId);
-    const spaceName = spaces.find(s => s.id === targetSpaceId)?.name ?? '';
+    const spaceName = spaces.find((s) => s.id === targetSpaceId)?.name ?? "";
     setCopyMessage(`Room copied to ${spaceName}`);
     setTimeout(() => setCopyMessage(null), 3000);
-  }
+  };
 
   const renderPinButton = () => {
     if (isDiscovery) {
@@ -188,11 +198,15 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
         </button>
       );
     }
-  }
+  };
 
   return (
     <Rnd
-      size={maximized ? { width: window.innerWidth, height: window.innerHeight - 50 } : { width, height }}
+      size={
+        maximized
+          ? { width: window.innerWidth, height: window.innerHeight - 50 }
+          : { width, height }
+      }
       position={maximized ? { x: 0, y: 50 } : { x, y }}
       onDragStart={() => bringToFront(id)}
       onResizeStart={() => bringToFront(id)}
@@ -202,7 +216,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
           width: ref.offsetWidth,
           height: ref.offsetHeight,
           x: pos.x,
-          y: pos.y
+          y: pos.y,
         });
       }}
       bounds="parent"
@@ -224,19 +238,42 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
             href={`https://handplayspaces.chaturbate.com/${room}`}
             target="_blank"
             rel="noopener noreferrer"
-            className='no-drag'
-            style={{ color: '#fff', textDecoration: 'underline' }}
+            className="no-drag"
+            style={{ color: "#fff", textDecoration: "underline" }}
           >
             {room}
           </a>
           <HeaderRight>
-            <VolumeControl muted={muted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
+            <VolumeControl
+              muted={muted}
+              volume={volume}
+              onMuteToggle={toggleMute}
+              onVolumeChange={setVolume}
+            />
             {renderPinButton()}
-            <button className='no-drag' onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
-            <button className='no-drag' onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>
-            <StyledSelect className="no-drag" value={activeSpaceId} onChange={(e) => copyWindowToSpaceLocal(id, e.target.value)}>
-              {spaces.map(space => (
-                <option key={space.id} value={space.id}>{space.name}</option>
+            <button
+              className="no-drag"
+              onClick={toggleMaximize}
+              style={buttonStyle}
+            >
+              {maximized ? "🗗" : "🗖"}
+            </button>
+            <button
+              className="no-drag"
+              onClick={() => removeWindow(id)}
+              style={buttonStyle}
+            >
+              ❌
+            </button>
+            <StyledSelect
+              className="no-drag"
+              value={activeSpaceId}
+              onChange={(e) => copyWindowToSpaceLocal(id, e.target.value)}
+            >
+              {spaces.map((space) => (
+                <option key={space.id} value={space.id}>
+                  {space.name}
+                </option>
               ))}
             </StyledSelect>
           </HeaderRight>
@@ -261,11 +298,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
             <LoadingText>Carregando vídeo...</LoadingText>
           )}
 
-          {copyMessage && (
-            <CopyMessage>
-              {copyMessage}
-            </CopyMessage>
-          )}
+          {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
         </WindowContent>
       </WindowContainer>
     </Rnd>
