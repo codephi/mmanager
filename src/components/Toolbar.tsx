@@ -169,8 +169,6 @@ function Toolbar() {
             setRenameValue={setRenameValue}
             renameSpace={renameSpace}
             toggleAutoArrange={toggleAutoArrange}
-            switchSpace={switchSpace}
-            activeSpaceId={activeSpaceId}
             removeSpace={removeSpace}
             addStream={(room: string) => {
               addWindow(room.trim());

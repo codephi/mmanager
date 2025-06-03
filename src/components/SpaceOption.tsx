@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import type { SpaceConfig } from "../store/types";
 
 const SpaceContainer = styled.div`
   display: flex;
@@ -21,11 +22,7 @@ const RenameButton = styled.button`
 `;
 
 interface SpaceOptionProps {
-  space: {
-    id: string;
-    name: string;
-    autoArrange: boolean;
-  };
+  space?: SpaceConfig;
   renamingSpaceId: string | null;
   setRenamingSpaceId: (id: string | null) => void;
   renameValue: string;
@@ -33,7 +30,7 @@ interface SpaceOptionProps {
   renameSpace: (id: string, name: string) => void;
   toggleAutoArrange: (id: string) => void;
   removeSpace: (id: string) => void;
-  addStream: () => void;
+  addStream: (room: string) => void;
 }
 
 export function SpaceOption({
@@ -48,6 +45,8 @@ export function SpaceOption({
   addStream,
 }: SpaceOptionProps) {
   const [room, setRoom] = useState("");
+
+  if (!space) return null;
 
   return (
     <SpaceContainer>
@@ -96,7 +95,7 @@ export function SpaceOption({
           value={room}
           onChange={(e) => setRoom(e.target.value)}
         />
-        <button onClick={addStream}>Adicionar Stream</button>
+        <button onClick={() => addStream(room)}>Adicionar Stream</button>
       </Label>
     </SpaceContainer>
   );
