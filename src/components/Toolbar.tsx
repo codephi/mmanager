@@ -91,7 +91,7 @@ function Toolbar() {
     if (discovery && discovery.windows.length === 0 && !isLoadingDiscovery) {
       loadDiscovery();
     }
-  }, [discovery?.windows.length, isLoadingDiscovery]);
+  }, [discovery, discovery?.windows.length, isLoadingDiscovery, loadDiscovery]);
 
   const selectedSpace = spaces.find((s) => s.id === activeSpaceId);
 
