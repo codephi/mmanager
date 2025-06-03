@@ -18,6 +18,14 @@ interface SpacesState {
     bringToFront: (id: string) => void;
     arrangeWindows: () => void;
     moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
+    setWindowVolume: (windowId: string, volume: number) => void;
+    arrangeFilteredWindows: () => void;
+    globalMuted: boolean;
+    filterMode: 'all' | 'online' | 'offline';
+    setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
+    toggleGlobalMuted: () => void;
+    toggleWindowMute: (windowId: string) => void;
+
 }
 
 export const useSpacesStore = create<SpacesState>((set, get) => ({
@@ -201,4 +209,115 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             };
         });
     },
+
+    setWindowVolume: (id, volume) => {
+        set(state => {
+            const activeSpaceId = state.activeSpaceId;
+            const activeSpace = state.spaces.find(s => s.id === activeSpaceId);
+            if (!activeSpace) return state;
+
+            const windows = activeSpace.windows.map(win =>
+                win.id === id ? { ...win, volume, isMuted: volume === 0 } : win
+            );
+            const updatedSpace = { ...activeSpace, windows };
+
+            return {
+                spaces: state.spaces.map(s =>
+                    s.id === activeSpaceId ? updatedSpace : s
+                ),
+            };
+        });
+    },
+    globalMuted: false,
+    filterMode: 'all',
+
+    setFilterMode: (mode) => {
+        set(state => ({ ...state, filterMode: mode }));
+
+        set(state => {
+            const activeSpaceId = state.activeSpaceId;
+            const activeSpace = state.spaces.find(s => s.id === activeSpaceId);
+            if (activeSpace?.autoArrange) {
+                state.arrangeFilteredWindows();
+            }
+            return {};
+        });
+    },
+
+    arrangeFilteredWindows: () => {
+        set(state => {
+            const activeSpaceId = state.activeSpaceId;
+            const activeSpace = state.spaces.find(s => s.id === activeSpaceId);
+            if (!activeSpace) return state;
+
+            let filteredWindows = activeSpace.windows;
+            const filterMode = state.filterMode;
+
+            if (filterMode === 'online') {
+                filteredWindows = filteredWindows.filter(w => w.isOnline === true);
+            } else if (filterMode === 'offline') {
+                filteredWindows = filteredWindows.filter(w => w.isOnline === false);
+            }
+
+            if (filteredWindows.length === 0) return state;
+
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight - 50;
+            const cols = Math.ceil(Math.sqrt(filteredWindows.length));
+            const rows = Math.ceil(filteredWindows.length / cols);
+            const cellWidth = Math.floor(screenWidth / cols);
+            const cellHeight = Math.floor(screenHeight / rows);
+
+            const updatedWindows = activeSpace.windows.map(win => {
+                const index = filteredWindows.findIndex(w => w.id === win.id);
+                if (index === -1) return win;
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+                return {
+                    ...win,
+                    x: col * cellWidth,
+                    y: row * cellHeight + 50,
+                    width: cellWidth,
+                    height: cellHeight
+                };
+            });
+
+            return {
+                spaces: state.spaces.map(s =>
+                    s.id === activeSpaceId ? { ...activeSpace, windows: updatedWindows } : s
+                ),
+            };
+        });
+    },
+
+    toggleWindowMute: (id) => {
+        set(state => {
+            const activeSpaceId = state.activeSpaceId;
+            const activeSpace = state.spaces.find(s => s.id === activeSpaceId);
+            if (!activeSpace) return state;
+
+            const windows = activeSpace.windows.map(win =>
+                win.id === id ? { ...win, isMuted: !win.isMuted } : win
+            );
+            return {
+                spaces: state.spaces.map(s =>
+                    s.id === activeSpaceId ? { ...activeSpace, windows } : s
+                ),
+            };
+        });
+    },
+
+    toggleGlobalMuted: () => {
+        set(state => {
+            const newMuted = !state.globalMuted;
+            return {
+                spaces: state.spaces.map(space => ({
+                    ...space,
+                    windows: space.windows.map(w => ({ ...w, isMuted: newMuted }))
+                })),
+                globalMuted: newMuted
+            };
+        });
+    },
+
 }));

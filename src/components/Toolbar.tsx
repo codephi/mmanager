@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useRootStore } from '../store/rootStore';
 import { useWindowsStore } from '../store/windowsStore';
 import { useDiscoveryStore } from '../store/discoveryStore';
 import { useSpacesStore } from '../store/spacesStore';
@@ -102,11 +101,11 @@ function Toolbar() {
     // Windows e Discovery seguem igual
     const addWindow = useWindowsStore((s) => s.addWindow);
     const arrangeWindows = useSpacesStore((s) => s.arrangeWindows);
-    const arrangeFilteredWindows = useRootStore(s => s.arrangeFilteredWindows);
-    const setFilterMode = useRootStore(s => s.setFilterMode);
-    const filterMode = useRootStore(s => s.filterMode);
-    const globalMuted = useRootStore(s => s.globalMuted);
-    const toggleGlobalMuted = useRootStore(s => s.toggleGlobalMuted);
+    const arrangeFilteredWindows = useSpacesStore(s => s.arrangeFilteredWindows);
+    const setFilterMode = useSpacesStore(s => s.setFilterMode);
+    const filterMode = useSpacesStore(s => s.filterMode);
+    const globalMuted = useSpacesStore(s => s.globalMuted);
+    const toggleGlobalMuted = useSpacesStore(s => s.toggleGlobalMuted);
 
     const discoveryOffset = useDiscoveryStore(s => s.discoveryOffset);
     const isLoadingDiscovery = useDiscoveryStore(s => s.isLoadingDiscovery);

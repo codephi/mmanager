@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
-import { useRootStore } from '../store/rootStore';
 import { HlsPlayer } from './HlsPlayer';
 import { VolumeControl } from './VolumeControl';
 import { useWindowsStore } from '../store/windowsStore';
@@ -32,7 +31,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
-  const globalMuted = useRootStore(s => s.globalMuted);
+  const globalMuted = useSpacesStore(s => s.globalMuted);
   const [mutedState, setMutedState] = useState(globalMuted);
   const [isPrivate, setIsPrivate] = useState(false);
   const isDiscovery = activeSpaceId === 'discovery';
@@ -48,11 +47,11 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const effectiveMuted = isDiscovery ? globalMuted : muted;
 
   const setVolume = (v: number) => {
-    useRootStore.getState().setWindowVolume(id, v);
+    useSpacesStore.getState().setWindowVolume(id, v);
   };
 
   const toggleMute = () => {
-    useRootStore.getState().toggleWindowMute(id);
+    useSpacesStore.getState().toggleWindowMute(id);
   };
 
 
