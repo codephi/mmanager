@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pinned }) => {
-  const updateWindow = useRootStore((s) => s.updateWindow);
+  const updateWindow = useWindowsStore((s) => s.updateWindow);
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useRootStore((s) => s.bringToFront);
   const moveWindowToSpace = useRootStore((s) => s.moveWindowToSpace);
@@ -67,24 +67,24 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
 
         if (data.hls_source) {
           setHlsSource(data.hls_source);
-          useRootStore.getState().updateWindow(id, { isOnline: true });
+          useWindowsStore.getState().updateWindow(id, { isOnline: true });
           setIsOffline(false);  // <== importante
         } else if (data.room_status === 'private') {
           setHlsSource(null);   // importante garantir que é null
           setIsPrivate(true);   // <== novo estado
-          useRootStore.getState().updateWindow(id, { isOnline: false });
+          useWindowsStore.getState().updateWindow(id, { isOnline: false });
         } else {
           setHlsSource(null);
           setIsOffline(true);
           setIsPrivate(false);
-          useRootStore.getState().updateWindow(id, { isOnline: false });
+          useWindowsStore.getState().updateWindow(id, { isOnline: false });
         }
       } catch (err) {
         console.error('Erro carregando HLS:', err);
         setHlsSource(null);
         setIsOffline(true);
         setIsPrivate(false);
-        useRootStore.getState().updateWindow(id, { isOnline: false });
+        useWindowsStore.getState().updateWindow(id, { isOnline: false });
       }
     }
     fetchHls();

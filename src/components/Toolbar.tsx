@@ -92,7 +92,7 @@ function SpaceOption({
 function Toolbar() {
     // Spaces agora vindo do spacesStore
     const spaces = useSpacesStore(s => s.getSpaces());
-    const activeSpaceId = useSpacesStore(s => s.getActiveSpaceId());
+    const activeSpaceId = useRootStore(s => s.activeSpaceId);
     const addSpace = useSpacesStore(s => s.addSpace);
     const removeSpace = useSpacesStore(s => s.removeSpace);
     const renameSpace = useSpacesStore(s => s.renameSpace);

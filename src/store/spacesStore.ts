@@ -97,6 +97,7 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
         });
     },
 
+
     createSpaceFromPinned: (pinnedWindows) => {
         const state = useRootStore.getState();
         const id = Math.random().toString(36).substring(2, 9);

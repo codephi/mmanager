@@ -2,18 +2,20 @@ import { create } from 'zustand';
 import type { SpaceConfig, WindowConfig } from './types';
 import { generateId } from './utils';
 import { arrangeWindowsInternal } from './arrangeUtils';
-import { useRootStore } from './rootStore';
+import { useSpacesStore } from './spacesStore';
 
 interface WindowsState {
     addWindow: (room: string) => void;
     removeWindow: (id: string) => void;
+    updateWindow: (id: string, pos: Partial<WindowConfig>) => void;
 }
 
 export const useWindowsStore = create<WindowsState>((set, get) => ({
+
     addWindow: (room) => {
-        const { spaces } = useRootStore.getState();
-        const { activeSpaceId } = useRootStore.getState();
-        const space = spaces.find(s => s.id === activeSpaceId);
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const space = spacesState.getSpace(activeSpaceId);
         if (!space) return;
 
         const alreadyExists = space.windows.some(w => w.room === room);
@@ -37,17 +39,17 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
             zIndexes: { ...space.zIndexes, [id]: maxZ + 1 }
         };
 
-        const finalSpace = updatedSpace.autoArrange ? arrangeWindowsInternal(updatedSpace) : updatedSpace;
+        const finalSpace = updatedSpace.autoArrange
+            ? arrangeWindowsInternal(updatedSpace)
+            : updatedSpace;
 
-        useRootStore.setState({
-            spaces: spaces.map(s => s.id === space.id ? finalSpace : s)
-        });
+        spacesState.updateSpace(space.id, finalSpace);
     },
 
     removeWindow: (id) => {
-        const { spaces } = useRootStore.getState();
-        const { activeSpaceId } = useRootStore.getState();
-        const space = spaces.find(s => s.id === activeSpaceId);
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const space = spacesState.getSpace(activeSpaceId);
         if (!space) return;
 
         const { [id]: _, ...newZIndexes } = space.zIndexes;
@@ -58,10 +60,29 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
             zIndexes: newZIndexes
         };
 
-        const finalSpace = updatedSpace.autoArrange ? arrangeWindowsInternal(updatedSpace) : updatedSpace;
+        const finalSpace = updatedSpace.autoArrange
+            ? arrangeWindowsInternal(updatedSpace)
+            : updatedSpace;
 
-        useRootStore.setState({
-            spaces: spaces.map(s => s.id === space.id ? finalSpace : s)
-        });
+        spacesState.updateSpace(space.id, finalSpace);
     },
+
+    updateWindow: (id, pos) => {
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const space = spacesState.getSpace(activeSpaceId);
+        if (!space) return;
+
+        const updatedWindows = space.windows.map(w =>
+            w.id === id ? { ...w, ...pos } : w
+        );
+
+        const updatedSpace: SpaceConfig = {
+            ...space,
+            windows: updatedWindows
+        };
+
+        spacesState.updateSpace(space.id, updatedSpace);
+    },
+
 }));

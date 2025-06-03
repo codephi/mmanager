@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useSpacesStore } from './spacesStore';  // IMPORTANTE
 
 interface WindowConfig {
   id: string;
@@ -35,17 +36,9 @@ interface RootState {
   arrangeFilteredWindows: () => void;
   toggleGlobalMuted: () => void;
   loadDiscovery: () => Promise<void>;
-  addSpace: (name: string) => void;
-  removeSpace: (id: string) => void;
-  renameSpace: (id: string, name: string) => void;
-  switchSpace: (id: string) => void;
-  addWindow: (room: string) => void;
-  updateWindow: (id: string, pos: Partial<WindowConfig>) => void;
-  removeWindow: (id: string) => void;
   bringToFront: (id: string) => void;
   arrangeWindows: () => void;
   moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
-  toggleAutoArrange: (spaceId: string) => void;
   loadNextDiscovery: () => Promise<void>;
   loadPrevDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
@@ -102,32 +95,46 @@ export const useRootStore = create<RootState>()(
       discoveryLimit: 6,  // 👈 novo
       filterMode: 'all',
 
+
+
+      setFilterMode: (mode) => {
+        set({ filterMode: mode });
+
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
+        if (activeSpace?.autoArrange) {
+          get().arrangeFilteredWindows();
+        }
+      },
+
       arrangeFilteredWindows: () => {
-        const state = get();
-        const activeSpace = state.spaces.find(t => t.id === state.activeSpaceId);
+        const spacesState = useSpacesStore.getState();
+        const activeSpaceId = spacesState.getActiveSpaceId();
+        const activeSpace = spacesState.getSpace(activeSpaceId);
         if (!activeSpace) return;
 
         let filteredWindows = activeSpace.windows;
+        const filterMode = get().filterMode;
 
-        if (state.filterMode === 'online') {
+        if (filterMode === 'online') {
           filteredWindows = filteredWindows.filter(w => w.isOnline === true);
-        } else if (state.filterMode === 'offline') {
+        } else if (filterMode === 'offline') {
           filteredWindows = filteredWindows.filter(w => w.isOnline === false);
         }
 
-        const total = filteredWindows.length;
-        if (total === 0) return;
+        if (filteredWindows.length === 0) return;
 
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight - 50;
-        const cols = Math.ceil(Math.sqrt(total));
-        const rows = Math.ceil(total / cols);
+        const cols = Math.ceil(Math.sqrt(filteredWindows.length));
+        const rows = Math.ceil(filteredWindows.length / cols);
         const cellWidth = Math.floor(screenWidth / cols);
         const cellHeight = Math.floor(screenHeight / rows);
 
         const updatedWindows = activeSpace.windows.map(win => {
           const index = filteredWindows.findIndex(w => w.id === win.id);
-          if (index === -1) return win; // mantém as janelas fora do filtro como estão
+          if (index === -1) return win;
           const col = index % cols;
           const row = Math.floor(index / cols);
           return {
@@ -139,19 +146,7 @@ export const useRootStore = create<RootState>()(
           };
         });
 
-        set({
-          spaces: state.spaces.map(s =>
-            s.id === activeSpace.id ? { ...activeSpace, windows: updatedWindows } : s
-          )
-        });
-      },
-
-      setFilterMode: (mode) => {
-        set({ filterMode: mode });
-        const space = get().spaces.find(s => s.id === get().activeSpaceId);
-        if (space?.autoArrange) {
-          get().arrangeFilteredWindows();
-        }
+        spacesState.updateSpace(activeSpaceId, { ...activeSpace, windows: updatedWindows });
       },
 
       setWindowVolume: (id, volume) => set((state) => {
@@ -176,146 +171,18 @@ export const useRootStore = create<RootState>()(
         return { spaces };
       }),
 
-      toggleGlobalMuted: () => set(state => {
-        const newMuted = !state.globalMuted;
-        return {
-          globalMuted: newMuted,
-          spaces: state.spaces.map(space => ({
-            ...space,
-            windows: space.windows.map(window => ({
-              ...window,
-              isMuted: newMuted
-            }))
-          }))
-        }
-      }),
+      toggleGlobalMuted: () => {
+        const spacesState = useSpacesStore.getState();
+        const spaces = spacesState.getSpaces();
+        const newMuted = !get().globalMuted;
 
+        spaces.forEach(space => {
+          const updatedWindows = space.windows.map(w => ({ ...w, isMuted: newMuted }));
+          spacesState.updateSpace(space.id, { ...space, windows: updatedWindows });
+        });
 
-      addSpace: (name) => set((state) => {
-        const id = Math.random().toString(36).substring(2, 9);
-        const totalSpaces = state.spaces.length;
-        const finalName = name.trim() !== '' ? name : `Space ${totalSpaces + 1}`;
-        return {
-          spaces: [...state.spaces, {
-            id,
-            name: finalName,
-            windows: [],
-            zIndexes: {},
-            autoArrange: true,
-            spaceLimit: 12,  // default de paginação
-            spaceOffset: 0
-          }],
-          activeSpaceId: id
-        };
-      }),
-
-
-
-      removeSpace: (id) => set((state) => {
-        if (id === 'discovery') {
-          // Nunca permite remover o discovery
-          return state;
-        }
-
-        let newSpaces = state.spaces.filter(t => t.id !== id);
-        if (newSpaces.length === 0) {
-          newSpaces = [{ id: 'default', name: 'Space 1', windows: [], zIndexes: {}, autoArrange: true }];
-        }
-        return {
-          spaces: newSpaces,
-          activeSpaceId: newSpaces[0].id
-        };
-      }),
-
-
-      renameSpace: (id, name) => set((state) => ({
-        spaces: state.spaces.map(t => t.id === id ? { ...t, name } : t)
-      })),
-
-      switchSpace: (id) => {
-        const state = get();
-        set({ activeSpaceId: id });
-
-        if (id === 'discovery' && state.discoveryOffset === 0 && !state.isLoadingDiscovery) {
-          setTimeout(() => state.loadDiscovery(), 0);
-        } else {
-          const targetSpace = state.spaces.find(s => s.id === id);
-          if (targetSpace?.autoArrange) {
-            setTimeout(() => {
-              if (state.filterMode === 'all') {
-                get().arrangeWindows();
-              } else {
-                get().arrangeFilteredWindows();
-              }
-            }, 0);
-          }
-        }
+        set({ globalMuted: newMuted });
       },
-
-
-      addWindow: (room) => set((state) => {
-        const space = state.spaces.find(t => t.id === state.activeSpaceId);
-        if (!space) return state;
-
-        // Verifica se a sala já existe
-        const alreadyExists = space.windows.some(w => w.room === room);
-        if (alreadyExists) {
-          console.log(`Room ${room} já existe no space ${space.name}`);
-          return state;
-        }
-
-        const id = Math.random().toString(36).substring(2, 9);
-        const maxZ = Math.max(0, ...Object.values(space.zIndexes));
-
-        let updatedSpace = {
-          ...space,
-          windows: [...space.windows, { id, room, x: 50, y: 50, width: 800, height: 600 }],
-          zIndexes: { ...space.zIndexes, [id]: maxZ + 1 }
-        };
-
-        if (updatedSpace.autoArrange) {
-          updatedSpace = arrangeWindowsInternal(updatedSpace);
-        }
-
-        return {
-          spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
-        };
-      }),
-
-
-
-      updateWindow: (id, pos) => set((state) => {
-        const space = state.spaces.find(t => t.id === state.activeSpaceId);
-        if (!space) return state;
-
-        const updatedWindows = space.windows.map(w => w.id === id ? { ...w, ...pos } : w);
-        const updatedSpace = { ...space, windows: updatedWindows };
-
-        return {
-          spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
-        };
-      }),
-
-      removeWindow: (id) => set((state) => {
-        const space = state.spaces.find(t => t.id === state.activeSpaceId);
-        if (!space) return state;
-
-        const { [id]: _, ...newZIndexes } = space.zIndexes;
-        let updatedSpace = {
-          ...space,
-          windows: space.windows.filter(w => w.id !== id),
-          zIndexes: newZIndexes
-        };
-
-        if (updatedSpace.autoArrange) {
-          updatedSpace = arrangeWindowsInternal(updatedSpace);
-        }
-
-        return {
-          spaces: state.spaces.map(t => t.id === space.id ? updatedSpace : t)
-        };
-      }),
-
 
 
       bringToFront: (id) => set((state) => {
@@ -378,11 +245,7 @@ export const useRootStore = create<RootState>()(
       }),
 
 
-      toggleAutoArrange: (spaceId) => set((state) => ({
-        spaces: state.spaces.map(space =>
-          space.id === spaceId ? { ...space, autoArrange: !space.autoArrange } : space
-        )
-      })),
+
 
       loadDiscovery: async () => {
         const state = get();
