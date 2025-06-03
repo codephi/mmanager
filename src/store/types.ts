@@ -1,6 +1,3 @@
-// store/types.ts
-
-
 export interface WindowConfig {
     id: string;
     room: string;
@@ -13,15 +10,6 @@ export interface WindowConfig {
     isMuted?: boolean;
     volume?: number;
 }
-
-export interface SpaceConfig {
-    id: string;
-    name: string;
-    windows: WindowConfig[];
-    zIndexes: Record<string, number>;
-    autoArrange: boolean;
-}
-
 
 export interface SpaceConfig {
     id: string;
