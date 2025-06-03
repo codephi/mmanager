@@ -17,7 +17,7 @@ interface SpacesState {
     createSpaceFromPinned: (pinnedWindows: WindowConfig[]) => void;
     bringToFront: (id: string) => void;
     arrangeWindows: () => void;
-    moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
+    copyWindowToSpace: (windowId: string, targetSpaceId: string) => void;
     setWindowVolume: (windowId: string, volume: number) => void;
     arrangeFilteredWindows: () => void;
     globalMuted: boolean;
@@ -173,19 +173,19 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
         });
     },
 
-    moveWindowToSpace: (windowId, targetSpaceId) => {
+    copyWindowToSpace: (windowId, targetSpaceId) => {
         set(state => {
             const activeSpaceId = state.activeSpaceId;
             const activeSpace = state.spaces.find(s => s.id === activeSpaceId);
             const targetSpace = state.spaces.find(s => s.id === targetSpaceId);
             if (!activeSpace || !targetSpace) return state;
 
-            const windowToMove = activeSpace.windows.find(w => w.id === windowId);
-            if (!windowToMove) return state;
+            const windowToCopy = activeSpace.windows.find(w => w.id === windowId);
+            if (!windowToCopy) return state;
 
             let newTargetSpace = {
                 ...targetSpace,
-                windows: [...targetSpace.windows, windowToMove],
+                windows: [...targetSpace.windows, { ...windowToCopy }], // faz uma cópia para garantir imutabilidade
                 zIndexes: { ...targetSpace.zIndexes, [windowId]: Math.max(0, ...Object.values(targetSpace.zIndexes)) + 1 }
             };
 
@@ -193,15 +193,8 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
                 newTargetSpace = arrangeWindowsInternal(newTargetSpace);
             }
 
-            const newActiveSpace = {
-                ...activeSpace,
-                windows: activeSpace.windows.filter(w => w.id !== windowId),
-                zIndexes: Object.fromEntries(Object.entries(activeSpace.zIndexes).filter(([id]) => id !== windowId))
-            };
-
             return {
                 spaces: state.spaces.map(s => {
-                    if (s.id === newActiveSpace.id) return newActiveSpace;
                     if (s.id === newTargetSpace.id) return newTargetSpace;
                     return s;
                 }),

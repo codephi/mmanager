@@ -20,7 +20,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const updateWindow = useWindowsStore((s) => s.updateWindow);
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
-  const moveWindowToSpace = useSpacesStore((s) => s.moveWindowToSpace);
+  const copyWindowToSpace = useSpacesStore((s) => s.copyWindowToSpace);
   const togglePin = useDiscoveryStore(s => s.togglePin);
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
@@ -142,7 +142,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
             <button onClick={() => togglePin(id)}>{isPinned ? "📌" : "📍"}</button>
             <button onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
             <button onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>
-            <select className="no-drag" value={activeSpaceId} onChange={(e) => moveWindowToSpace(id, e.target.value)} style={{ fontSize: 12 }}>
+            <select className="no-drag" value={activeSpaceId} onChange={(e) => copyWindowToSpace(id, e.target.value)} style={{ fontSize: 12 }}>
               {spaces.map(space => (
                 <option key={space.id} value={space.id}>{space.name}</option>
               ))}
