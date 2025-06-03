@@ -119,10 +119,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
-  const globalMuted = useSpacesStore(s => s.globalMuted);
-  const [mutedState, setMutedState] = useState(globalMuted);
   const [isPrivate, setIsPrivate] = useState(false);
-  const isDiscovery = activeSpaceId === 'discovery';
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const windowState = useSpacesStore(s => {
@@ -130,9 +127,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
     return space?.windows.find(w => w.id === id);
   });
 
-  const muted = windowState?.isMuted ?? false;
+  const muted = windowState?.isMuted ?? true;
   const volume = windowState?.volume ?? 1.0;
-  const effectiveMuted = isDiscovery ? globalMuted : muted;
 
   const setVolume = (v: number) => {
     useSpacesStore.getState().setWindowVolume(id, v);
@@ -142,9 +138,6 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
     useSpacesStore.getState().toggleWindowMute(id);
   };
 
-  useEffect(() => {
-    setMutedState(globalMuted);
-  }, [globalMuted]);
 
   useEffect(() => {
     async function fetchHls() {
@@ -222,7 +215,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
           >
             {room}
           </a>
-          <VolumeControl muted={effectiveMuted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
+          <VolumeControl muted={muted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
           <HeaderRight>
             <button onClick={() => togglePin(id)}>{isPinned ? "📌" : "📍"}</button>
             <button onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
@@ -249,7 +242,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
               </PrivateLink>
             </PrivateContainer>
           ) : hlsSource ? (
-            <HlsPlayer src={hlsSource} muted={effectiveMuted} volume={volume} />
+            <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
           ) : (
             <LoadingText>Carregando vídeo...</LoadingText>
           )}

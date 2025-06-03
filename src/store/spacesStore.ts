@@ -25,6 +25,7 @@ interface SpacesState {
     setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
     toggleGlobalMuted: () => void;
     toggleWindowMute: (windowId: string) => void;
+    setGlobalMuted: (muted: boolean) => void;
 }
 
 export const useSpacesStore = create<SpacesState>((set, get) => ({
@@ -316,5 +317,12 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
             };
         });
     },
+
+    setGlobalMuted: (muted) => set({
+        globalMuted: muted, spaces: get().spaces.map(space => ({
+            ...space,
+            windows: space.windows.map(w => ({ ...w, isMuted: muted }))
+        })),
+    })
 
 }));

@@ -43,6 +43,7 @@ function Toolbar() {
     const filterMode = useSpacesStore(s => s.filterMode);
     const globalMuted = useSpacesStore(s => s.globalMuted);
     const toggleGlobalMuted = useSpacesStore(s => s.toggleGlobalMuted);
+    const setGlobalMuted = useSpacesStore(s => s.setGlobalMuted);
 
     const discoveryOffset = useDiscoveryStore(s => s.discoveryOffset);
     const isLoadingDiscovery = useDiscoveryStore(s => s.isLoadingDiscovery);
@@ -84,6 +85,10 @@ function Toolbar() {
 
     const selectedSpace = spaces.find(s => s.id === activeSpaceId);
 
+    const handlerGlobalMuted = () => {
+        setGlobalMuted(true);
+    }
+
     return (
         <ToolbarContainer>
             <select value={activeSpaceId} onChange={e => switchSpace(e.target.value)}>
@@ -112,7 +117,8 @@ function Toolbar() {
                 </DiscoveryControls>
             )}
 
-            <button onClick={toggleGlobalMuted}>{globalMuted ? '🔇 Unmute All' : '🔊 Mute All'}</button>
+            <button onClick={handlerGlobalMuted}>{'🔇 Mute All'}</button>
+
             <select value={filterMode} onChange={e => setFilterMode(e.target.value as any)}>
                 <option value="all">Todas as salas</option>
                 <option value="online">Somente online</option>
