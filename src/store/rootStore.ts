@@ -66,7 +66,6 @@ export const useRootStore = create<RootState>()(
   persist(
     (set, get) => ({
       globalMuted: false,
-      activeSpaceId: 'discovery',
       filterMode: 'all',
 
       setFilterMode: (mode) => {
