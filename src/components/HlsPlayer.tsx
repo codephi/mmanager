@@ -14,6 +14,7 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
   const hlsRef = useRef<Hls | null>(null);
 
   const getTargetResolution = (h: number): number => {
+    if (h <= 180) return 180;
     if (h <= 240) return 240;
     if (h <= 480) return 480;
     if (h <= 720) return 720;
@@ -33,7 +34,6 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
       levelIndex = levels.length - 1;
     }
     hls.currentLevel = levelIndex;
-    console.log(`Switched to level ${levelIndex} for height ${height}`);
   };
 
   useEffect(() => {
@@ -52,7 +52,6 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.log({ data });
         if (data.fatal && onError) {
           onError();
         }

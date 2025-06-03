@@ -9,9 +9,9 @@ const PaginationContainer = styled.div`
   user-select: none;
 `;
 
-const PageButton = styled.button<{ active?: boolean }>`
-  font-weight: ${({ active }) => (active ? "bold" : "normal")};
-  background: ${({ active }) => (active ? "#ccc" : "transparent")};
+const PageButton = styled.button<{ $active?: boolean }>`
+  font-weight: ${({ $active }) => ($active ? "bold" : "normal")};
+  background: ${({ $active }) => ($active ? "#ccc" : "transparent")};
 `;
 
 const NavButton = styled.button<{ disabled?: boolean }>`
@@ -81,7 +81,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         ) : (
           <PageButton
             key={p}
-            active={p === currentPage}
+            $active={p === currentPage}
             onClick={() => onPageChange(p as number)}
           >
             {p}

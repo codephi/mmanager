@@ -29,13 +29,13 @@ const WindowContainer = styled.div`
   box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
 `;
 
-const WindowHeader = styled.div<{ maximized: boolean }>`
+const WindowHeader = styled.div<{ $maximized: boolean }>`
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  cursor: ${({ maximized }) => (maximized ? "default" : "move")};
+  cursor: ${({ $maximized }) => ($maximized ? "default" : "move")};
   font-size: 14px;
   background-color: var(--primary-color);
 `;
@@ -237,7 +237,7 @@ export const VideoWindow: React.FC<Props> = ({
       <WindowContainer onMouseDown={() => bringToFront(id)}>
         <WindowHeader
           className="window-header"
-          maximized={maximized}
+          $maximized={maximized}
           onMouseDown={() => bringToFront(id)}
         >
           <a
