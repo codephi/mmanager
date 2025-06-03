@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 const SpaceContainer = styled.div`
@@ -28,7 +28,11 @@ export function SpaceOption({
     setRenameValue,
     renameSpace,
     toggleAutoArrange,
+    removeSpace,
+    addStream
 }: any) {
+    const [room, setRoom] = useState('');
+
     return (
         <SpaceContainer>
             {renamingSpaceId === space.id ? (
@@ -57,6 +61,13 @@ export function SpaceOption({
             <Label>
                 <input type="checkbox" checked={space.autoArrange} onChange={() => toggleAutoArrange(space.id)} />
                 Auto Grid
+            </Label>
+            <Label>
+                <button onClick={() => removeSpace(space.id)}>Remover Space</button>
+            </Label>
+            <Label>
+                <input type="text" placeholder="Nome da Sala" value={room} onChange={(e) => setRoom(e.target.value)} />
+                <button onClick={addStream}>Adicionar Stream</button>
             </Label>
         </SpaceContainer>
     );

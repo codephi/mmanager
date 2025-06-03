@@ -5,6 +5,8 @@ import { arrangeWindowsInternal } from './utils';
 interface SpacesState {
     spaces: SpaceConfig[];
     activeSpaceId: string;
+    globalMuted: boolean;
+    filterMode: 'all' | 'online' | 'offline';
     getSpaces: () => SpaceConfig[];
     getActiveSpaceId: () => string;
     getSpace: (id: string) => SpaceConfig | undefined;
@@ -20,8 +22,6 @@ interface SpacesState {
     copyWindowToSpace: (windowId: string, targetSpaceId: string) => void;
     setWindowVolume: (windowId: string, volume: number) => void;
     arrangeFilteredWindows: () => void;
-    globalMuted: boolean;
-    filterMode: 'all' | 'online' | 'offline';
     setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
     toggleGlobalMuted: () => void;
     toggleWindowMute: (windowId: string) => void;
@@ -257,27 +257,22 @@ export const useSpacesStore = create<SpacesState>((set, get) => ({
                 filteredWindows = filteredWindows.filter(w => w.isOnline === false);
             }
 
+            // Se não há janelas filtradas, não reorganiza nada
             if (filteredWindows.length === 0) return state;
 
-            const screenWidth = window.innerWidth;
-            const screenHeight = window.innerHeight - 50;
-            const cols = Math.ceil(Math.sqrt(filteredWindows.length));
-            const rows = Math.ceil(filteredWindows.length / cols);
-            const cellWidth = Math.floor(screenWidth / cols);
-            const cellHeight = Math.floor(screenHeight / rows);
+            // Cria um novo SpaceConfig apenas com os windows filtrados para passar ao arrangeWindowsInternal
+            const tempSpace: SpaceConfig = {
+                ...activeSpace,
+                windows: filteredWindows
+            };
 
+            const arrangedSpace = arrangeWindowsInternal(tempSpace);
+            const arrangedWindows = arrangedSpace.windows;
+
+            // Agora aplicamos as novas posições apenas para os windows filtrados
             const updatedWindows = activeSpace.windows.map(win => {
-                const index = filteredWindows.findIndex(w => w.id === win.id);
-                if (index === -1) return win;
-                const col = index % cols;
-                const row = Math.floor(index / cols);
-                return {
-                    ...win,
-                    x: col * cellWidth,
-                    y: row * cellHeight + 50,
-                    width: cellWidth,
-                    height: cellHeight
-                };
+                const arranged = arrangedWindows.find(w => w.id === win.id);
+                return arranged ? arranged : win;
             });
 
             return {

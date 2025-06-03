@@ -91,7 +91,4 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
 
         spacesState.updateSpace(space.id, updatedSpace);
     },
-
-
-
 }));

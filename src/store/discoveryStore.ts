@@ -5,8 +5,13 @@ import { arrangeWindowsInternal } from './utils';
 
 interface DiscoveryState {
     discoveryOffset: number;
+    totalRooms: number;
+    totalPages: number;
     isLoadingDiscovery: boolean;
     discoveryLimit: number;
+    currentPage: number;
+    setCurrentPage?: (page: number) => void;
+    goToDiscoveryPage: (page: number) => Promise<void>;
     loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
     loadDiscovery: () => Promise<void>;
     loadNextDiscovery: () => Promise<void>;
@@ -20,6 +25,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     discoveryOffset: 0,
     isLoadingDiscovery: false,
     discoveryLimit: 6,
+    totalPages: 1,
+    totalRooms: 0,
+    currentPage: 1,
 
     loadDiscovery: async () => {
         const { discoveryOffset, isLoadingDiscovery } = get();
@@ -83,7 +91,15 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         });
 
         spacesState.updateSpace('discovery', updatedDiscovery);
-        set({ discoveryOffset: newOffset, isLoadingDiscovery: false });
+
+
+        const totalRooms = data.total_count || 0;
+        const totalPages = Math.ceil(totalRooms / state.discoveryLimit);
+
+        console.log({ totalPages, totalRooms, discoveryOffset: newOffset });
+
+
+        set({ discoveryOffset: newOffset, isLoadingDiscovery: false, totalRooms, totalPages });
     },
 
     loadNextDiscovery: async () => {
@@ -137,4 +153,18 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         spacesState.addSpace(finalName); // já respeitando o novo spacesStore
         spacesState.updateSpace(id, newSpace);
     },
+
+    goToDiscoveryPage: async (page: number) => {
+        const state = get();
+        const newOffset = (page - 1) * state.discoveryLimit;
+        await get().loadDiscoveryPage(newOffset, true);
+
+        set({ currentPage: page });
+    },
+
+    setCurrentPage: (page: number) => {
+        const state = get();
+        if (page < 1 || page > state.totalPages) return;
+        set({ currentPage: page });
+    }
 }));

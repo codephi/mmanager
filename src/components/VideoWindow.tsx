@@ -23,6 +23,8 @@ const WindowContainer = styled.div`
   border: 1px solid #444;
   background: #000;
   position: relative;
+  border-radius: var(--border-radius);
+  overflow: hidden;
 `;
 
 const WindowHeader = styled.div<{ maximized: boolean }>`
@@ -120,6 +122,7 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
+  const isDiscovery = activeSpaceId === 'discovery';
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   const windowState = useSpacesStore(s => {
@@ -177,6 +180,16 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
     setTimeout(() => setCopyMessage(null), 3000);
   }
 
+  const renderPinButton = () => {
+    if (isDiscovery) {
+      return (
+        <button onClick={() => togglePin(id)} style={buttonStyle}>
+          {isPinned ? "📌" : "📍"}
+        </button>
+      );
+    }
+  }
+
   return (
     <Rnd
       size={maximized ? { width: window.innerWidth, height: window.innerHeight - 50 } : { width, height }}
@@ -195,8 +208,8 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
       bounds="parent"
       dragHandleClassName="window-header"
       cancel=".no-drag"
-      minWidth={320}
-      minHeight={240}
+      minWidth={180}
+      minHeight={80}
       disableDragging={maximized}
       enableResizing={!maximized}
       style={{ zIndex }}
@@ -211,15 +224,16 @@ export const VideoWindow: React.FC<Props> = ({ id, room, x, y, width, height, pi
             href={`https://handplayspaces.chaturbate.com/${room}`}
             target="_blank"
             rel="noopener noreferrer"
+            className='no-drag'
             style={{ color: '#fff', textDecoration: 'underline' }}
           >
             {room}
           </a>
-          <VolumeControl muted={muted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
           <HeaderRight>
-            <button onClick={() => togglePin(id)}>{isPinned ? "📌" : "📍"}</button>
-            <button onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
-            <button onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>
+            <VolumeControl muted={muted} volume={volume} onMuteToggle={toggleMute} onVolumeChange={setVolume} />
+            {renderPinButton()}
+            <button className='no-drag' onClick={toggleMaximize} style={buttonStyle}>{maximized ? '🗗' : '🗖'}</button>
+            <button className='no-drag' onClick={() => removeWindow(id)} style={buttonStyle}>❌</button>
             <StyledSelect className="no-drag" value={activeSpaceId} onChange={(e) => copyWindowToSpaceLocal(id, e.target.value)}>
               {spaces.map(space => (
                 <option key={space.id} value={space.id}>{space.name}</option>
