@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { WindowHeaderButton } from "./VideoWindow";
 import styled from "styled-components";
+import { AudioMute, AudioUnmute } from "../icons";
 
 const SliderContainer = styled.div`
   position: absolute;
@@ -21,17 +22,18 @@ const SliderContainer = styled.div`
 const Slider = styled.input.attrs({ type: "range" })<{ value: number }>`
   -webkit-appearance: none;
   appearance: none;
-  writing-mode: vertical-lr;
+  writing-mode: vertical-rl;
   width: 10px;
   height: 100px;
   margin: 0;
   padding: 0;
+  transform: rotate(180deg);
   background: linear-gradient(
     to top,
-    var(--primary-color-hover) 0%,
-    var(--primary-color-hover) ${({ value }) => 100 - value * 100}%,
+    #ddd 0%,
     #ddd ${({ value }) => 100 - value * 100}%,
-    #ddd 100%
+    var(--primary-color-hover) ${({ value }) => 100 - value * 100}%,
+    var(--primary-color-hover) 100%
   );
 
   border-radius: 5px;
@@ -120,7 +122,7 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
       className="no-drag"
     >
       <WindowHeaderButton onClick={onMuteToggle}>
-        {muted || volume === 0 ? "🔇" : "🔊"}
+        {muted || volume === 0 ? <AudioMute /> : <AudioUnmute />}
       </WindowHeaderButton>
 
       {hover && (

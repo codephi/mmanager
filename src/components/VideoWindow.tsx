@@ -7,6 +7,7 @@ import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
 import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
+import { Pin, Unpin } from "../icons";
 
 interface Props {
   id: string;
@@ -96,8 +97,10 @@ export const WindowHeaderButton = styled.button`
   cursor: pointer;
   width: 25px;
   height: 25px;
-  padding: 0;
-  font-size: 16px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const VideoWindow: React.FC<Props> = ({
@@ -113,7 +116,7 @@ export const VideoWindow: React.FC<Props> = ({
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
   const copyWindowToSpace = useSpacesStore((s) => s.copyWindowToSpace);
-  const togglePin = useDiscoveryStore((s) => s.togglePin);
+  const togglePin = useSpacesStore((s) => s.togglePin);
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const activeSpace = spaces.find((t) => t.id === activeSpaceId);
@@ -186,7 +189,7 @@ export const VideoWindow: React.FC<Props> = ({
   const renderPinButton = () => {
     return (
       <WindowHeaderButton onClick={() => togglePin(id)}>
-        {isPinned ? "📌" : "📍"}
+        {isPinned ? <Pin /> : <Unpin />}
       </WindowHeaderButton>
     );
   };
@@ -250,6 +253,12 @@ export const VideoWindow: React.FC<Props> = ({
             {room}
           </a>
           <HeaderRight>
+            <CopyToSpaceDropdown
+              spaces={spaces}
+              windowId={id}
+              onCopy={copyWindowToSpaceLocal}
+              className="no-drag"
+            />
             <VolumeControl
               muted={muted}
               volume={volume}
@@ -257,12 +266,6 @@ export const VideoWindow: React.FC<Props> = ({
               onVolumeChange={setVolume}
             />
             {renderPinButton()}
-            <CopyToSpaceDropdown
-              spaces={spaces}
-              windowId={id}
-              onCopy={copyWindowToSpaceLocal}
-              className="no-drag"
-            />
 
             <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
               {maximized ? "🗗" : "🗖"}

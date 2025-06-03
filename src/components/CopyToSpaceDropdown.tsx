@@ -43,6 +43,10 @@ const DropdownMenu = styled.div`
   }
 `;
 
+const ButtonCopy = styled.button`
+  padding: 5px;
+`;
+
 interface Props {
   spaces: SpaceConfig[];
   windowId: string;
@@ -96,12 +100,15 @@ export const CopyToSpaceDropdown: React.FC<Props> = ({
     <DropdownContainer
       ref={containerRef}
       className={className}
-      onMouseEnter={() => cancelClose()}
+      onMouseEnter={() => {
+        cancelClose();
+        setOpen(true);
+      }}
       onMouseLeave={() => delayedClose()}
     >
-      <button onClick={() => setOpen(!open)}>
+      <ButtonCopy>
         <Copy />
-      </button>
+      </ButtonCopy>
       {open && (
         <DropdownMenu>
           {spaces
