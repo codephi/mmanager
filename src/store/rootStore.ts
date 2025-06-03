@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useSpacesStore } from './spacesStore';  // IMPORTANTE
+import { useSpacesStore } from './spacesStore';
 
 interface WindowConfig {
   id: string;
@@ -27,24 +27,14 @@ interface SpaceConfig {
 interface RootState {
   spaces: SpaceConfig[];
   activeSpaceId: string;
-  discoveryOffset: number;
-  isLoadingDiscovery: boolean;
-  discoveryLimit: number;
   globalMuted: boolean;
   filterMode: 'all' | 'online' | 'offline';
   setFilterMode: (mode: 'all' | 'online' | 'offline') => void;
   arrangeFilteredWindows: () => void;
   toggleGlobalMuted: () => void;
-  loadDiscovery: () => Promise<void>;
   bringToFront: (id: string) => void;
   arrangeWindows: () => void;
   moveWindowToSpace: (windowId: string, targetSpaceId: string) => void;
-  loadNextDiscovery: () => Promise<void>;
-  loadPrevDiscovery: () => Promise<void>;
-  setDiscoveryLimit: (limit: number) => void;
-  loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
-  togglePin: (windowId: string) => void;
-  addSpaceFromPinned: () => void;
   setWindowVolume: (windowId: string, volume: number) => void;
   toggleWindowMute: (windowId: string) => void;
 }
@@ -247,187 +237,6 @@ export const useRootStore = create<RootState>()(
 
 
 
-      loadDiscovery: async () => {
-        const state = get();
-        if (state.isLoadingDiscovery) return;
-        console.log('Loading discovery...');
-        set({ isLoadingDiscovery: true });
-
-        const offset = state.discoveryOffset;
-
-        const response = await fetch(`https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=10&offset=${offset}`);
-        const data = await response.json();
-
-        const existingIds = new Set(
-          state.spaces.find(s => s.id === 'discovery')?.windows.map(w => w.id) ?? []
-        );
-
-        const newWindows: WindowConfig[] = data.rooms
-          .filter((room: any) => !existingIds.has(room.username))
-          .map((room: any) => ({
-            id: room.username,
-            room: room.username,
-            x: 50,
-            y: 50,
-            width: 800,
-            height: 600
-            // NÃO precisamos do isOnline aqui
-          }));
-
-
-        const discoverySpace = state.spaces.find(s => s.id === 'discovery');
-        if (!discoverySpace) {
-          set({ isLoadingDiscovery: false });
-          return;
-        }
-
-        let updatedDiscovery = {
-          ...discoverySpace,
-          windows: [...discoverySpace.windows, ...newWindows],
-          zIndexes: {
-            ...discoverySpace.zIndexes,
-            ...Object.fromEntries(newWindows.map((w, idx) => [w.id, Object.keys(discoverySpace.zIndexes).length + idx + 1]))
-          }
-        };
-
-        updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
-
-        set({
-          discoveryOffset: offset + 10,
-          spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
-          isLoadingDiscovery: false
-        });
-      },
-
-      loadDiscoveryPage: async (newOffset: number, force = false) => {
-        const state = get();
-        if (!force && state.isLoadingDiscovery) return;
-
-        set({ isLoadingDiscovery: true });
-
-        const discovery = state.spaces.find(s => s.id === 'discovery');
-        const pinned = discovery?.windows.filter(w => w.pinned) ?? [];
-        const diffLimitPinned = state.discoveryLimit - pinned.length;
-        const availableSlots = diffLimitPinned <= 0 ? 0 : Math.max(0, diffLimitPinned);
-
-        // 🚩 Proteção aqui:
-        if (availableSlots === 0) {
-          let updatedDiscovery = {
-            ...discovery!,
-            windows: [...pinned],
-            zIndexes: Object.fromEntries(
-              pinned.map((w, idx) => [w.id, idx + 1])
-            )
-          };
-
-          updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
-
-          set({
-            discoveryOffset: 0, // opcional: reset offset nesse caso
-            spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
-            isLoadingDiscovery: false
-          });
-
-          return; // 👈 não faz fetch se não há slots
-        }
-
-        const response = await fetch(
-          `https://pt.chaturbate.com/api/ts/roomlist/room-list/?limit=${availableSlots}&offset=${newOffset}`
-        );
-
-        const data = await response.json();
-
-        const fetchedRooms = data.rooms
-          .filter((room: any) => !pinned.some(p => p.id === room.username))
-          .slice(0, availableSlots);
-
-        const newWindows: WindowConfig[] = fetchedRooms.map((room: any) => ({
-          id: room.username,
-          room: room.username,
-          x: 50,
-          y: 50,
-          width: 800,
-          height: 600
-        }));
-
-        let updatedDiscovery = {
-          ...discovery!,
-          windows: [...pinned, ...newWindows],
-          zIndexes: Object.fromEntries(
-            [...pinned, ...newWindows].map((w, idx) => [w.id, idx + 1])
-          )
-        };
-
-        updatedDiscovery = arrangeWindowsInternal(updatedDiscovery);
-
-        set({
-          discoveryOffset: newOffset,
-          spaces: state.spaces.map(s => s.id === 'discovery' ? updatedDiscovery : s),
-          isLoadingDiscovery: false
-        });
-      },
-
-      loadNextDiscovery: async () => {
-        const state = get();
-        get().loadDiscoveryPage(state.discoveryOffset + 10, true);
-      },
-
-      loadPrevDiscovery: async () => {
-        const state = get();
-        const newOffset = Math.max(0, state.discoveryOffset - 10);
-        get().loadDiscoveryPage(newOffset, true);
-      },
-
-
-      setDiscoveryLimit: (limit) => {
-        set({ discoveryLimit: limit, discoveryOffset: 0 });
-        get().loadDiscoveryPage(0); // carrega novamente do zero
-      },
-
-      togglePin: (windowId: string) => set((state) => {
-        const discovery = state.spaces.find(s => s.id === 'discovery');
-        if (!discovery) return state;
-
-        const updatedWindows = discovery.windows.map(w =>
-          w.id === windowId ? { ...w, pinned: !w.pinned } : w
-        );
-
-        return {
-          spaces: state.spaces.map(s =>
-            s.id === 'discovery' ? { ...discovery, windows: updatedWindows } : s
-          )
-        };
-      }),
-
-      addSpaceFromPinned: () => set((state) => {
-        const discovery = state.spaces.find(s => s.id === 'discovery');
-        if (!discovery) return state;
-
-        const pinnedWindows = discovery.windows.filter(w => w.pinned);
-        if (pinnedWindows.length === 0) return state; // nada a fazer
-
-        const id = Math.random().toString(36).substring(2, 9);
-        const totalSpaces = state.spaces.length;
-        const finalName = `Space ${totalSpaces + 1}`;
-
-        const newSpace: SpaceConfig = {
-          id,
-          name: finalName,
-          windows: pinnedWindows.map(w => ({
-            ...w,
-            pinned: undefined // remover a flag pinned para o novo space
-          })),
-          zIndexes: Object.fromEntries(
-            pinnedWindows.map((w, idx) => [w.id, idx + 1])
-          ),
-          autoArrange: true
-        };
-
-        return {
-          spaces: [...state.spaces, newSpace],
-          activeSpaceId: id
-        };
-      }),
     }),
     { name: 'root-storage' }
   )

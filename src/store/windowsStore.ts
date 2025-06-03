@@ -11,7 +11,6 @@ interface WindowsState {
 }
 
 export const useWindowsStore = create<WindowsState>((set, get) => ({
-
     addWindow: (room) => {
         const spacesState = useSpacesStore.getState();
         const activeSpaceId = spacesState.getActiveSpaceId();
@@ -84,5 +83,7 @@ export const useWindowsStore = create<WindowsState>((set, get) => ({
 
         spacesState.updateSpace(space.id, updatedSpace);
     },
+
+
 
 }));
