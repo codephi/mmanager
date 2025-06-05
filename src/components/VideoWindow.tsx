@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Rnd } from "react-rnd";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
@@ -7,6 +7,7 @@ import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
 import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
+import { useHlsStreamRecorder } from "../hooks/useHlsDownloader";
 
 interface Props {
   id: string;
@@ -71,9 +72,7 @@ const PrivateTitle = styled.div`
 `;
 
 const PrivateLink = styled.a`
-  color: #00f;
-  text-decoration: underline;
-  font-size: 16px;
+  padding: 1rem;
 `;
 
 const LoadingText = styled.div`
@@ -132,6 +131,8 @@ export const VideoWindow: React.FC<Props> = ({
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const { start, stop, write } = useHlsStreamRecorder();
+  const isRecording = useRef<boolean>(false);
 
   const windowState = useSpacesStore((s) => {
     const space = s.spaces.find((sp) => sp.id === s.activeSpaceId);
@@ -189,6 +190,31 @@ export const VideoWindow: React.FC<Props> = ({
     setCopyMessage(`Room copied to ${spaceName}`);
     setTimeout(() => setCopyMessage(null), 3000);
   };
+
+  const toggleRecording = () => {
+    if (!hlsSource) {
+      alert("Stream não disponível");
+      return;
+    }
+
+    if (!isRecording.current) {
+      start("file.txt");
+      isRecording.current = true;
+    } else {
+      stop();
+      isRecording.current = false;
+    }
+  };
+
+  const onRecordData = useCallback(
+    (data: Uint8Array) => {
+      console.log({ isRecording: isRecording.current });
+      if (isRecording.current) {
+        write(data);
+      }
+    },
+    [isRecording, write]
+  );
 
   return (
     <Rnd
@@ -249,6 +275,9 @@ export const VideoWindow: React.FC<Props> = ({
             {room}
           </a>
           <HeaderRight>
+            <WindowHeaderButton className="no-drag" onClick={toggleRecording}>
+              {isRecording.current ? "Parar Download" : "Gravar"}
+            </WindowHeaderButton>
             <CopyToSpaceDropdown
               spaces={spaces}
               windowId={id}
@@ -283,15 +312,21 @@ export const VideoWindow: React.FC<Props> = ({
             <PrivateContainer>
               <PrivateTitle>SHOW NOW</PrivateTitle>
               <PrivateLink
+                className="button"
                 href={`https://handplayspaces.chaturbate.com/${room}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Ver no Chaturbate
+                View on Chaturbate
               </PrivateLink>
             </PrivateContainer>
           ) : hlsSource ? (
-            <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
+            <HlsPlayer
+              src={hlsSource}
+              muted={muted}
+              volume={volume}
+              onData={onRecordData}
+            />
           ) : (
             <LoadingText>Carregando vídeo...</LoadingText>
           )}

@@ -6,9 +6,16 @@ interface Props {
   muted: boolean;
   volume: number;
   onError?: () => void;
+  onData?: (data: Uint8Array) => void; // <-- Adicionado
 }
 
-export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
+export const HlsPlayer: React.FC<Props> = ({
+  src,
+  muted,
+  volume,
+  onError,
+  onData,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -18,8 +25,7 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
     if (h <= 240) return 240;
     if (h <= 480) return 480;
     if (h <= 720) return 720;
-    if (h <= 1080) return 1080;
-    return Infinity;
+    return 1080;
   };
 
   const selectLevel = (height: number) => {
@@ -29,11 +35,14 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
     const levels = hls.levels;
     const targetResolution = getTargetResolution(height);
 
-    let levelIndex = levels.findIndex((l) => l.height >= targetResolution);
-    if (levelIndex === -1) {
-      levelIndex = levels.length - 1;
-    }
-    hls.currentLevel = levelIndex;
+    // Busca o maior nível que seja <= targetResolution
+    const availableLevels = levels.filter((l) => l.height <= targetResolution);
+    const selected =
+      availableLevels.length > 0
+        ? availableLevels[availableLevels.length - 1]
+        : levels[0];
+
+    hls.currentLevel = levels.findIndex((l) => l.height === selected.height);
   };
 
   useEffect(() => {
@@ -41,11 +50,27 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
     const container = containerRef.current;
     if (!video || !container) return;
 
+    let hls: Hls | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
     if (Hls.isSupported()) {
-      const hls = new Hls();
+      hls = new Hls({
+        progressive: true,
+      });
       hlsRef.current = hls;
       hls.loadSource(src);
       hls.attachMedia(video);
+
+      hls.on(Hls.Events.FRAG_LOADED, async (event, data) => {
+        const url = data.frag.url;
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+
+        const buffer = new Uint8Array(arrayBuffer);
+        if (onData) {
+          onData(buffer);
+        }
+      });
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         selectLevel(container.clientHeight);
@@ -57,23 +82,21 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
         }
       });
 
-      // Observe resize no container, não no video
-      const resizeObserver = new ResizeObserver((entries) => {
+      resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const height = entry.contentRect.height;
           selectLevel(height);
         }
       });
-
       resizeObserver.observe(container);
-
-      return () => {
-        resizeObserver.disconnect();
-        hls.destroy();
-      };
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
     }
+
+    return () => {
+      resizeObserver?.disconnect();
+      hls?.destroy();
+    };
   }, [src, onError]);
 
   useEffect(() => {
@@ -88,6 +111,7 @@ export const HlsPlayer: React.FC<Props> = ({ src, muted, volume, onError }) => {
       <video
         ref={videoRef}
         autoPlay
+        playsInline
         controls={false}
         style={{ width: "100%", height: "100%" }}
       />

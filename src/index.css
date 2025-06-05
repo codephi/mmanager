@@ -88,6 +88,7 @@ a:hover {
 input,
 textarea,
 select,
+.button,
 button {
   font-family: inherit;
   font-size: 1rem;
@@ -128,6 +129,7 @@ select {
 
 /* BOTÕES */
 button,
+.button,
 input[type="button"],
 input[type="submit"] {
   background-color: var(--primary-color);
@@ -142,13 +144,16 @@ input[type="submit"] {
 }
 
 button:hover,
+.button:hover,
 input[type="button"]:hover,
 input[type="submit"]:hover {
   background-color: var(--primary-color-hover);
   box-shadow: var(--shadow-md);
+  text-decoration: none;
 }
 
-button:disabled {
+button:disabled,
+.button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
