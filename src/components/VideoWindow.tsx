@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import { useHlsStreamRecorder } from "../hooks/useHlsDownloader";
+import RecordButton from "./RecordButton";
 
 interface Props {
   id: string;
@@ -131,7 +132,7 @@ export const VideoWindow: React.FC<Props> = ({
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
-  const { start, stop, write } = useHlsStreamRecorder();
+  const { start, stop, write, isDownloading } = useHlsStreamRecorder();
   const isRecording = useRef<boolean>(false);
 
   const windowState = useSpacesStore((s) => {
@@ -197,8 +198,10 @@ export const VideoWindow: React.FC<Props> = ({
       return;
     }
 
+    const now = new Date().toISOString().replace(/[:.]/g, "-");
+
     if (!isRecording.current) {
-      start("file.txt");
+      start(`${room}-${now}.ts`);
       isRecording.current = true;
     } else {
       stop();
@@ -208,7 +211,6 @@ export const VideoWindow: React.FC<Props> = ({
 
   const onRecordData = useCallback(
     (data: Uint8Array) => {
-      console.log({ isRecording: isRecording.current });
       if (isRecording.current) {
         write(data);
       }
@@ -276,7 +278,7 @@ export const VideoWindow: React.FC<Props> = ({
           </a>
           <HeaderRight>
             <WindowHeaderButton className="no-drag" onClick={toggleRecording}>
-              {isRecording.current ? "Parar Download" : "Gravar"}
+              <RecordButton active={isDownloading} />
             </WindowHeaderButton>
             <CopyToSpaceDropdown
               spaces={spaces}

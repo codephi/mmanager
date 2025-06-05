@@ -7,6 +7,7 @@ import UnpinSVG from "./unpin.svg?react";
 import CloseSVG from "./close.svg?react";
 import MaximizeSVG from "./maximize.svg?react";
 import MinimizeSVG from "./minimize.svg?react";
+import RecordSVG from "./record.svg?react";
 
 export interface IconProps {
   size?: number;
@@ -44,4 +45,7 @@ export const Maximize = ({ size = 22, ...props }: IconProps) => (
 );
 export const Minimize = ({ size = 22, ...props }: IconProps) => (
   <MinimizeSVG {...props} width={size} height={size} />
+);
+export const Record = ({ size = 22, ...props }: IconProps) => (
+  <RecordSVG {...props} width={size} height={size} />
 );
