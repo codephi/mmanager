@@ -7,7 +7,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
-import { rearrangeWindows } from "../utils/rearrangeWindows";
+import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 
 const Wrapper = styled.div`
@@ -64,17 +64,14 @@ export const WindowsGrid: React.FC = () => {
     h: win.h ?? 1,
   }));
 
-  let rearrangeTimeout: ReturnType<typeof setTimeout> | null = null;
-
   const onLayoutChange = (newLayout: Layout[]) => {
+    // Sempre atualiza store com o novo layout primeiro:
     newLayout.forEach(({ i, x, y, w, h }) => {
       updateWindow(i, { x, y, w, h });
     });
 
-    if (rearrangeTimeout) clearTimeout(rearrangeTimeout);
-    rearrangeTimeout = setTimeout(() => {
-      rearrangeWindows();
-    }, 300);
+    // Imediatamente já faz o rearrange usando o layout atualizado:
+    rearrangeWindowsFromLayout(newLayout);
   };
 
   const colsValue = cols > 0 ? cols : 1;
