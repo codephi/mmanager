@@ -1,12 +1,20 @@
 import React from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
-import { Pinneds } from "./Pinneds";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
+import styled from "styled-components";
+import { rearrangeWindows } from "../utils/rearrangeWindows";
+
+const Wrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+`;
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -47,59 +55,66 @@ export const WindowsGrid: React.FC = () => {
   const paddingBottom = 200;
   const availableHeight = viewportHeight - paddingTop - paddingBottom;
 
-  const columnWidth = viewportWidth / cols;
   const rowHeight = availableHeight / rows;
 
-  const layout: Layout[] = windows.map((win, index) => {
-    const x = index % cols;
-    const y = Math.floor(index / cols);
-    return { i: win.id, x, y, w: 1, h: 1 };
-  });
+  const layout: Layout[] = windows.map((win, index) => ({
+    i: win.id,
+    x: win.x ?? index % cols,
+    y: win.y ?? Math.floor(index / cols),
+    w: win.w ?? 1,
+    h: win.h ?? 1,
+  }));
+
+  let rearrangeTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const onLayoutChange = (newLayout: Layout[]) => {
     newLayout.forEach(({ i, x, y, w, h }) => {
-      updateWindow(i, {
-        x,
-        y,
-        width: w * columnWidth,
-        height: h * rowHeight,
-      });
+      updateWindow(i, { x, y, w, h });
     });
+
+    if (rearrangeTimeout) clearTimeout(rearrangeTimeout);
+    rearrangeTimeout = setTimeout(() => {
+      rearrangeWindows();
+    }, 300);
   };
 
-  return (
-    <>
-      <Pinneds />
+  const colsValue = cols > 0 ? cols : 1;
 
-      <div style={{ marginTop: paddingTop }}>
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={{ lg: layout }}
-          cols={{ lg: cols }}
-          rowHeight={rowHeight}
-          width={viewportWidth}
-          isResizable
-          isDraggable
-          onLayoutChange={onLayoutChange}
-          draggableHandle=".window-header"
-          compactType={null}
-        >
-          {windows.map((win) => (
-            <div
-              key={win.id}
-              className="window-header"
-              style={{ width: "100%", height: "100%" }}
-            >
-              <WindowContainer
-                id={win.id}
-                room={win.room}
-                pinned={win.pinned}
-                onMaximize={() => {}}
-              />
-            </div>
-          ))}
-        </ResponsiveGridLayout>
-      </div>
-    </>
+  return (
+    <Wrapper>
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={{ lg: layout }}
+        cols={{
+          lg: colsValue,
+          md: colsValue,
+          sm: colsValue,
+          xs: colsValue,
+          xxs: colsValue,
+        }}
+        rowHeight={rowHeight}
+        width={viewportWidth}
+        isResizable
+        isDraggable
+        onLayoutChange={onLayoutChange}
+        draggableHandle=".window-header"
+        compactType={null}
+      >
+        {windows.map((win) => (
+          <div
+            key={win.id}
+            className="window-header"
+            style={{ width: "100%", height: "100%" }}
+          >
+            <WindowContainer
+              id={win.id}
+              room={win.room}
+              pinned={win.pinned}
+              onMaximize={() => {}}
+            />
+          </div>
+        ))}
+      </ResponsiveGridLayout>
+    </Wrapper>
   );
 };

@@ -12,6 +12,7 @@ const Wrappper = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  justify-content: space-between;
 `;
 
 function App() {

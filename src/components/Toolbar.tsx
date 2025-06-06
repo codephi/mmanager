@@ -6,6 +6,7 @@ import { Pagination } from "./Pagination";
 import SpaceButtons from "./SpaceButtons";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
+import { rearrangeWindows } from "../utils/rearrangeWindows";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -131,7 +132,7 @@ function Toolbar() {
           <option value="all">All rooms</option>
         </select>
 
-        <button onClick={arrangeFilteredWindows}>Arrange</button>
+        <button onClick={() => rearrangeWindows(true)}>Arrange</button>
       </LeftOptions>
 
       <CenterOptions>
