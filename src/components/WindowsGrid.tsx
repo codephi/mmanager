@@ -1,6 +1,6 @@
 import React from "react";
 import { useSpacesStore } from "../store/spacesStore";
-import { WindowContainer } from "./WindowContainer";
+import { WindowContainer, WindowContainerWrapper } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -10,15 +10,35 @@ import styled from "styled-components";
 import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+const Window = styled.div`
+  width: 100%;
+  height: 100%;
+`;
+
 const Wrapper = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
   flex: 1;
-`;
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+  ${Window}:hover {
+    .react-resizable-handle {
+      color: var(--primary-color);
+      background-color: var(--primary-color);
+
+      border-radius: 50%;
+      width: 8px;
+      height: 8px;
+      background-image: none;
+      &:hover {
+        background-color: var(--primary-color-hover);
+      }
+    }
+  }
+`;
 
 export const WindowsGrid: React.FC = () => {
   const spaces = useSpacesStore((s) => s.spaces);
@@ -95,20 +115,17 @@ export const WindowsGrid: React.FC = () => {
         onLayoutChange={onLayoutChange}
         draggableHandle=".window-header"
         compactType={null}
+        resizeHandles={["n", "s", "e", "w", "ne", "nw", "se", "sw"]} // <--- aqui o segredo
       >
         {windows.map((win) => (
-          <div
-            key={win.id}
-            className="window-header"
-            style={{ width: "100%", height: "100%" }}
-          >
+          <Window key={win.id} className="window-header">
             <WindowContainer
               id={win.id}
               room={win.room}
               pinned={win.pinned}
               onMaximize={() => {}}
             />
-          </div>
+          </Window>
         ))}
       </ResponsiveGridLayout>
     </Wrapper>

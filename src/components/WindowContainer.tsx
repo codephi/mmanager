@@ -9,7 +9,7 @@ import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
-const Wrapper = styled.div`
+export const WindowContainerWrapper = styled.div`
   width: 100%;
   height: 100%;
   background: #000;
@@ -201,7 +201,7 @@ export const WindowContainer: React.FC<Props> = ({
   };
 
   return (
-    <Wrapper onMouseDown={() => bringToFront(id)}>
+    <WindowContainerWrapper onMouseDown={() => bringToFront(id)}>
       <WindowHeader
         className="window-header"
         $maximized={maximized}
@@ -270,6 +270,6 @@ export const WindowContainer: React.FC<Props> = ({
 
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
       </WindowContent>
-    </Wrapper>
+    </WindowContainerWrapper>
   );
 };
