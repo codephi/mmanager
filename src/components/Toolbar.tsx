@@ -135,20 +135,6 @@ function Toolbar() {
       </LeftOptions>
 
       <CenterOptions>
-        <SpaceButtons />
-
-        <button
-          onClick={() => {
-            addSpace(newSpaceName);
-            setNewSpaceName("");
-          }}
-        >
-          + Add Space
-        </button>
-      </CenterOptions>
-
-      <RightOptions>
-        <DownloadMonitor />
         {activeSpaceId === "discovery" ? (
           <DiscoveryControls>
             <select
@@ -171,6 +157,21 @@ function Toolbar() {
             />
           </DiscoveryControls>
         ) : null}
+      </CenterOptions>
+
+      <RightOptions>
+        <SpaceButtons />
+
+        <button
+          onClick={() => {
+            addSpace(newSpaceName);
+            setNewSpaceName("");
+          }}
+        >
+          + Add Space
+        </button>
+
+        <DownloadMonitor />
       </RightOptions>
     </ToolbarContainer>
   );

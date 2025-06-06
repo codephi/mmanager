@@ -3,10 +3,20 @@ import styled from "styled-components";
 import { useSpacesStore, type FilterMode } from "../store/spacesStore";
 import type { SpaceConfig } from "../store/types";
 
-const SpaceContainer = styled.div`
+const SpaceContainer = styled.div<{ $active?: boolean }>`
   display: flex;
   align-items: center;
   gap: 5px;
+  ${({ $active }) =>
+    $active
+      ? `
+    input,
+    button {
+      color: var(--text-color);
+      background-color: var(--primary-color-hover);}
+
+  `
+      : ""}
 `;
 
 const RenameInput = styled.input`
@@ -56,7 +66,7 @@ export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
   });
 
   return (
-    <SpaceContainer>
+    <SpaceContainer $active={active}>
       {renamingSpaceId === space.id ? (
         <RenameInput
           value={renameValue}
