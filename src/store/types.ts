@@ -9,6 +9,7 @@ export interface WindowConfig {
   isOnline?: boolean;
   isMuted?: boolean;
   volume?: number;
+  isPaused?: boolean;
 }
 
 export interface SpaceConfig {

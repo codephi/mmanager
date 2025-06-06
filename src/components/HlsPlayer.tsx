@@ -5,20 +5,23 @@ interface Props {
   src: string;
   muted: boolean;
   volume: number;
+  paused?: boolean;
   onError?: () => void;
-  onData?: (data: Uint8Array) => void; // <-- Adicionado
+  onData?: (data: Uint8Array) => void;
 }
 
 export const HlsPlayer: React.FC<Props> = ({
   src,
   muted,
   volume,
+  paused,
   onError,
   onData,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const initialized = useRef(false);
 
   const getTargetResolution = (h: number): number => {
     if (h <= 180) return 180;
@@ -34,8 +37,6 @@ export const HlsPlayer: React.FC<Props> = ({
 
     const levels = hls.levels;
     const targetResolution = getTargetResolution(height);
-
-    // Busca o maior nível que seja <= targetResolution
     const availableLevels = levels.filter((l) => l.height <= targetResolution);
     const selected =
       availableLevels.length > 0
@@ -45,19 +46,20 @@ export const HlsPlayer: React.FC<Props> = ({
     hls.currentLevel = levels.findIndex((l) => l.height === selected.height);
   };
 
-  useEffect(() => {
+  const initializeHls = () => {
     const video = videoRef.current;
     const container = containerRef.current;
     if (!video || !container) return;
 
-    let hls: Hls | null = null;
-    let resizeObserver: ResizeObserver | null = null;
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
     if (Hls.isSupported()) {
-      hls = new Hls({
-        progressive: true,
-      });
+      const hls = new Hls({ progressive: true });
       hlsRef.current = hls;
+
       hls.loadSource(src);
       hls.attachMedia(video);
 
@@ -65,11 +67,8 @@ export const HlsPlayer: React.FC<Props> = ({
         const url = data.frag.url;
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
-
         const buffer = new Uint8Array(arrayBuffer);
-        if (onData) {
-          onData(buffer);
-        }
+        if (onData) onData(buffer);
       });
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -77,15 +76,22 @@ export const HlsPlayer: React.FC<Props> = ({
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal && onError) {
-          onError();
+        if (data.fatal && onError) onError();
+      });
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        selectLevel(container.clientHeight);
+
+        if (muted) {
+          if (hls.audioTracks.length > 0) {
+            hls.audioTrack = -1;
+          }
         }
       });
 
-      resizeObserver = new ResizeObserver((entries) => {
+      const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          const height = entry.contentRect.height;
-          selectLevel(height);
+          selectLevel(entry.contentRect.height);
         }
       });
       resizeObserver.observe(container);
@@ -93,11 +99,37 @@ export const HlsPlayer: React.FC<Props> = ({
       video.src = src;
     }
 
+    initialized.current = true;
+  };
+
+  // Só inicializa no primeiro load
+  useEffect(() => {
+    initializeHls();
     return () => {
-      resizeObserver?.disconnect();
-      hls?.destroy();
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
     };
-  }, [src, onError]);
+  }, [src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const hls = hlsRef.current;
+
+    if (!video || !hls) return;
+
+    if (paused) {
+      console.log("Interrompendo transmissão");
+      video.pause();
+      hls.stopLoad();
+      initialized.current = false;
+    } else {
+      if (!initialized.current) {
+        initializeHls();
+      }
+    }
+  }, [paused]);
 
   useEffect(() => {
     if (videoRef.current) {

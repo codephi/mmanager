@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { SpaceConfig, WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
 import { persist } from "zustand/middleware";
+import { useDiscoveryStore } from "./discoveryStore";
 
 export type FilterMode = "online" | "offline" | "all";
 
@@ -13,6 +14,7 @@ interface SpacesState {
   pinnedWindows: WindowConfig[];
   getSpaces: () => SpaceConfig[];
   getActiveSpaceId: () => string;
+  getCurrentSpace: () => SpaceConfig | undefined;
   getSpace: (id: string) => SpaceConfig | undefined;
   updateSpace: (id: string, updated: SpaceConfig) => void;
   setActiveSpace: (id: string) => void;
@@ -71,7 +73,13 @@ export const useSpacesStore = create<SpacesState>()(
 
       setActiveSpace: (id) => {
         set({ activeSpaceId: id });
-        get().arrangeFilteredWindows();
+
+        if (id === "discovery") {
+          // força o carregamento sempre que ativar discovery
+          useDiscoveryStore.getState().loadDiscovery();
+        } else {
+          get().arrangeFilteredWindows();
+        }
       },
 
       addSpace: (name) => {
@@ -388,9 +396,14 @@ export const useSpacesStore = create<SpacesState>()(
           ),
         }));
       },
+
+      getCurrentSpace: () => {
+        const activeSpaceId = get().activeSpaceId;
+        return get().spaces.find((s) => s.id === activeSpaceId);
+      },
     }),
     {
-      name: "spaces-storage", // <- chave de armazenamento no localStorage
+      name: "spaces-storage",
     }
   )
 );

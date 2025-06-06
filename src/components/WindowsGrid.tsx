@@ -12,6 +12,7 @@ const Wrapper = styled.div`
   overflow-y: auto;
   height: 100%;
   width: 100%;
+  position: relative;
 `;
 
 export const WindowsGrid: React.FC = () => {

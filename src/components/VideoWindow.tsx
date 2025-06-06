@@ -9,6 +9,7 @@ import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
+import { useGlobalPause } from "../hooks/useGlobalPause";
 
 interface Props {
   id: string;
@@ -132,6 +133,7 @@ export const VideoWindow: React.FC<Props> = ({
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const { pauseAllExcept, resumeAllExcept } = useGlobalPause();
 
   const { start, stop, downloads } = useDownloadStore();
   const isRecording = downloads.some((d) => d.id === id);
@@ -143,6 +145,9 @@ export const VideoWindow: React.FC<Props> = ({
 
   const muted = windowState?.isMuted ?? true;
   const volume = windowState?.volume ?? 1.0;
+  const paused = windowState?.isPaused ?? false;
+
+  console.log({ paused });
 
   const setVolume = (v: number) => {
     useSpacesStore.getState().setWindowVolume(id, v);
@@ -185,6 +190,14 @@ export const VideoWindow: React.FC<Props> = ({
   useEffect(() => {
     fetchHls(room, id);
   }, [room, id]);
+
+  useEffect(() => {
+    if (maximized) {
+      pauseAllExcept(id); // Pausa todas as janelas, exceto a maximizada
+    } else {
+      resumeAllExcept(id); // Retoma todas as janelas, exceto a maximizada
+    }
+  }, [maximized, id]);
 
   const copyWindowToSpaceLocal = (windowId: string, targetSpaceId: string) => {
     copyWindowToSpace(windowId, targetSpaceId);
@@ -311,7 +324,12 @@ export const VideoWindow: React.FC<Props> = ({
               </PrivateLink>
             </PrivateContainer>
           ) : hlsSource ? (
-            <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
+            <HlsPlayer
+              src={hlsSource}
+              muted={muted}
+              volume={volume}
+              paused={paused}
+            />
           ) : (
             <LoadingText>Carregando vídeo...</LoadingText>
           )}

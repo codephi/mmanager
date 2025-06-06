@@ -82,6 +82,8 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       y: 50,
       width: 800,
       height: 600,
+      volume: 0.5,
+      isMuted: true,
     }));
 
     const updatedDiscovery = arrangeWindowsInternal({
