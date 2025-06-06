@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { downloadManager, useDownloadStore } from "../store/downloadStore";
-
 const Container = styled.div`
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 `;
 
 const Dropdown = styled.div`
   position: absolute;
-  top: 100%;
+  bottom: calc(100% + 1rem);
   right: 0;
   background: white;
   color: black;
-  border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   min-width: 350px;
   max-height: 600px;
   overflow-y: auto;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  background-color: var(--primary-color);
+  color: var(--text-color);
 `;
 
 const DownloadItem = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  padding: 1rem;
 `;
 
 const HeaderRow = styled.div`
@@ -70,9 +74,6 @@ export const DownloadMonitor: React.FC = () => {
 
   return (
     <Container>
-      <button onClick={() => setOpen(!open)}>
-        📥 {downloads.length > 0 && `(${downloads.length})`}
-      </button>
       {open && (
         <Dropdown style={{ display: open ? "block" : "none" }}>
           {downloads.map((d) => {
@@ -107,6 +108,9 @@ export const DownloadMonitor: React.FC = () => {
           })}
         </Dropdown>
       )}
+      <button onClick={() => setOpen(!open)}>
+        📥 {downloads.length > 0 && `(${downloads.length})`}
+      </button>
     </Container>
   );
 };
