@@ -33,16 +33,6 @@ export const Button = styled.button<{ $active?: boolean }>`
     $active ? "var(--primary-color-hover)" : "var(--primary-color)"};
 `;
 
-const AutoArrange = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  white-space: nowrap;
-  background-color: var(--primary-color);
-  border-radius: var(--border-radius);
-`;
-
 interface SpaceButtonProps {
   space: SpaceConfig;
   active: boolean;
@@ -55,7 +45,6 @@ export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
   const renameSpace = useSpacesStore((s) => s.renameSpace);
   const switchSpace = useSpacesStore((s) => s.setActiveSpace);
   const removeSpace = useSpacesStore((s) => s.removeSpace);
-  const toggleAutoArrange = useSpacesStore((s) => s.toggleAutoArrange);
 
   if (!space) return null;
 
@@ -105,17 +94,6 @@ export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
           <button onClick={() => removeSpace(space.id)} title="Remover espaço">
             ❌
           </button>
-          <AutoArrange
-            className="button"
-            onClick={() => toggleAutoArrange(space.id)}
-          >
-            <input
-              type="checkbox"
-              checked={space.autoArrange}
-              onChange={() => toggleAutoArrange(space.id)}
-            />
-            Auto Arrange
-          </AutoArrange>
         </>
       )}
     </SpaceContainer>

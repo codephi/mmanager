@@ -21,7 +21,6 @@ interface SpacesState {
   addSpace: (name: string) => void;
   removeSpace: (id: string) => void;
   renameSpace: (id: string, name: string) => void;
-  toggleAutoArrange: (spaceId: string) => void;
   createSpaceFromPinned: (pinnedWindows: WindowConfig[]) => void;
   bringToFront: (id: string) => void;
   arrangeWindows: () => void;
@@ -130,16 +129,6 @@ export const useSpacesStore = create<SpacesState>()(
       renameSpace: (id, name) => {
         set((state) => ({
           spaces: state.spaces.map((s) => (s.id === id ? { ...s, name } : s)),
-        }));
-      },
-
-      toggleAutoArrange: (spaceId) => {
-        set((state) => ({
-          spaces: state.spaces.map((space) =>
-            space.id === spaceId
-              ? { ...space, autoArrange: !space.autoArrange }
-              : space
-          ),
         }));
       },
 

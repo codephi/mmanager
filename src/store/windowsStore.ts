@@ -56,6 +56,12 @@ export const useWindowsStore = create<WindowsState>(() => ({
     const space = spacesState.getSpace(activeSpaceId);
     if (!space) return;
 
+    // Remover o ID também dos pinnedWindows, se existir
+    const isPinned = spacesState.pinnedWindows.some((w) => w.id === id);
+    if (isPinned) {
+      spacesState.togglePin(id);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [id]: _, ...newZIndexes } = space.zIndexes;
 
