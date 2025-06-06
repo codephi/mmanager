@@ -2,6 +2,17 @@ import React from "react";
 import { VideoWindow } from "./VideoWindow";
 import { useSpacesStore } from "../store/spacesStore";
 import { Pinneds } from "./Pinneds";
+import styled from "styled-components";
+
+const Wrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+`;
 
 export const WindowsGrid: React.FC = () => {
   const spaces = useSpacesStore((s) => s.spaces);
@@ -28,11 +39,11 @@ export const WindowsGrid: React.FC = () => {
   windows = windows.filter((w) => !pinnedIds.includes(w.id));
 
   return (
-    <>
+    <Wrapper>
       {windows.map((win) => (
         <VideoWindow key={`${activeSpace?.id}-${win.id}`} {...win} />
       ))}
       <Pinneds />;
-    </>
+    </Wrapper>
   );
 };

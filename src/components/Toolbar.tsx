@@ -15,7 +15,7 @@ const ToolbarContainer = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  z-index: 10;
+  z-index: 1000000;
 `;
 
 const DiscoveryControls = styled.div`

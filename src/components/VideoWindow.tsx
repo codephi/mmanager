@@ -213,7 +213,7 @@ export const VideoWindow: React.FC<Props> = ({
           ? { width: window.innerWidth, height: window.innerHeight - 50 }
           : { width, height }
       }
-      position={maximized ? { x: 0, y: 50 } : { x, y }}
+      position={maximized ? { x: 0, y: 0 } : { x, y }}
       onDragStart={() => bringToFront(id)}
       onResizeStart={() => bringToFront(id)}
       onDragStop={(e, d) => {

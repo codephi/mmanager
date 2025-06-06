@@ -4,7 +4,6 @@ import { downloadManager, useDownloadStore } from "../store/downloadStore";
 
 const Container = styled.div`
   position: relative;
-  z-index: 100000000;
 `;
 
 const Dropdown = styled.div`
@@ -15,7 +14,6 @@ const Dropdown = styled.div`
   color: black;
   border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 10000000000;
   min-width: 350px;
   max-height: 600px;
   overflow-y: auto;

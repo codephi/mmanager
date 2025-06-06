@@ -17,8 +17,8 @@ const Wrappper = styled.div`
 function App() {
   return (
     <Wrappper>
-      <Toolbar />
       <WindowsGrid />
+      <Toolbar />
     </Wrappper>
   );
 }
