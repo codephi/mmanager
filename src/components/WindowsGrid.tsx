@@ -8,12 +8,14 @@ import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
+import { calculateGridSize } from "../utils/gridUtils";
 
 const Wrapper = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
+  flex: 1;
 `;
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -41,12 +43,9 @@ export const WindowsGrid: React.FC = () => {
   const pinnedIds = pinnedWindows.map((w) => w.id);
   windows = windows.filter((w) => !pinnedIds.includes(w.id));
 
-  const maxPerRow = 6;
   const windowCount = windows.length;
 
-  const cols =
-    windowCount <= 6 ? windowCount : windowCount <= 12 ? 4 : maxPerRow;
-  const rows = Math.ceil(windowCount / cols);
+  const { rows, cols } = calculateGridSize(windowCount);
 
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
