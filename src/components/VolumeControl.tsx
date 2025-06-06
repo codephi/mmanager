@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { WindowHeaderButton } from "./VideoWindow";
 import styled from "styled-components";
 import { AudioMute, AudioUnmute } from "../icons";
+import { WindowHeaderButton } from "./WindowContainer";
 
 const SliderContainer = styled.div`
   position: absolute;

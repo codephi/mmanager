@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { Copy } from "../icons";
 import type { SpaceConfig } from "../store/types";
-import { WindowHeaderButton } from "./VideoWindow";
+import { WindowHeaderButton } from "./WindowContainer";
 
 const DropdownContainer = styled.div`
   position: relative;
