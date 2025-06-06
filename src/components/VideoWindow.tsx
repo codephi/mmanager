@@ -9,6 +9,7 @@ import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import { useHlsStreamRecorder } from "../hooks/useHlsDownloader";
 import RecordButton from "./RecordButton";
+import { useDownloadStore } from "../store/downloadStore";
 
 interface Props {
   id: string;
@@ -132,6 +133,7 @@ export const VideoWindow: React.FC<Props> = ({
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const { startDownload, stopDownload } = useDownloadStore();
   const { start, stop, write, isDownloading } = useHlsStreamRecorder();
   const isRecording = useRef<boolean>(false);
 
@@ -202,9 +204,14 @@ export const VideoWindow: React.FC<Props> = ({
 
     if (!isRecording.current) {
       start(`${room}-${now}.ts`);
+      startDownload(id, room, () => {
+        stop();
+        isRecording.current = false;
+      });
       isRecording.current = true;
     } else {
       stop();
+      stopDownload(id);
       isRecording.current = false;
     }
   };

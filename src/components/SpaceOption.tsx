@@ -17,10 +17,6 @@ const RenameInput = styled.input`
   font-size: 14px;
 `;
 
-const RenameButton = styled.button`
-  font-size: 12px;
-`;
-
 interface SpaceOptionProps {
   space?: SpaceConfig;
   renameValue: string;

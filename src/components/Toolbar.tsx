@@ -4,6 +4,7 @@ import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import { Pagination } from "./Pagination";
 import SpaceButtons from "./SpaceButtons";
+import { DownloadMonitor } from "./DownloadMonitor";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -137,6 +138,7 @@ function Toolbar() {
       </CenterOptions>
 
       <RightOptions>
+        <DownloadMonitor />
         {activeSpaceId === "discovery" ? (
           <DiscoveryControls>
             <select
