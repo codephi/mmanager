@@ -1,35 +1,61 @@
 import { create } from "zustand";
+import { DownloadManager } from "../utils/DownloadManager.js"; // considerando seu manager atualizado
+import type { Level as HlsLevel } from "hls.js";
+
+export const downloadManager = new DownloadManager();
+
+interface Level {
+  height: number;
+  bitrate: number;
+}
 
 interface DownloadEntry {
   id: string;
   room: string;
-  stop: () => void;
-  startTime: number; // garante que o tempo de início é sempre registrado
+  hlsSource: string;
+  startTime: number;
 }
 
 interface DownloadState {
   downloads: DownloadEntry[];
-  startDownload: (windowId: string, room: string, stopFn: () => void) => void;
-  stopDownload: (windowId: string) => void;
+  refresh: () => void;
+  start: (id: string, room: string, hlsSource: string) => void;
+  stop: (id: string) => void;
+  getLevels: (id: string) => Level[];
+  setLevel: (id: string, levelIndex: number) => void;
 }
 
 export const useDownloadStore = create<DownloadState>((set) => ({
   downloads: [],
 
-  startDownload: (windowId, room, stopFn) =>
-    set((state) => {
-      if (state.downloads.find((d) => d.id === windowId)) return state;
-      const startTime = Date.now(); // <-- garante sempre aqui
-      return {
-        downloads: [
-          ...state.downloads,
-          { id: windowId, room, stop: stopFn, startTime },
-        ],
-      };
-    }),
+  refresh: () => {
+    const list = downloadManager.listDownloads();
+    set({ downloads: list });
+  },
 
-  stopDownload: (windowId) =>
-    set((state) => ({
-      downloads: state.downloads.filter((d) => d.id !== windowId),
-    })),
+  start: (id, room, hlsSource) => {
+    downloadManager.startDownload(id, room, hlsSource);
+    set({ downloads: downloadManager.listDownloads() });
+  },
+
+  stop: (id) => {
+    downloadManager.stopDownload(id);
+    set({ downloads: downloadManager.listDownloads() });
+  },
+
+  getLevels: (id): Level[] => {
+    const levels: HlsLevel[] = downloadManager.getLevels(id);
+    if (!levels) return [];
+    return levels.map((level) => ({
+      height: level.height,
+      bitrate: level.bitrate,
+    }));
+  },
+
+  setLevel: (id, levelIndex) => {
+    const levels = downloadManager.getLevels(id);
+    if (!levels || levelIndex < 0 || levelIndex >= levels.length) return;
+    downloadManager.setLevel(id, levelIndex);
+    set({ downloads: downloadManager.listDownloads() });
+  },
 }));

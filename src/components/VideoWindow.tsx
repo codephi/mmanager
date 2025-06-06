@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
@@ -7,7 +7,6 @@ import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
 import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
-import { useHlsStreamRecorder } from "../hooks/useHlsDownloader";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
@@ -133,9 +132,9 @@ export const VideoWindow: React.FC<Props> = ({
   const toggleMaximize = () => setMaximized(!maximized);
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
-  const { startDownload, stopDownload } = useDownloadStore();
-  const { start, stop, write, isDownloading } = useHlsStreamRecorder();
-  const isRecording = useRef<boolean>(false);
+
+  const { start, stop, downloads } = useDownloadStore();
+  const isRecording = downloads.some((d) => d.id === id);
 
   const windowState = useSpacesStore((s) => {
     const space = s.spaces.find((sp) => sp.id === s.activeSpaceId);
@@ -200,30 +199,12 @@ export const VideoWindow: React.FC<Props> = ({
       return;
     }
 
-    const now = new Date().toISOString().replace(/[:.]/g, "-");
-
-    if (!isRecording.current) {
-      start(`${room}-${now}.ts`);
-      startDownload(id, room, () => {
-        stop();
-        isRecording.current = false;
-      });
-      isRecording.current = true;
+    if (!isRecording) {
+      start(id, room, hlsSource);
     } else {
-      stop();
-      stopDownload(id);
-      isRecording.current = false;
+      stop(id);
     }
   };
-
-  const onRecordData = useCallback(
-    (data: Uint8Array) => {
-      if (isRecording.current) {
-        write(data);
-      }
-    },
-    [isRecording, write]
-  );
 
   return (
     <Rnd
@@ -285,7 +266,7 @@ export const VideoWindow: React.FC<Props> = ({
           </a>
           <HeaderRight>
             <WindowHeaderButton className="no-drag" onClick={toggleRecording}>
-              <RecordButton active={isDownloading} />
+              <RecordButton active={isRecording} />
             </WindowHeaderButton>
             <CopyToSpaceDropdown
               spaces={spaces}
@@ -330,12 +311,7 @@ export const VideoWindow: React.FC<Props> = ({
               </PrivateLink>
             </PrivateContainer>
           ) : hlsSource ? (
-            <HlsPlayer
-              src={hlsSource}
-              muted={muted}
-              volume={volume}
-              onData={onRecordData}
-            />
+            <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
           ) : (
             <LoadingText>Carregando vídeo...</LoadingText>
           )}
