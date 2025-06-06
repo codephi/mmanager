@@ -1,6 +1,6 @@
 import React from "react";
 import { useSpacesStore } from "../store/spacesStore";
-import { WindowContainer, WindowContainerWrapper } from "./WindowContainer";
+import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
