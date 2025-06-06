@@ -71,6 +71,7 @@ export const useSpacesStore = create<SpacesState>()(
 
       setActiveSpace: (id) => {
         set({ activeSpaceId: id });
+        get().arrangeFilteredWindows();
       },
 
       addSpace: (name) => {

@@ -15,7 +15,7 @@ export const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
   const total = space.windows.length;
   if (total === 0) return space;
 
-  const padding: Padding = { top: 60, bottom: 10, left: 10, right: 10 };
+  const padding: Padding = { top: 10, bottom: 60, left: 10, right: 10 };
 
   const screenWidth = window.innerWidth - padding.left - padding.right;
   const screenHeight = window.innerHeight - padding.top - padding.bottom;

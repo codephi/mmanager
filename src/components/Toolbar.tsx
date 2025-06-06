@@ -5,6 +5,7 @@ import { useSpacesStore } from "../store/spacesStore";
 import { Pagination } from "./Pagination";
 import SpaceButtons from "./SpaceButtons";
 import { DownloadMonitor } from "./DownloadMonitor";
+import { Button } from "./SpaceButton";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -73,6 +74,8 @@ function Toolbar() {
   const discovery = spaces.find((s) => s.id === "discovery");
   const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
   const [newSpaceName, setNewSpaceName] = useState("");
+  const isDiscovery = activeSpaceId === "discovery";
+  const switchSpace = useSpacesStore((s) => s.setActiveSpace);
 
   useEffect(() => {
     const handleResize = () => {
@@ -108,6 +111,13 @@ function Toolbar() {
   return (
     <ToolbarContainer>
       <LeftOptions>
+        <Button
+          key={"discovery"}
+          onClick={() => switchSpace("discovery")}
+          $active={isDiscovery}
+        >
+          Discovery
+        </Button>
         <button onClick={handlerGlobalMuted}>{"🔇 Mute All"}</button>
 
         <select
@@ -121,7 +131,7 @@ function Toolbar() {
           <option value="all">All rooms</option>
         </select>
 
-        <button onClick={arrangeFilteredWindows}>Grid</button>
+        <button onClick={arrangeFilteredWindows}>Arrange</button>
       </LeftOptions>
 
       <CenterOptions>
