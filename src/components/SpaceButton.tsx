@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { useSpacesStore } from "../store/spacesStore";
+import { useSpacesStore, type FilterMode } from "../store/spacesStore";
 import type { SpaceConfig } from "../store/types";
 
 const SpaceContainer = styled.div`
@@ -36,9 +36,10 @@ const AutoArrange = styled.button`
 interface SpaceButtonProps {
   space: SpaceConfig;
   active: boolean;
+  filterMode: FilterMode;
 }
 
-export function SpaceButton({ space, active }: SpaceButtonProps) {
+export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
   const [renameValue, setRenameValue] = useState("");
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
   const renameSpace = useSpacesStore((s) => s.renameSpace);
@@ -47,6 +48,12 @@ export function SpaceButton({ space, active }: SpaceButtonProps) {
   const toggleAutoArrange = useSpacesStore((s) => s.toggleAutoArrange);
 
   if (!space) return null;
+
+  const selectWindows = space.windows.filter((window) => {
+    if (filterMode === "online") return window.isOnline;
+    if (filterMode === "offline") return !window.isOnline;
+    return true;
+  });
 
   return (
     <SpaceContainer>
@@ -72,7 +79,7 @@ export function SpaceButton({ space, active }: SpaceButtonProps) {
           onClick={() => switchSpace(space.id)}
           $active={active}
         >
-          {space.name} ({space.windows.length})
+          {space.name} ({selectWindows.length})
         </Button>
       )}
       {active && (

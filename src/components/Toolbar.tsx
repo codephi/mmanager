@@ -115,9 +115,9 @@ function Toolbar() {
             setFilterMode(e.target.value as "all" | "online" | "offline")
           }
         >
-          <option value="all">All rooms</option>
           <option value="online">Online rooms</option>
           <option value="offline">Offline rooms</option>
+          <option value="all">All rooms</option>
         </select>
 
         <button onClick={arrangeFilteredWindows}>Grid</button>

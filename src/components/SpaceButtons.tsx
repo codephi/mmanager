@@ -7,6 +7,7 @@ function SpaceButtons() {
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const switchSpace = useSpacesStore((s) => s.setActiveSpace);
   const isDiscovery = activeSpaceId === "discovery";
+  const filterMode = useSpacesStore((s) => s.filterMode);
 
   return (
     <>
@@ -24,6 +25,7 @@ function SpaceButtons() {
             key={space.id}
             active={space.id === activeSpaceId}
             space={space}
+            filterMode={filterMode}
           />
         ))}
     </>

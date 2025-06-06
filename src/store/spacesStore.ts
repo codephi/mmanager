@@ -3,11 +3,13 @@ import type { SpaceConfig, WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
 import { persist } from "zustand/middleware";
 
+export type FilterMode = "online" | "offline" | "all";
+
 interface SpacesState {
   spaces: SpaceConfig[];
   activeSpaceId: string;
   globalMuted: boolean;
-  filterMode: "all" | "online" | "offline";
+  filterMode: FilterMode;
   pinnedWindows: WindowConfig[];
   getSpaces: () => SpaceConfig[];
   getActiveSpaceId: () => string;
@@ -24,7 +26,7 @@ interface SpacesState {
   copyWindowToSpace: (windowId: string, targetSpaceId: string) => void;
   setWindowVolume: (windowId: string, volume: number) => void;
   arrangeFilteredWindows: () => void;
-  setFilterMode: (mode: "all" | "online" | "offline") => void;
+  setFilterMode: (mode: FilterMode) => void;
   toggleGlobalMuted: () => void;
   toggleWindowMute: (windowId: string) => void;
   setGlobalMuted: (muted: boolean) => void;
