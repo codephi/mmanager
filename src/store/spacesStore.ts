@@ -374,12 +374,10 @@ export const useSpacesStore = create<SpacesState>()(
             );
             if (!activeSpace) return state;
 
-            // Verifica se já está pinado
             const alreadyPinned = state.pinnedWindows.some(
               (w) => w.id === windowId
             );
 
-            // Atualiza o espaço ativo, alterando o estado de pinned da janela
             const updatedWindows = activeSpace.windows.map((w) =>
               w.id === windowId ? { ...w, pinned: !alreadyPinned } : w
             );
@@ -392,15 +390,16 @@ export const useSpacesStore = create<SpacesState>()(
             let updatedPinnedWindows: WindowConfig[];
 
             if (alreadyPinned) {
-              // Se já está pinado, remove do pinnedWindows
               updatedPinnedWindows = state.pinnedWindows.filter(
                 (w) => w.id !== windowId
               );
             } else {
-              // Se não está pinado, adiciona no pinnedWindows com estado atualizado
               const windowToPin = updatedWindows.find((w) => w.id === windowId);
-              if (!windowToPin) return state; // segurança
-              updatedPinnedWindows = [...state.pinnedWindows, windowToPin];
+              if (!windowToPin) return state;
+              updatedPinnedWindows = [
+                ...state.pinnedWindows,
+                { ...windowToPin },
+              ];
             }
 
             const updateSpaces = state.spaces.map((s) =>
