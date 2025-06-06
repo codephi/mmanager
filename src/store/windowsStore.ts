@@ -7,9 +7,10 @@ interface WindowsState {
   addWindow: (room: string) => void;
   removeWindow: (id: string) => void;
   updateWindow: (id: string, pos: Partial<WindowConfig>) => void;
+  setMaximized: (id: string, maximized: boolean) => void;
 }
 
-export const useWindowsStore = create<WindowsState>(() => ({
+export const useWindowsStore = create<WindowsState>((set, _get) => ({
   addWindow: (room) => {
     const spacesState = useSpacesStore.getState();
     const activeSpaceId = spacesState.getActiveSpaceId();
@@ -30,6 +31,8 @@ export const useWindowsStore = create<WindowsState>(() => ({
       room,
       x: 50,
       y: 50,
+      w: 1,
+      h: 1,
       width: 800,
       height: 600,
     };
@@ -97,5 +100,9 @@ export const useWindowsStore = create<WindowsState>(() => ({
     };
 
     spacesState.updateSpace(space.id, updatedSpace);
+  },
+
+  setMaximized: (id, maximized) => {
+    useWindowsStore.getState().updateWindow(id, { maximized });
   },
 }));

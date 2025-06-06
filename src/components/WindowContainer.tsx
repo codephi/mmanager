@@ -100,7 +100,7 @@ interface Props {
   id: string;
   room: string;
   pinned?: boolean;
-  onMaximize: (maximize: boolean) => void;
+  onMaximize: () => void;
 }
 
 export const WindowContainer: React.FC<Props> = ({
@@ -135,8 +135,8 @@ export const WindowContainer: React.FC<Props> = ({
 
   const toggleMaximize = () => {
     const value = !maximized;
-    setMaximized(value);
-    onMaximize(value);
+    setMaximized(!maximized);
+    onMaximize();
   };
   const setVolume = (v: number) => {
     useSpacesStore.getState().setWindowVolume(id, v);

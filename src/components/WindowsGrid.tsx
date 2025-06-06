@@ -1,28 +1,23 @@
 import React from "react";
-import { VideoWindow } from "./VideoWindow";
 import { useSpacesStore } from "../store/spacesStore";
+import { WindowContainer } from "./WindowContainer";
 import { Pinneds } from "./Pinneds";
-import styled from "styled-components";
+import { Responsive, WidthProvider } from "react-grid-layout";
+import type { Layout } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import { useWindowsStore } from "../store/windowsStore";
 
-const Wrapper = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  padding: 10px;
-  overflow-y: auto;
-  height: 100%;
-  width: 100%;
-  position: relative;
-`;
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export const WindowsGrid: React.FC = () => {
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
+  const updateWindow = useWindowsStore((s) => s.updateWindow);
 
   const activeSpace = spaces.find((t) => t.id === activeSpaceId);
-
   if (!activeSpace) return null;
 
   let windows = activeSpace?.windows ?? [];
@@ -35,16 +30,76 @@ export const WindowsGrid: React.FC = () => {
     }
   }
 
-  // Remover windows que já estão pinados
   const pinnedIds = pinnedWindows.map((w) => w.id);
   windows = windows.filter((w) => !pinnedIds.includes(w.id));
 
+  const maxPerRow = 6;
+  const windowCount = windows.length;
+
+  const cols =
+    windowCount <= 6 ? windowCount : windowCount <= 12 ? 4 : maxPerRow;
+  const rows = Math.ceil(windowCount / cols);
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const paddingTop = 100;
+  const paddingBottom = 200;
+  const availableHeight = viewportHeight - paddingTop - paddingBottom;
+
+  const columnWidth = viewportWidth / cols;
+  const rowHeight = availableHeight / rows;
+
+  const layout: Layout[] = windows.map((win, index) => {
+    const x = index % cols;
+    const y = Math.floor(index / cols);
+    return { i: win.id, x, y, w: 1, h: 1 };
+  });
+
+  const onLayoutChange = (newLayout: Layout[]) => {
+    newLayout.forEach(({ i, x, y, w, h }) => {
+      updateWindow(i, {
+        x,
+        y,
+        width: w * columnWidth,
+        height: h * rowHeight,
+      });
+    });
+  };
+
   return (
-    <Wrapper>
-      {windows.map((win) => (
-        <VideoWindow key={`${activeSpace?.id}-${win.id}`} {...win} />
-      ))}
-      <Pinneds />;
-    </Wrapper>
+    <>
+      <Pinneds />
+
+      <div style={{ marginTop: paddingTop }}>
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={{ lg: layout }}
+          cols={{ lg: cols }}
+          rowHeight={rowHeight}
+          width={viewportWidth}
+          isResizable
+          isDraggable
+          onLayoutChange={onLayoutChange}
+          draggableHandle=".window-header"
+          compactType={null}
+        >
+          {windows.map((win) => (
+            <div
+              key={win.id}
+              className="window-header"
+              style={{ width: "100%", height: "100%" }}
+            >
+              <WindowContainer
+                id={win.id}
+                room={win.room}
+                pinned={win.pinned}
+                onMaximize={() => {}}
+              />
+            </div>
+          ))}
+        </ResponsiveGridLayout>
+      </div>
+    </>
   );
 };

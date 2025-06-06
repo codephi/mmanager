@@ -36,6 +36,7 @@ interface SpacesState {
     windowId: string,
     updates: Partial<WindowConfig>
   ) => void;
+  setWindowMaximized: (id: string, maximized: boolean) => void;
 }
 
 export const useSpacesStore = create<SpacesState>()(
@@ -389,6 +390,18 @@ export const useSpacesStore = create<SpacesState>()(
       getCurrentSpace: () => {
         const activeSpaceId = get().activeSpaceId;
         return get().spaces.find((s) => s.id === activeSpaceId);
+      },
+
+      setWindowMaximized: (id, maximized) => {
+        set((state) => {
+          const spaces = state.spaces.map((space) => {
+            const updatedWindows = space.windows.map((w) =>
+              w.id === id ? { ...w, maximized } : w
+            );
+            return { ...space, windows: updatedWindows };
+          });
+          return { spaces };
+        });
       },
     }),
     {
