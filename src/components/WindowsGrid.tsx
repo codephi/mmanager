@@ -56,19 +56,19 @@ export const WindowsGrid: React.FC = () => {
     const activeSpace = spaces.find((t) => t.id === activeSpaceId);
     if (!activeSpace) return;
 
-    let localWindows = activeSpace?.windows ?? [];
+    console.log(activeSpace.windows.length, "windows in active space");
 
-    if (activeSpaceId !== "discovery") {
-      if (filterMode === "online") {
-        localWindows = localWindows.filter((w) => w.isOnline === true);
-      } else if (filterMode === "offline") {
-        localWindows = localWindows.filter((w) => w.isOnline === false);
-      }
+    // Faz uma cópia profunda de activeSpace.windows para garantir independência em memória
+    let localWindows = activeSpace.windows.map((w) => ({ ...w }));
+
+    if (filterMode === "online") {
+      localWindows = localWindows.filter((w) => w.isOnline === true);
+    } else if (filterMode === "offline") {
+      localWindows = localWindows.filter((w) => w.isOnline === false);
     }
 
-    const pinnedIds = pinnedWindows.map((w) => w.id);
-    localWindows = localWindows.filter((w) => !pinnedIds.includes(w.id));
-
+    // AQUI o filtro oficial
+    localWindows = localWindows.filter((w) => !w.pinned);
     setWindows(localWindows);
 
     const windowCount = localWindows.length;

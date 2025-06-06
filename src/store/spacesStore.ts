@@ -398,7 +398,7 @@ export const useSpacesStore = create<SpacesState>()(
               if (!windowToPin) return state;
               updatedPinnedWindows = [
                 ...state.pinnedWindows,
-                { ...windowToPin },
+                { ...windowToPin }, // <-- essa cópia resolve o alias de referência.
               ];
             }
 
