@@ -100,6 +100,12 @@ export const useWindowsStore = create<WindowsState>((set, _get) => ({
     };
 
     spacesState.updateSpace(space.id, updatedSpace);
+
+    // Agora também atualizamos o pinnedWindows se existir
+    const pinnedWindow = spacesState.pinnedWindows.find((w) => w.id === id);
+    if (pinnedWindow) {
+      spacesState.updatePinnedWindow(id, pos);
+    }
   },
 
   setMaximized: (id, maximized) => {

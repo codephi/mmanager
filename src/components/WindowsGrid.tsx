@@ -1,4 +1,4 @@
-import React from "react";
+import React, { use, useEffect, useState } from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
@@ -9,6 +9,7 @@ import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
 import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
+import type { WindowConfig } from "../store/types";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -46,43 +47,54 @@ export const WindowsGrid: React.FC = () => {
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
   const updateWindow = useWindowsStore((s) => s.updateWindow);
+  const [windows, setWindows] = useState<WindowConfig[]>([]);
+  const [rowHeight, setRowHeight] = useState(1);
+  const [colsValue, setColsValue] = useState(1);
+  const [layout, setLayout] = useState<Layout[]>([]);
 
-  const activeSpace = spaces.find((t) => t.id === activeSpaceId);
-  if (!activeSpace) return null;
+  useEffect(() => {
+    const activeSpace = spaces.find((t) => t.id === activeSpaceId);
+    if (!activeSpace) return;
 
-  let windows = activeSpace?.windows ?? [];
+    let localWindows = activeSpace?.windows ?? [];
 
-  if (activeSpaceId !== "discovery") {
-    if (filterMode === "online") {
-      windows = windows.filter((w) => w.isOnline === true);
-    } else if (filterMode === "offline") {
-      windows = windows.filter((w) => w.isOnline === false);
+    if (activeSpaceId !== "discovery") {
+      if (filterMode === "online") {
+        localWindows = localWindows.filter((w) => w.isOnline === true);
+      } else if (filterMode === "offline") {
+        localWindows = localWindows.filter((w) => w.isOnline === false);
+      }
     }
-  }
 
-  const pinnedIds = pinnedWindows.map((w) => w.id);
-  windows = windows.filter((w) => !pinnedIds.includes(w.id));
+    const pinnedIds = pinnedWindows.map((w) => w.id);
+    localWindows = localWindows.filter((w) => !pinnedIds.includes(w.id));
 
-  const windowCount = windows.length;
+    setWindows(localWindows);
 
-  const { rows, cols } = calculateGridSize(windowCount);
+    const windowCount = localWindows.length;
 
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
+    const { rows, cols } = calculateGridSize(windowCount);
 
-  const paddingTop = 100;
-  const paddingBottom = 200;
-  const availableHeight = viewportHeight - paddingTop - paddingBottom;
+    const paddingTop = 100;
+    const paddingBottom = 200;
+    const availableHeight = window.innerHeight - paddingTop - paddingBottom;
 
-  const rowHeight = availableHeight / rows;
+    const rowHeight = availableHeight / rows;
 
-  const layout: Layout[] = windows.map((win, index) => ({
-    i: win.id,
-    x: win.x ?? index % cols,
-    y: win.y ?? Math.floor(index / cols),
-    w: win.w ?? 1,
-    h: win.h ?? 1,
-  }));
+    const layout: Layout[] = localWindows.map((win, index) => ({
+      i: win.id,
+      x: win.x ?? index % cols,
+      y: win.y ?? Math.floor(index / cols),
+      w: win.w ?? 1,
+      h: win.h ?? 1,
+    }));
+
+    const colsValue = cols > 0 ? cols : 1;
+
+    setLayout(layout);
+    setRowHeight(rowHeight);
+    setColsValue(colsValue);
+  }, [spaces, pinnedWindows, activeSpaceId, filterMode]);
 
   const onLayoutChange = (newLayout: Layout[]) => {
     // Sempre atualiza store com o novo layout primeiro:
@@ -93,8 +105,6 @@ export const WindowsGrid: React.FC = () => {
     // Imediatamente já faz o rearrange usando o layout atualizado:
     rearrangeWindowsFromLayout(newLayout);
   };
-
-  const colsValue = cols > 0 ? cols : 1;
 
   return (
     <Wrapper>
@@ -109,7 +119,7 @@ export const WindowsGrid: React.FC = () => {
           xxs: colsValue,
         }}
         rowHeight={rowHeight}
-        width={viewportWidth}
+        width={window.innerWidth}
         isResizable
         isDraggable
         onLayoutChange={onLayoutChange}

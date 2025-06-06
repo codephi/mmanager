@@ -101,6 +101,7 @@ interface Props {
   room: string;
   pinned?: boolean;
   onMaximize: () => void;
+  onMinimize?: () => void;
 }
 
 export const WindowContainer: React.FC<Props> = ({
@@ -108,6 +109,7 @@ export const WindowContainer: React.FC<Props> = ({
   room,
   pinned,
   onMaximize,
+  onMinimize,
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
@@ -136,7 +138,12 @@ export const WindowContainer: React.FC<Props> = ({
   const toggleMaximize = () => {
     const value = !maximized;
     setMaximized(!maximized);
-    onMaximize();
+
+    if (value) {
+      onMaximize();
+    } else {
+      onMinimize?.();
+    }
   };
   const setVolume = (v: number) => {
     useSpacesStore.getState().setWindowVolume(id, v);

@@ -79,7 +79,8 @@ export const VideoWindow: React.FC<Props> = ({
         id={id}
         room={room}
         pinned={isPinned}
-        onMaximize={setMaximized}
+        onMaximize={() => setMaximized(true)}
+        onMinimize={() => setMaximized(false)}
       />
     </Rnd>
   );

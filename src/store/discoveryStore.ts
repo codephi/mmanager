@@ -49,7 +49,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     if (!force && state.isLoadingDiscovery) return;
     set({ isLoadingDiscovery: true });
 
-    const pinned = spacesState.pinnedWindows; // 🔥 agora vem do global store
+    const pinned = spacesState.pinnedWindows;
     const diffLimitPinned = state.discoveryLimit - pinned.length;
     const availableSlots = diffLimitPinned <= 0 ? 0 : diffLimitPinned;
 
@@ -75,6 +75,13 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       .filter((room: Room) => !pinned.some((p) => p.id === room.username))
       .slice(0, availableSlots);
 
+    // Busca as janelas que já estavam no discovery (não pinned e não duplicadas)
+    const previousUnpinned = discovery.windows.filter(
+      (w) =>
+        !pinned.some((p) => p.id === w.id) &&
+        !fetchedRooms.some((room: Room) => room.username === w.id)
+    );
+
     const newWindows: WindowConfig[] = fetchedRooms.map((room: Room) => ({
       id: room.username,
       room: room.username,
@@ -86,12 +93,14 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       isMuted: true,
     }));
 
+    const finalWindows = [...pinned, ...previousUnpinned, ...newWindows];
+
     const updatedDiscovery = arrangeWindowsInternal({
       ...discovery,
-      windows: [...pinned, ...newWindows],
+      windows: finalWindows,
       zIndexes: Object.fromEntries([
-        ...pinned.map((w) => [w.id, 9999]), // 🔥 aqui você preserva o zIndex do pinned
-        ...newWindows.map((w, idx) => [w.id, idx + 1]), // 🔥 só aplica zIndex incremental nos novos
+        ...pinned.map((w) => [w.id, 9999]),
+        ...newWindows.map((w, idx) => [w.id, idx + 1]),
       ]),
     });
 
