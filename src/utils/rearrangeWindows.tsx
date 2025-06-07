@@ -119,12 +119,8 @@ export function rearrangeWindowsFromLayout(
   const updatedWindows = [];
 
   const sortedLayout = [...layout].sort((a, b) => {
-    // Tenta ordenar primeiro por w * h decrescente (itens maiores primeiro)
-    const areaA = (a.w ?? 1) * (a.h ?? 1);
-    const areaB = (b.w ?? 1) * (b.h ?? 1);
-    if (areaB !== areaA) return areaB - areaA;
-
-    // Se mesma área, ordena por id lexicográfico (garante estabilidade)
+    if ((a.y ?? 0) !== (b.y ?? 0)) return (a.y ?? 0) - (b.y ?? 0);
+    if ((a.x ?? 0) !== (b.x ?? 0)) return (a.x ?? 0) - (b.x ?? 0);
     return a.i.localeCompare(b.i);
   });
 

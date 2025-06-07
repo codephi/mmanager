@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
@@ -7,7 +7,11 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
-import { rearrangeWindowsFromLayoutAround } from "../utils/rearrangeWindows";
+import {
+  rearrangeWindows,
+  rearrangeWindowsFromLayout,
+  rearrangeWindowsFromLayoutAround,
+} from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 import type { WindowConfig } from "../store/types";
 
@@ -63,6 +67,7 @@ export const WindowsGrid: React.FC = () => {
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
   const [layout, setLayout] = useState<Layout[]>([]);
+  const loaded = useRef(false);
   const [originalSizes, setOriginalSizes] = useState<Map<string, Layout>>(
     new Map()
   );
@@ -102,9 +107,10 @@ export const WindowsGrid: React.FC = () => {
     newLayout.forEach(({ i, x, y, w, h }) => {
       updateWindow(i, { x, y, w, h });
     });
-
-    // Imediatamente já faz o rearrange usando o layout atualizado:
-    // rearrangeWindowsFromLayout(newLayout);
+    // Depois, atualiza o state local:
+    setTimeout(() => {
+      rearrangeWindowsFromLayout(newLayout);
+    }, 300);
   };
 
   const handleMaximize = (id: string) => {
@@ -158,26 +164,14 @@ export const WindowsGrid: React.FC = () => {
     });
   };
 
-  const onDragStop = (layout: Layout[], oldItem: Layout, newItem: Layout) => {
-    updateWindow(newItem.i, {
-      x: newItem.x,
-      y: newItem.y,
-      w: newItem.w,
-      h: newItem.h,
+  const onDrag = (newLayout: Layout[]) => {
+    newLayout.forEach(({ i, x, y, w, h }) => {
+      updateWindow(i, { x, y, w, h });
     });
 
-    rearrangeWindowsFromLayoutAround(layout, newItem.i);
-  };
-
-  const onResizeStop = (layout: Layout[], oldItem: Layout, newItem: Layout) => {
-    updateWindow(newItem.i, {
-      x: newItem.x,
-      y: newItem.y,
-      w: newItem.w,
-      h: newItem.h,
-    });
-
-    rearrangeWindowsFromLayoutAround(layout, newItem.i);
+    setTimeout(() => {
+      rearrangeWindowsFromLayout(newLayout);
+    }, 300);
   };
 
   return (
@@ -192,15 +186,16 @@ export const WindowsGrid: React.FC = () => {
           xs: colsValue,
           xxs: colsValue,
         }}
+        autoSize={true}
         rowHeight={rowHeight}
         width={window.innerWidth}
+        // onResize={onDrag}
+        // onDrag={onDrag}
         isResizable
         isDraggable
         onLayoutChange={onLayoutChange} // pode manter se quiser, mas não reorganiza
-        onDragStop={onDragStop} // novo!
-        onResizeStop={onResizeStop} // novo!        draggableHandle=".window-header"
         compactType={null}
-        resizeHandles={["n", "s", "e", "w", "ne", "nw", "se", "sw"]} // <--- aqui o segredo
+        resizeHandles={["s", "e", "se"]} // <--- aqui o segredo
       >
         {windows.map((win) => (
           <Window key={win.id} className="window-header">
