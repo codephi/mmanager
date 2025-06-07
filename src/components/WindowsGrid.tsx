@@ -7,7 +7,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
-import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
+import { rearrangeWindowsFromLayoutAround } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 import type { WindowConfig } from "../store/types";
 
@@ -22,7 +22,8 @@ const Wrapper = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
 
   .react-resizable-handle {
@@ -76,9 +77,7 @@ export const WindowsGrid: React.FC = () => {
 
     const { rows, cols } = calculateGridSize(localWindows.length);
 
-    const paddingTop = 100;
-    const paddingBottom = 200;
-    const availableHeight = window.innerHeight - paddingTop - paddingBottom;
+    const availableHeight = window.innerHeight - 110;
 
     const rowHeight = availableHeight / rows;
 
@@ -105,7 +104,7 @@ export const WindowsGrid: React.FC = () => {
     });
 
     // Imediatamente já faz o rearrange usando o layout atualizado:
-    rearrangeWindowsFromLayout(newLayout);
+    // rearrangeWindowsFromLayout(newLayout);
   };
 
   const handleMaximize = (id: string) => {
@@ -159,6 +158,28 @@ export const WindowsGrid: React.FC = () => {
     });
   };
 
+  const onDragStop = (layout: Layout[], oldItem: Layout, newItem: Layout) => {
+    updateWindow(newItem.i, {
+      x: newItem.x,
+      y: newItem.y,
+      w: newItem.w,
+      h: newItem.h,
+    });
+
+    rearrangeWindowsFromLayoutAround(layout, newItem.i);
+  };
+
+  const onResizeStop = (layout: Layout[], oldItem: Layout, newItem: Layout) => {
+    updateWindow(newItem.i, {
+      x: newItem.x,
+      y: newItem.y,
+      w: newItem.w,
+      h: newItem.h,
+    });
+
+    rearrangeWindowsFromLayoutAround(layout, newItem.i);
+  };
+
   return (
     <Wrapper>
       <ResponsiveGridLayout
@@ -175,8 +196,9 @@ export const WindowsGrid: React.FC = () => {
         width={window.innerWidth}
         isResizable
         isDraggable
-        onLayoutChange={onLayoutChange}
-        draggableHandle=".window-header"
+        onLayoutChange={onLayoutChange} // pode manter se quiser, mas não reorganiza
+        onDragStop={onDragStop} // novo!
+        onResizeStop={onResizeStop} // novo!        draggableHandle=".window-header"
         compactType={null}
         resizeHandles={["n", "s", "e", "w", "ne", "nw", "se", "sw"]} // <--- aqui o segredo
       >
