@@ -62,6 +62,9 @@ export const WindowsGrid: React.FC = () => {
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
   const [layout, setLayout] = useState<Layout[]>([]);
+  const [originalSizes, setOriginalSizes] = useState<Map<string, Layout>>(
+    new Map()
+  );
 
   useEffect(() => {
     const activeSpace = spaces.find((t) => t.id === activeSpaceId);
@@ -105,6 +108,57 @@ export const WindowsGrid: React.FC = () => {
     rearrangeWindowsFromLayout(newLayout);
   };
 
+  const handleMaximize = (id: string) => {
+    const space = spaces.find((t) => t.id === activeSpaceId);
+    if (!space) return;
+
+    const totalWindows = space.windows.filter(
+      (w) => w.isOnline !== false
+    ).length;
+    const { rows, cols } = calculateGridSize(totalWindows);
+
+    const win = space.windows.find((w) => w.id === id);
+    if (!win) return;
+
+    // Salvar tamanho atual no state auxiliar
+    setOriginalSizes((prev) => {
+      const copy = new Map(prev);
+      copy.set(id, {
+        i: id,
+        x: win.x ?? 0,
+        y: win.y ?? 0,
+        w: win.w ?? 1,
+        h: win.h ?? 1,
+      });
+      return copy;
+    });
+
+    updateWindow(id, {
+      x: 0,
+      y: 0,
+      w: cols,
+      h: rows,
+    });
+  };
+
+  const handleMinimize = (id: string) => {
+    const original = originalSizes.get(id);
+    if (!original) return; // Não temos backup, não faz nada.
+
+    updateWindow(id, {
+      x: original.x,
+      y: original.y,
+      w: original.w,
+      h: original.h,
+    });
+
+    setOriginalSizes((prev) => {
+      const copy = new Map(prev);
+      copy.delete(id);
+      return copy;
+    });
+  };
+
   return (
     <Wrapper>
       <ResponsiveGridLayout
@@ -132,7 +186,8 @@ export const WindowsGrid: React.FC = () => {
               id={win.id}
               room={win.room}
               pinned={win.pinned}
-              onMaximize={() => {}}
+              onMaximize={() => handleMaximize(win.id)}
+              onMinimize={() => handleMinimize(win.id)}
             />
           </Window>
         ))}
