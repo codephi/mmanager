@@ -20,7 +20,7 @@ export const WindowContainerWrapper = styled.div`
   box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
 `;
 
-const WindowHeader = styled.div<{ $maximized: boolean }>`
+const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   height: 30px;
   display: flex;
   align-items: center;
@@ -28,7 +28,17 @@ const WindowHeader = styled.div<{ $maximized: boolean }>`
   padding: 0 10px;
   cursor: ${({ $maximized }) => ($maximized ? "default" : "move")};
   font-size: 14px;
-  background-color: var(--primary-color);
+  background-color: ${({ $pinned }) =>
+    $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+
+  button {
+    background-color: ${({ $pinned }) =>
+      $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+  }
+  button:hover {
+    background-color: ${({ $pinned }) =>
+      $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
+  }
 `;
 
 const HeaderRight = styled.div`
@@ -100,6 +110,7 @@ interface Props {
   id: string;
   room: string;
   pinned?: boolean;
+  isFloating?: boolean;
   onMaximize: () => void;
   onMinimize?: () => void;
 }
@@ -110,6 +121,7 @@ export const WindowContainer: React.FC<Props> = ({
   pinned,
   onMaximize,
   onMinimize,
+  isFloating,
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
@@ -213,6 +225,7 @@ export const WindowContainer: React.FC<Props> = ({
         className="window-header"
         $maximized={maximized}
         onMouseDown={() => bringToFront(id)}
+        $pinned={isPinned && isFloating}
       >
         <a
           href={`https://handplayspaces.chaturbate.com/${room}`}

@@ -12,7 +12,11 @@ export interface WindowConfig {
   isMuted?: boolean;
   volume?: number;
   isPaused?: boolean;
-  maximized?: boolean; // <-- novo campo
+  maximized?: boolean;
+  pinnedX: number;
+  pinnedY: number;
+  pinnedWidth: number;
+  pinnedHeight: number;
 }
 
 export interface SpaceConfig {

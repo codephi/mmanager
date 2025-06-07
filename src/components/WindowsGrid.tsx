@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
@@ -25,15 +25,26 @@ const Wrapper = styled.div`
   overflow: hidden;
   flex: 1;
 
+  .react-resizable-handle {
+    display: none;
+  }
+
   ${Window}:hover {
     .react-resizable-handle {
+      display: block;
       color: var(--primary-color);
       background-color: var(--primary-color);
 
       border-radius: 50%;
-      width: 8px;
-      height: 8px;
-      background-image: none;
+      width: 10px;
+      height: 10px;
+      background-image: none !important;
+
+      &::after {
+        border-right: none !important;
+        border-bottom: none !important;
+      }
+
       &:hover {
         background-color: var(--primary-color-hover);
       }
@@ -56,24 +67,11 @@ export const WindowsGrid: React.FC = () => {
     const activeSpace = spaces.find((t) => t.id === activeSpaceId);
     if (!activeSpace) return;
 
-    console.log(activeSpace.windows.length, "windows in active space");
+    const localWindows = structuredClone(activeSpace.windows).filter((w) => {
+      return w.isOnline !== false;
+    });
 
-    // Faz uma cópia profunda de activeSpace.windows para garantir independência em memória
-    let localWindows = activeSpace.windows.map((w) => ({ ...w }));
-
-    if (filterMode === "online") {
-      localWindows = localWindows.filter((w) => w.isOnline === true);
-    } else if (filterMode === "offline") {
-      localWindows = localWindows.filter((w) => w.isOnline === false);
-    }
-
-    // AQUI o filtro oficial
-    localWindows = localWindows.filter((w) => !w.pinned);
-    setWindows(localWindows);
-
-    const windowCount = localWindows.length;
-
-    const { rows, cols } = calculateGridSize(windowCount);
+    const { rows, cols } = calculateGridSize(localWindows.length);
 
     const paddingTop = 100;
     const paddingBottom = 200;
@@ -94,6 +92,7 @@ export const WindowsGrid: React.FC = () => {
     setLayout(layout);
     setRowHeight(rowHeight);
     setColsValue(colsValue);
+    setWindows(localWindows);
   }, [spaces, pinnedWindows, activeSpaceId, filterMode]);
 
   const onLayoutChange = (newLayout: Layout[]) => {

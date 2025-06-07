@@ -395,10 +395,12 @@ export const useSpacesStore = create<SpacesState>()(
               );
             } else {
               const windowToPin = updatedWindows.find((w) => w.id === windowId);
+              console.log({ windowToPin });
               if (!windowToPin) return state;
+
               updatedPinnedWindows = [
                 ...state.pinnedWindows,
-                { ...windowToPin }, // <-- essa cópia resolve o alias de referência.
+                { ...windowToPin },
               ];
             }
 

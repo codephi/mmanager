@@ -7,7 +7,6 @@ export function calculateGridSize(windowCount: number): {
   let cols = Math.ceil(Math.sqrt(windowCount));
   let rows = Math.ceil(windowCount / cols);
 
-  // Pequeno ajuste opcional para balancear ainda melhor:
   if (rows > cols) {
     cols++;
     rows = Math.ceil(windowCount / cols);

@@ -35,6 +35,10 @@ export const useWindowsStore = create<WindowsState>((set, _get) => ({
       h: 1,
       width: 800,
       height: 600,
+      pinnedX: 250,
+      pinnedY: 250,
+      pinnedWidth: 1,
+      pinnedHeight: 1,
     };
 
     const updatedSpace: SpaceConfig = {

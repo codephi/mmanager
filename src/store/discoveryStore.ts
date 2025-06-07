@@ -91,6 +91,12 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       height: 600,
       volume: 0.5,
       isMuted: true,
+      pinnedX: 50,
+      pinnedY: 50,
+      pinnedWidth: 350,
+      pinnedHeight: 250,
+      pinned: false,
+      isOnline: true,
     }));
 
     const finalWindows = [...pinned, ...previousUnpinned, ...newWindows];
