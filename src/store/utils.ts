@@ -4,13 +4,6 @@ export function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-type Padding = {
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
 export const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
   const total = space.windows.length;
   if (total === 0) return space;

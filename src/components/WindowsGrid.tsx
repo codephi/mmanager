@@ -7,11 +7,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
-import {
-  rearrangeWindows,
-  rearrangeWindowsFromLayout,
-  rearrangeWindowsFromLayoutAround,
-} from "../utils/rearrangeWindows";
+import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 import type { WindowConfig } from "../store/types";
 
@@ -67,7 +63,6 @@ export const WindowsGrid: React.FC = () => {
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
   const [layout, setLayout] = useState<Layout[]>([]);
-  const loaded = useRef(false);
   const [originalSizes, setOriginalSizes] = useState<Map<string, Layout>>(
     new Map()
   );
@@ -164,16 +159,6 @@ export const WindowsGrid: React.FC = () => {
     });
   };
 
-  const onDrag = (newLayout: Layout[]) => {
-    newLayout.forEach(({ i, x, y, w, h }) => {
-      updateWindow(i, { x, y, w, h });
-    });
-
-    setTimeout(() => {
-      rearrangeWindowsFromLayout(newLayout);
-    }, 300);
-  };
-
   return (
     <Wrapper>
       <ResponsiveGridLayout
@@ -189,11 +174,9 @@ export const WindowsGrid: React.FC = () => {
         autoSize={true}
         rowHeight={rowHeight}
         width={window.innerWidth}
-        // onResize={onDrag}
-        // onDrag={onDrag}
         isResizable
         isDraggable
-        onLayoutChange={onLayoutChange} // pode manter se quiser, mas não reorganiza
+        onLayoutChange={onLayoutChange}
         compactType={null}
         resizeHandles={["s", "e", "se"]} // <--- aqui o segredo
       >

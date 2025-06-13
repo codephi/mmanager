@@ -78,9 +78,7 @@ export const useWindowsStore = create<WindowsState>((set, _get) => ({
       zIndexes: newZIndexes,
     };
 
-    const finalSpace = updatedSpace.autoArrange
-      ? arrangeWindowsInternal(updatedSpace)
-      : updatedSpace;
+    const finalSpace = updatedSpace;
 
     spacesState.updateSpace(space.id, finalSpace);
   },

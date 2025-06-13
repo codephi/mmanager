@@ -52,11 +52,18 @@ export const useSpacesStore = create<SpacesState>()(
             zIndexes: {},
             autoArrange: true,
           },
+          {
+            id: "favorite",
+            name: "Favorites",
+            windows: [],
+            zIndexes: {},
+            autoArrange: true,
+          },
         ],
         activeSpaceId: "discovery",
         pinnedWindows: [],
         globalMuted: false,
-        filterMode: "all",
+        filterMode: "online",
 
         getSpaces: () => get().spaces,
 

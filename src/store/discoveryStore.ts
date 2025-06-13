@@ -31,6 +31,8 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const { discoveryOffset, isLoadingDiscovery } = get();
     if (isLoadingDiscovery) return;
 
+    console.log({ isLoadingDiscovery });
+
     set({ isLoadingDiscovery: true });
 
     await get().loadDiscoveryPage(discoveryOffset, true);
