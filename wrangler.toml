@@ -5,9 +5,6 @@ workers_dev = true
 
 main = "index.js"
 
-[site]
-bucket = "./dist"
-
 [build]
 command = "npm run build"
 
