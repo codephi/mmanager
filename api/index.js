@@ -2,44 +2,24 @@ import { Router } from 'itty-router';
 
 const router = Router();
 
-/**
- * GET /api/chaturbate?limit=10&offset=0&...   →   proxy
- */
 router.get('/api/chaturbate', async (request) => {
-    const { search } = new URL(request.url);          // inclui o '?'
-    const target = `https://chaturbate.com/api/ts/roomlist/room-list/${search}`;
-
-    // Faz a requisição “lá fora”
-    const upstream = await fetch(target, {
-        // opcional: envie alguns cabeçalhos do cliente original
+    const { search } = new URL(request.url);
+    const res = await fetch(`https://chaturbate.com/api/ts/roomlist/room-list/${search}`);
+    return new Response(await res.text(), {
+        status: res.status,
         headers: {
-            'User-Agent': request.headers.get('User-Agent') || '',
-            'Accept': request.headers.get('Accept') || '*/*',
-        },
-    });
-
-    // devolve tudo idêntico ao cliente
-    return new Response(await upstream.body?.getReader().read().then(() => upstream.clone().body), {
-        status: upstream.status,
-        headers: {
-            'Content-Type': upstream.headers.get('Content-Type') || 'application/json',
-            'Access-Control-Allow-Origin': '*',          // CORS aberto
+            'Content-Type': res.headers.get('Content-Type') || 'application/json',
+            'Access-Control-Allow-Origin': '*',
         },
     });
 });
 
-/**
- * Qualquer outra rota → arquivo estático do PWA (./dist)
- */
-router.all('*', (request, env /*, ctx */) => {
+router.all('*', (request, env) => {
     return env.ASSETS.fetch(request);
 });
 
 export default {
-    /**
-     * @param {Request} request
-     * @param {*}       env   – bindings (ASSETS, KV, etc.)
-     * @param {*}       ctx   – ExecutionContext
-     */
-    fetch: (request, env, ctx) => router.handle(request, env, ctx),
+    fetch(request, env, ctx) {
+        return router.handle(request, env, ctx);
+    }
 };
