@@ -3,7 +3,7 @@ compatibility_date = "2025-06-15"
 
 workers_dev = true
 
-main = "api/index.js"
+main = "index.js"
 
 [site]
 bucket = "./dist"
