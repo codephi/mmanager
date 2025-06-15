@@ -2,6 +2,7 @@ import { WindowsGrid } from "./components/WindowsGrid";
 import Toolbar from "./components/Toolbar";
 import styled from "styled-components";
 import { useSpacesStorageSync } from "./hooks/useSpacesStorageSync";
+import { Pinneds } from "./components/Pinneds";
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -19,6 +20,7 @@ function App() {
 
   return (
     <Wrapper>
+      <Pinneds />
       <WindowsGrid />
       <Toolbar />
     </Wrapper>

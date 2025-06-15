@@ -259,12 +259,12 @@ export const WindowContainer: React.FC<Props> = ({
           <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
             {maximized ? <Minimize /> : <Maximize />}
           </WindowHeaderButton>
-          <WindowHeaderButton
+          {!isPinned && (<WindowHeaderButton
             className="no-drag"
             onClick={() => removeWindow(id)}
           >
             <Close />
-          </WindowHeaderButton>
+          </WindowHeaderButton>)}
         </HeaderRight>
       </WindowHeader>
       <WindowContent>
