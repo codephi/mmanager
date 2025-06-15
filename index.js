@@ -6,18 +6,34 @@ export default {
         if (pathname.startsWith("/api/chaturbate")) {
             const targetUrl = `https://chaturbate.com/api/ts/roomlist/room-list/${url.search}`;
 
-            const response = await fetch(targetUrl);
+            try {
+                const response = await fetch(targetUrl, {
+                    headers: {
+                        "User-Agent": "Mozilla/5.0", // simula browser real
+                    },
+                });
 
-            return new Response(await response.text(), {
-                status: response.status,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "winturbate.com", // CORS liberado
-                },
-            });
+                const contentType = response.headers.get("Content-Type") || "application/json";
+
+                return new Response(await response.text(), {
+                    status: response.status,
+                    headers: {
+                        "Content-Type": contentType,
+                        "Access-Control-Allow-Origin": "*", // ou seu domínio exato aqui
+                    },
+                });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: "Failed to fetch Chaturbate API", details: err.message }), {
+                    status: 502,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                });
+            }
         }
 
-        // fallback para qualquer outra rota → arquivos estáticos (dist/)
+        // fallback para arquivos do seu PWA
         return env.ASSETS.fetch(request);
     },
 };
