@@ -14,8 +14,6 @@ interface DiscoveryState {
   goToDiscoveryPage: (page: number) => Promise<void>;
   loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   loadDiscovery: () => Promise<void>;
-  loadNextDiscovery: () => Promise<void>;
-  loadPrevDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
   togglePin: (windowId: string) => void;
   addSpaceFromPinned: () => void;
@@ -33,6 +31,8 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const { discoveryOffset, isLoadingDiscovery } = get();
     if (isLoadingDiscovery) return;
 
+    console.log({ isLoadingDiscovery });
+
     set({ isLoadingDiscovery: true });
 
     await get().loadDiscoveryPage(discoveryOffset, true);
@@ -49,9 +49,8 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     if (!force && state.isLoadingDiscovery) return;
     set({ isLoadingDiscovery: true });
 
-    const pinned = spacesState.pinnedWindows; // 🔥 agora vem do global store
-    const diffLimitPinned = state.discoveryLimit - pinned.length;
-    const availableSlots = diffLimitPinned <= 0 ? 0 : diffLimitPinned;
+    const pinned = spacesState.pinnedWindows;
+    const availableSlots = state.discoveryLimit <= 0 ? 0 : state.discoveryLimit;
 
     if (availableSlots === 0) {
       const updatedDiscovery = arrangeWindowsInternal({
@@ -71,9 +70,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     );
     const data = await response.json();
 
-    const fetchedRooms = data.rooms
-      .filter((room: Room) => !pinned.some((p) => p.id === room.username))
-      .slice(0, availableSlots);
+    const fetchedRooms = data.rooms.slice(0, availableSlots);
 
     const newWindows: WindowConfig[] = fetchedRooms.map((room: Room) => ({
       id: room.username,
@@ -84,14 +81,20 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       height: 600,
       volume: 0.5,
       isMuted: true,
+      pinnedX: 50,
+      pinnedY: 50,
+      pinnedWidth: 350,
+      pinnedHeight: 250,
+      pinned: false,
+      isOnline: true,
     }));
 
     const updatedDiscovery = arrangeWindowsInternal({
       ...discovery,
-      windows: [...pinned, ...newWindows],
+      windows: newWindows,
       zIndexes: Object.fromEntries([
-        ...pinned.map((w) => [w.id, 9999]), // 🔥 aqui você preserva o zIndex do pinned
-        ...newWindows.map((w, idx) => [w.id, idx + 1]), // 🔥 só aplica zIndex incremental nos novos
+        ...pinned.map((w) => [w.id, 9999]),
+        ...newWindows.map((w, idx) => [w.id, idx + 1]),
       ]),
     });
 
@@ -106,17 +109,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       totalRooms,
       totalPages,
     });
-  },
-
-  loadNextDiscovery: async () => {
-    const state = get();
-    await get().loadDiscoveryPage(state.discoveryOffset + 10, true);
-  },
-
-  loadPrevDiscovery: async () => {
-    const state = get();
-    const newOffset = Math.max(0, state.discoveryOffset - 10);
-    await get().loadDiscoveryPage(newOffset, true);
   },
 
   setDiscoveryLimit: (limit) => {

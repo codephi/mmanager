@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useSpacesStore } from "../store/spacesStore";
-import { VideoWindow } from "./VideoWindow";
+import { FloatWindow } from "./FloatWindow";
 
 const PinnedContainer = styled.div`
   position: absolute;
@@ -18,14 +18,14 @@ export const Pinneds: React.FC = () => {
   return (
     <PinnedContainer>
       {pinnedWindows.map((window) => (
-        <VideoWindow
+        <FloatWindow
           key={window.id}
           id={window.id}
           room={window.room}
-          x={window.x}
-          y={window.y}
-          width={window.width}
-          height={window.height}
+          x={window.pinnedX}
+          y={window.pinnedY}
+          width={window.pinnedWidth}
+          height={window.pinnedHeight}
           pinned={true}
         />
       ))}

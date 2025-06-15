@@ -6,6 +6,7 @@ import { Pagination } from "./Pagination";
 import SpaceButtons from "./SpaceButtons";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
+import { rearrangeWindows } from "../utils/rearrangeWindows";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -77,26 +78,26 @@ function Toolbar() {
   const isDiscovery = activeSpaceId === "discovery";
   const switchSpace = useSpacesStore((s) => s.setActiveSpace);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const active = spaces.find((t) => t.id === activeSpaceId);
-      if (active?.autoArrange) {
-        if (filterMode === "all") {
-          arrangeWindows();
-        } else {
-          arrangeFilteredWindows();
-        }
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [
-    spaces,
-    activeSpaceId,
-    arrangeWindows,
-    arrangeFilteredWindows,
-    filterMode,
-  ]);
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     const active = spaces.find((t) => t.id === activeSpaceId);
+  //     if (active?.autoArrange) {
+  //       if (filterMode === "all") {
+  //         arrangeWindows();
+  //       } else {
+  //         arrangeFilteredWindows();
+  //       }
+  //     }
+  //   };
+  //   window.addEventListener("resize", handleResize);
+  //   return () => window.removeEventListener("resize", handleResize);
+  // }, [
+  //   spaces,
+  //   activeSpaceId,
+  //   arrangeWindows,
+  //   arrangeFilteredWindows,
+  //   filterMode,
+  // ]);
 
   useEffect(() => {
     if (discovery && discovery.windows.length === 0 && !isLoadingDiscovery) {
@@ -131,7 +132,7 @@ function Toolbar() {
           <option value="all">All rooms</option>
         </select>
 
-        <button onClick={arrangeFilteredWindows}>Arrange</button>
+        <button onClick={() => rearrangeWindows(true)}>Arrange</button>
       </LeftOptions>
 
       <CenterOptions>

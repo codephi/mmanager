@@ -9,7 +9,7 @@ import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
-const Wrapper = styled.div`
+export const WindowContainerWrapper = styled.div`
   width: 100%;
   height: 100%;
   background: #000;
@@ -20,7 +20,7 @@ const Wrapper = styled.div`
   box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
 `;
 
-const WindowHeader = styled.div<{ $maximized: boolean }>`
+const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   height: 30px;
   display: flex;
   align-items: center;
@@ -28,7 +28,17 @@ const WindowHeader = styled.div<{ $maximized: boolean }>`
   padding: 0 10px;
   cursor: ${({ $maximized }) => ($maximized ? "default" : "move")};
   font-size: 14px;
-  background-color: var(--primary-color);
+  background-color: ${({ $pinned }) =>
+    $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+
+  button {
+    background-color: ${({ $pinned }) =>
+      $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+  }
+  button:hover {
+    background-color: ${({ $pinned }) =>
+      $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
+  }
 `;
 
 const HeaderRight = styled.div`
@@ -100,7 +110,9 @@ interface Props {
   id: string;
   room: string;
   pinned?: boolean;
-  onMaximize: (maximize: boolean) => void;
+  isFloating?: boolean;
+  onMaximize: () => void;
+  onMinimize?: () => void;
 }
 
 export const WindowContainer: React.FC<Props> = ({
@@ -108,6 +120,8 @@ export const WindowContainer: React.FC<Props> = ({
   room,
   pinned,
   onMaximize,
+  onMinimize,
+  isFloating,
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
@@ -135,8 +149,13 @@ export const WindowContainer: React.FC<Props> = ({
 
   const toggleMaximize = () => {
     const value = !maximized;
-    setMaximized(value);
-    onMaximize(value);
+    setMaximized(!maximized);
+
+    if (value) {
+      onMaximize();
+    } else {
+      onMinimize?.();
+    }
   };
   const setVolume = (v: number) => {
     useSpacesStore.getState().setWindowVolume(id, v);
@@ -201,11 +220,12 @@ export const WindowContainer: React.FC<Props> = ({
   };
 
   return (
-    <Wrapper onMouseDown={() => bringToFront(id)}>
+    <WindowContainerWrapper onMouseDown={() => bringToFront(id)}>
       <WindowHeader
         className="window-header"
         $maximized={maximized}
         onMouseDown={() => bringToFront(id)}
+        $pinned={isPinned && isFloating}
       >
         <a
           href={`https://handplayspaces.chaturbate.com/${room}`}
@@ -270,6 +290,6 @@ export const WindowContainer: React.FC<Props> = ({
 
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
       </WindowContent>
-    </Wrapper>
+    </WindowContainerWrapper>
   );
 };

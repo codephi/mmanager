@@ -9,6 +9,7 @@ export const AppInitializer = () => {
   useEffect(() => {
     if (activeSpaceId === "discovery") {
       useDiscoveryStore.getState().loadDiscovery();
+      console.log("Discovery space is active, loading discovery data...");
     }
   }, [activeSpaceId]);
 

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Rnd } from "react-rnd";
-import { useWindowsStore } from "../store/windowsStore";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
 
@@ -14,7 +13,7 @@ interface Props {
   pinned?: boolean;
 }
 
-export const VideoWindow: React.FC<Props> = ({
+export const FloatWindow: React.FC<Props> = ({
   id,
   room,
   x,
@@ -23,7 +22,6 @@ export const VideoWindow: React.FC<Props> = ({
   height,
   pinned,
 }) => {
-  const updateWindow = useWindowsStore((s) => s.updateWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
@@ -31,7 +29,7 @@ export const VideoWindow: React.FC<Props> = ({
   const zIndex = activeSpace?.zIndexes[id] ?? 10;
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
-
+  console.log({ x, y });
   return (
     <Rnd
       size={
@@ -43,28 +41,18 @@ export const VideoWindow: React.FC<Props> = ({
       onDragStart={() => bringToFront(id)}
       onResizeStart={() => bringToFront(id)}
       onDragStop={(e, d) => {
-        if (isPinned) {
-          useSpacesStore.getState().updatePinnedWindow(id, { x: d.x, y: d.y });
-        } else {
-          updateWindow(id, { x: d.x, y: d.y });
-        }
+        useSpacesStore
+          .getState()
+          .updatePinnedWindow(id, { pinnedX: d.x, pinnedY: d.y });
       }}
       onResizeStop={(e, direction, ref, delta, pos) => {
-        if (isPinned) {
-          useSpacesStore.getState().updatePinnedWindow(id, {
-            x: pos.x,
-            y: pos.y,
-            width: ref.offsetWidth,
-            height: ref.offsetHeight,
-          });
-        } else {
-          updateWindow(id, {
-            width: ref.offsetWidth,
-            height: ref.offsetHeight,
-            x: pos.x,
-            y: pos.y,
-          });
-        }
+        console.log({ pos });
+        useSpacesStore.getState().updatePinnedWindow(id, {
+          pinnedX: pos.x ?? x,
+          pinnedY: pos.y ?? y,
+          pinnedWidth: ref.offsetWidth,
+          pinnedHeight: ref.offsetHeight,
+        });
       }}
       bounds="parent"
       dragHandleClassName="window-header"
@@ -79,7 +67,9 @@ export const VideoWindow: React.FC<Props> = ({
         id={id}
         room={room}
         pinned={isPinned}
-        onMaximize={setMaximized}
+        isFloating={true}
+        onMaximize={() => setMaximized(true)}
+        onMinimize={() => setMaximized(false)}
       />
     </Rnd>
   );

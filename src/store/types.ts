@@ -3,6 +3,8 @@ export interface WindowConfig {
   room: string;
   x: number;
   y: number;
+  w: number; // largura em colunas
+  h: number; // altura em linhas
   width: number;
   height: number;
   pinned?: boolean;
@@ -10,6 +12,11 @@ export interface WindowConfig {
   isMuted?: boolean;
   volume?: number;
   isPaused?: boolean;
+  maximized?: boolean;
+  pinnedX: number;
+  pinnedY: number;
+  pinnedWidth: number;
+  pinnedHeight: number;
 }
 
 export interface SpaceConfig {
