@@ -11,7 +11,7 @@ export default {
             return new Response(await response.text(), {
                 status: response.status,
                 headers: {
-                    "Content-Type": response.headers.get("Content-Type") || "application/json",
+                    "Content-Type": "application/json",
                     "Access-Control-Allow-Origin": "winturbate.com", // CORS liberado
                 },
             });
