@@ -1,6 +1,7 @@
 name = "winturbate"
 compatibility_date = "2025-06-15"
 workers_dev = true
+main = "index.js"
 
 [build]
 command = "npm run build"
