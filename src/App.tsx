@@ -1,12 +1,9 @@
-import React from "react";
 import { WindowsGrid } from "./components/WindowsGrid";
 import Toolbar from "./components/Toolbar";
 import styled from "styled-components";
-import { AppInitializer } from "./components/AppInitializer";
-import { Pinneds } from "./components/Pinneds";
 import { useSpacesStorageSync } from "./hooks/useSpacesStorageSync";
 
-const Wrappper = styled.div`
+const Wrapper = styled.div`
   width: 100vw;
   height: 100vh;
   background: var(--dark-color);
@@ -21,12 +18,10 @@ function App() {
   useSpacesStorageSync();
 
   return (
-    <Wrappper>
-      {/* <AppInitializer /> */}
-      {/* <Pinneds /> */}
+    <Wrapper>
       <WindowsGrid />
       <Toolbar />
-    </Wrappper>
+    </Wrapper>
   );
 }
 

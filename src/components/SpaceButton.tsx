@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { useSpacesStore, type FilterMode } from "../store/spacesStore";
 import type { SpaceConfig } from "../store/types";

@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import styled from "styled-components";
-import { useHlsDownloader } from "../hooks/useHlsDownloader";
-import { getStreamUrlForRoom } from "../utils/streams";
 
 interface DownloadWorkerItemProps {
-  id: string;
   room: string;
   stopFn: () => void;
   startTime?: number;
@@ -42,31 +39,11 @@ const TimeText = styled.span`
 `;
 
 export const DownloadWorkerItem: React.FC<DownloadWorkerItemProps> = ({
-  id,
   room,
   stopFn,
   startTime,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    getStreamUrlForRoom(room).then((url) => {
-      if (url) {
-        setStreamUrl(url);
-      }
-    });
-  }, [room]);
-
-  useEffect(() => {
-    if (!streamUrl) return;
-    startRecording();
-    const interval = setInterval(() => setTick((t) => t + 1), 1000);
-    return () => {
-      clearInterval(interval);
-      startRecording();
-    };
-  }, [streamUrl, startRecording, startRecording]);
 
   const formatDuration = () => {
     if (!startTime) return "--:--:--";

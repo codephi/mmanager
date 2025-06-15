@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";

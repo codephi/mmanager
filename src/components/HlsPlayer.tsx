@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import styled from "styled-components";
 
@@ -78,7 +78,7 @@ export const HlsPlayer: React.FC<Props> = ({
       hls.loadSource(src);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.FRAG_LOADED, async (event, data) => {
+      hls.on(Hls.Events.FRAG_LOADED, async (_event, data) => {
         const url = data.frag.url;
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
@@ -98,7 +98,7 @@ export const HlsPlayer: React.FC<Props> = ({
         }
       });
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal && onError) onError();
       });
 
@@ -147,22 +147,6 @@ export const HlsPlayer: React.FC<Props> = ({
       videoRef.current.volume = volume;
     }
   }, [muted, volume]);
-
-  const captureSnapshot = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/png");
-    setSnapshot(dataUrl);
-  };
 
   useEffect(() => {
     const container = containerRef.current;

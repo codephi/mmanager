@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
@@ -58,10 +58,6 @@ function Toolbar() {
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const addSpace = useSpacesStore((s) => s.addSpace);
   // Windows e Discovery seguem igual
-  const arrangeWindows = useSpacesStore((s) => s.arrangeWindows);
-  const arrangeFilteredWindows = useSpacesStore(
-    (s) => s.arrangeFilteredWindows
-  );
   const setFilterMode = useSpacesStore((s) => s.setFilterMode);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { AudioMute, AudioUnmute } from "../icons";
 import { WindowHeaderButton } from "./WindowContainer";
@@ -19,7 +19,7 @@ const SliderContainer = styled.div`
   transform: translate(-50%, 5px);
 `;
 
-const Slider = styled.input.attrs({ type: "range" })<{ value: number }>`
+const Slider = styled.input.attrs({ type: "range" }) <{ value: number }>`
   -webkit-appearance: none;
   appearance: none;
   writing-mode: vertical-rl;

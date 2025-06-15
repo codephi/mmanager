@@ -10,7 +10,7 @@ interface WindowsState {
   setMaximized: (id: string, maximized: boolean) => void;
 }
 
-export const useWindowsStore = create<WindowsState>((set, _get) => ({
+export const useWindowsStore = create<WindowsState>((_set, _get) => ({
   addWindow: (room) => {
     const spacesState = useSpacesStore.getState();
     const activeSpaceId = spacesState.getActiveSpaceId();

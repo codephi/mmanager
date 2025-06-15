@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
 import { useWindowsStore } from "../store/windowsStore";
@@ -33,11 +33,11 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
 
   button {
     background-color: ${({ $pinned }) =>
-      $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+    $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
   }
   button:hover {
     background-color: ${({ $pinned }) =>
-      $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
+    $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
   }
 `;
 

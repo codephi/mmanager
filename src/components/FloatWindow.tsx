@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Rnd } from "react-rnd";
 import { useSpacesStore } from "../store/spacesStore";
 import { WindowContainer } from "./WindowContainer";
@@ -40,12 +40,12 @@ export const FloatWindow: React.FC<Props> = ({
       position={maximized ? { x: 0, y: 0 } : { x, y }}
       onDragStart={() => bringToFront(id)}
       onResizeStart={() => bringToFront(id)}
-      onDragStop={(e, d) => {
+      onDragStop={(_e, d) => {
         useSpacesStore
           .getState()
           .updatePinnedWindow(id, { pinnedX: d.x, pinnedY: d.y });
       }}
-      onResizeStop={(e, direction, ref, delta, pos) => {
+      onResizeStop={(_e, _direction, ref, _delta, pos) => {
         console.log({ pos });
         useSpacesStore.getState().updatePinnedWindow(id, {
           pinnedX: pos.x ?? x,

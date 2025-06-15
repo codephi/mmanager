@@ -1,4 +1,3 @@
-import React from "react";
 import { useSpacesStore } from "../store/spacesStore";
 import { SpaceButton } from "./SpaceButton";
 
