@@ -1,2 +1,13 @@
 name = "winturbate"
 compatibility_date = "2025-06-15"
+
+account_id = "SEU_ACCOUNT_ID"
+workers_dev = true
+
+main = "api/index.js" # ponto de entrada do worker
+
+[site]
+bucket = "./dist" # onde estão os arquivos estáticos
+
+[build]
+command = "npm run build"
