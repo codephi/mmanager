@@ -1,25 +1,18 @@
-import { Router } from 'itty-router';
+/**
+ * Welcome to Cloudflare Workers! This is your first worker.
+ *
+ * - Run "npm run dev" in your terminal to start a development server
+ * - Open a browser tab at http://localhost:8787/ to see your worker in action
+ * - Run "npm run deploy" to publish your worker
+ *
+ * Learn more at https://developers.cloudflare.com/workers/
+ */
 
-const router = Router();
 
-router.get('/api/chaturbate', async (request) => {
-    const { search } = new URL(request.url);
-    const res = await fetch(`https://chaturbate.com/api/ts/roomlist/room-list/${search}`);
-    return new Response(await res.text(), {
-        status: res.status,
-        headers: {
-            'Content-Type': res.headers.get('Content-Type') || 'application/json',
-            'Access-Control-Allow-Origin': '*',
-        },
-    });
-});
 
-router.all('*', (request, env) => {
-    return env.ASSETS.fetch(request);
-});
 
 export default {
-    fetch(request, env, ctx) {
-        return router.handle(request, env, ctx);
-    }
+  async fetch(request, env, ctx) {
+    return new Response('Hello World!');
+  },
 };
