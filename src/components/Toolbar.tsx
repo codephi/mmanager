@@ -61,8 +61,6 @@ function Toolbar() {
   const setFilterMode = useSpacesStore((s) => s.setFilterMode);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);
-  const isLoadingDiscovery = useDiscoveryStore((s) => s.isLoadingDiscovery);
-  const loadDiscovery = useDiscoveryStore((s) => s.loadDiscovery);
   const discoveryLimit = useDiscoveryStore((s) => s.discoveryLimit);
   const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
@@ -73,33 +71,6 @@ function Toolbar() {
   const [newSpaceName, setNewSpaceName] = useState("");
   const isDiscovery = activeSpaceId === "discovery";
   const switchSpace = useSpacesStore((s) => s.setActiveSpace);
-
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     const active = spaces.find((t) => t.id === activeSpaceId);
-  //     if (active?.autoArrange) {
-  //       if (filterMode === "all") {
-  //         arrangeWindows();
-  //       } else {
-  //         arrangeFilteredWindows();
-  //       }
-  //     }
-  //   };
-  //   window.addEventListener("resize", handleResize);
-  //   return () => window.removeEventListener("resize", handleResize);
-  // }, [
-  //   spaces,
-  //   activeSpaceId,
-  //   arrangeWindows,
-  //   arrangeFilteredWindows,
-  //   filterMode,
-  // ]);
-
-  useEffect(() => {
-    if (discovery && discovery.windows.length === 0 && !isLoadingDiscovery) {
-      loadDiscovery();
-    }
-  }, [discovery, discovery?.windows.length, isLoadingDiscovery, loadDiscovery]);
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
