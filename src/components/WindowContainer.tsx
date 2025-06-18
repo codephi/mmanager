@@ -33,11 +33,11 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
 
   button {
     background-color: ${({ $pinned }) =>
-    $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+      $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
   }
   button:hover {
     background-color: ${({ $pinned }) =>
-    $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
+      $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
   }
 `;
 
@@ -259,12 +259,14 @@ export const WindowContainer: React.FC<Props> = ({
           <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
             {maximized ? <Minimize /> : <Maximize />}
           </WindowHeaderButton>
-          {!isPinned && (<WindowHeaderButton
-            className="no-drag"
-            onClick={() => removeWindow(id)}
-          >
-            <Close />
-          </WindowHeaderButton>)}
+          {!isPinned && (
+            <WindowHeaderButton
+              className="no-drag"
+              onClick={() => removeWindow(id)}
+            >
+              <Close />
+            </WindowHeaderButton>
+          )}
         </HeaderRight>
       </WindowHeader>
       <WindowContent>

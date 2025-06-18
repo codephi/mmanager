@@ -59,6 +59,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         zIndexes: Object.fromEntries(pinned.map((w, idx) => [w.id, idx + 1])),
       });
 
+      console.log("loadDiscoveryPage");
       spacesState.updateSpace("discovery", updatedDiscovery);
 
       set({ discoveryOffset: 0, isLoadingDiscovery: false });
@@ -97,6 +98,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         ...newWindows.map((w, idx) => [w.id, idx + 1]),
       ]),
     });
+    console.log("loadDiscoveryPage 2");
 
     spacesState.updateSpace("discovery", updatedDiscovery);
 
@@ -141,6 +143,8 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     };
 
     spacesState.addSpace(finalName);
+    console.log("addSpaceFromPinned");
+
     spacesState.updateSpace(id, newSpace);
   },
 

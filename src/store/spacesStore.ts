@@ -2,7 +2,6 @@ import { create } from "zustand";
 import type { SpaceConfig, WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
 import { persist } from "zustand/middleware";
-import { useDiscoveryStore } from "./discoveryStore";
 import { devtools } from "zustand/middleware";
 
 export type FilterMode = "online" | "offline" | "all";
@@ -85,7 +84,7 @@ export const useSpacesStore = create<SpacesState>()(
 
           if (id === "discovery") {
             // força o carregamento sempre que ativar discovery
-            useDiscoveryStore.getState().loadDiscovery();
+            // useDiscoveryStore.getState().loadDiscovery();
           } else {
             get().arrangeFilteredWindows();
           }

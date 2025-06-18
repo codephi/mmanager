@@ -103,9 +103,9 @@ export const WindowsGrid: React.FC = () => {
       updateWindow(i, { x, y, w, h });
     });
     // Depois, atualiza o state local:
-    setTimeout(() => {
-      rearrangeWindowsFromLayout(newLayout);
-    }, 300);
+    // setTimeout(() => {
+    rearrangeWindowsFromLayout(newLayout);
+    // }, 300);
   };
 
   const handleMaximize = (id: string) => {
