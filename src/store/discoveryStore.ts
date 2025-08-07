@@ -15,14 +15,23 @@ interface DiscoveryState {
   loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   loadDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
+  resetDiscoveryLimit: () => void;
   togglePin: (windowId: string) => void;
   addSpaceFromPinned: () => void;
 }
 
+// Função para detectar mobile no início
+const getInitialDiscoveryLimit = () => {
+  if (typeof window === 'undefined') return 6; // SSR fallback
+  const isMobile = window.innerWidth < 768;
+  const limit = isMobile ? 6 : 12;
+  return limit;
+};
+
 export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   discoveryOffset: 0,
   isLoadingDiscovery: false,
-  discoveryLimit: 12,
+  discoveryLimit: getInitialDiscoveryLimit(),
   totalPages: 1,
   totalRooms: 0,
   currentPage: 1,
@@ -116,6 +125,13 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   setDiscoveryLimit: (limit) => {
     set({ discoveryLimit: limit, discoveryOffset: 0 });
+    get().loadDiscoveryPage(0);
+  },
+
+  resetDiscoveryLimit: () => {
+    const newLimit = getInitialDiscoveryLimit();
+    console.log('resetDiscoveryLimit:', newLimit);
+    set({ discoveryLimit: newLimit, discoveryOffset: 0 });
     get().loadDiscoveryPage(0);
   },
 

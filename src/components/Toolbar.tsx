@@ -126,8 +126,6 @@ function Toolbar() {
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
   const currentPage = useDiscoveryStore((s) => s.currentPage);
   const totalPages = useDiscoveryStore((s) => s.totalPages);
-  const discovery = spaces.find((s) => s.id === "discovery");
-  const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
   
   // Determina se estamos na rota discovery ou favorites
   const isDiscovery = location.pathname === "/";
@@ -142,6 +140,7 @@ function Toolbar() {
   };
 
   if (isMobile) {
+    console.log(discoveryLimit)
     return (
       <ToolbarContainer $isMobile={isMobile}>
         {/* Linha 1: Paginação (apenas em Discovery) */}
@@ -152,13 +151,11 @@ function Toolbar() {
                 value={discoveryLimit}
                 onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
               >
-                {[6, 12, 24]
-                  .filter((value) => value >= Math.max(1, pinnedCount))
-                  .map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
+                {[1, 2, 4, 6].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
               </select>
 
               <Pagination
@@ -232,13 +229,11 @@ function Toolbar() {
               value={discoveryLimit}
               onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
             >
-              {[6, 12, 24]
-                .filter((value) => value >= Math.max(1, pinnedCount))
-                .map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
+              {[6, 12, 24].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
             </select>
 
             <Pagination

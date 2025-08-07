@@ -86,7 +86,7 @@ export const Discovery = () => {
     if (currentPage > 1) {
       newParams.set("page", currentPage.toString());
     }
-    if (discoveryLimit !== 12) { // 12 é o padrão
+    if (discoveryLimit !== 6) { // 12 é o padrão
       newParams.set("limit", discoveryLimit.toString());
     }
 
