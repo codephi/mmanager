@@ -19,6 +19,13 @@ steps:
   - assert: !phs main.path == "/stats" && main.method == "GET"
     then:
       !include handlers/stats.phlow
+  - assert: !phs main.path == "/version" && main.method == "GET"
+    then:
+      return:
+        status: 200
+        body: !phs { version: "1.0.0" }
+        headers:
+          Content-Type: application/json
   - return:
       status: 404
       body:
