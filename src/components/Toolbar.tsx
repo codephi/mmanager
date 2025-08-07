@@ -6,7 +6,7 @@ import { Pagination } from "./Pagination";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
-import { AudioMute, Star } from "../icons";
+import { AudioMute, Star, Search } from "../icons";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -96,6 +96,7 @@ function Toolbar() {
           onClick={() => navigate("/")}
           $active={isDiscovery}
         >
+          <Search size={16} style={{ marginRight: "6px" }} />
           Discovery
         </Button>
         <Button

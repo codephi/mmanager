@@ -9,14 +9,18 @@ const SliderContainer = styled.div`
   left: 50%;
   width: 30px;
   height: 120px;
-  background: var(--primary-color);
-  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  z-index: 9999;
+  z-index: 999999;
   transform: translate(-50%, 5px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 `;
 
 const Slider = styled.input.attrs({ type: "range" }) <{ value: number }>`
@@ -68,6 +72,7 @@ interface VolumeControlProps {
   volume: number; // 0 ~ 1
   onMuteToggle: () => void;
   onVolumeChange: (value: number) => void;
+  className?: string;
 }
 
 export const VolumeControl: React.FC<VolumeControlProps> = ({
@@ -75,6 +80,7 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
   volume,
   onMuteToggle,
   onVolumeChange,
+  className
 }) => {
   const [hover, setHover] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -121,13 +127,15 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
       style={{ position: "relative" }}
       className="no-drag"
     >
-      <WindowHeaderButton onClick={onMuteToggle}>
+      <WindowHeaderButton onClick={onMuteToggle} className="no-drag">
         {muted || volume === 0 ? <AudioMute /> : <AudioUnmute />}
       </WindowHeaderButton>
 
       {hover && (
-        <SliderContainer>
+        <SliderContainer className="no-drag">
           <Slider
+            className="no-drag"
+            title="Volume Control"
             type="range"
             min="0"
             max="1"

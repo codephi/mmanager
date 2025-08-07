@@ -17,11 +17,9 @@ export const WindowContainerWrapper = styled.div`
   -webkit-backdrop-filter: blur(20px);
   position: relative;
   border-radius: var(--border-radius);
-  overflow: hidden;
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
   
   /* Esconder o header por padrão */
   .window-header {
@@ -33,6 +31,7 @@ export const WindowContainerWrapper = styled.div`
     left: 0;
     right: 0;
     z-index: 10;
+    overflow: visible;
   }
   
   /* Mostrar header no hover */
@@ -93,6 +92,9 @@ const HeaderRight = styled.div`
   gap: 5px;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: visible;
+  z-index: 999999;
 `;
 
 const WindowContent = styled.div`
@@ -102,6 +104,8 @@ const WindowContent = styled.div`
   justify-content: center;
   align-items: center;
   position: relative;
+  border-radius: var(--border-radius);
+  overflow: hidden;
 `;
 
 const OfflineText = styled.div`
@@ -307,7 +311,7 @@ export const WindowContainer: React.FC<Props> = ({
       )}
       
       <WindowHeader
-        className="window-header"
+        className="window-header no-drager"
         $maximized={maximized}
         onMouseDown={() => bringToFront(id)}
         $pinned={isPinned && isFloating}
@@ -322,7 +326,7 @@ export const WindowContainer: React.FC<Props> = ({
           {room}
         </a>
         <HeaderRight>
-          <WindowHeaderButton className="no-drag" onClick={toggleRecording}>
+          <WindowHeaderButton className="no-drag" onClick={toggleRecording} title="Toggle Recording">
             <RecordButton active={isRecording} />
           </WindowHeaderButton>
           <FavoriteButton
@@ -334,6 +338,7 @@ export const WindowContainer: React.FC<Props> = ({
             volume={volume}
             onMuteToggle={toggleMute}
             onVolumeChange={setVolume}
+            className="no-drag"
           />
           <WindowHeaderButton onClick={() => togglePin(id)}>
             {isPinned ? <Pin /> : <Unpin />}
