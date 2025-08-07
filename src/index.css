@@ -33,10 +33,20 @@ html {
   line-height: 1.5;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height - ajusta conforme a UI do navegador */
+  width: 100vw;
+  overflow: hidden;
+}
+
 #root {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height - ajusta conforme a UI do navegador */
   width: 100%;
   overflow: hidden;
 }
@@ -251,4 +261,24 @@ nav {
 html {
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) var(--dark-color);
+}
+
+/* Fallback para navegadores que não suportam dvh */
+@supports not (height: 100dvh) {
+  body {
+    height: 100vh;
+  }
+  
+  #root {
+    height: 100vh;
+  }
+  
+  /* Usar JavaScript para definir --vh personalizada em navegadores antigos */
+  body.js-vh {
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  #root.js-vh {
+    height: calc(var(--vh, 1vh) * 100);
+  }
 }
