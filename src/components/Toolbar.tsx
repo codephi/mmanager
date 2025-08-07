@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/windowsMainStore";
@@ -125,16 +125,21 @@ function Toolbar() {
   // Discovery store
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);
   const discoveryLimit = useDiscoveryStore((s) => s.discoveryLimit);
-  const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
   const currentPage = useDiscoveryStore((s) => s.currentPage);
   const totalPages = useDiscoveryStore((s) => s.totalPages);
+  const [searchParams, setSearchParams] = useSearchParams();
+
   
   // Determina se estamos na rota discovery
   const isDiscovery = location.pathname === "/";
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
+  };
+
+  const changeLimit = (newLimit: number) => {
+    setSearchParams({ limit: newLimit.toString() }, { replace: true });
   };
 
   if (isMobile) {
@@ -146,9 +151,9 @@ function Toolbar() {
             <DiscoveryControls>
               <select
                 value={discoveryLimit}
-                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+                onChange={(e) => changeLimit(Number(e.target.value))}
               >
-                {[1, 2, 4, 6].map((value) => (
+                {[2, 4, 6].map((value) => (
                   <option key={value} value={value}>
                     {value}
                   </option>
@@ -208,9 +213,9 @@ function Toolbar() {
           <DiscoveryControls>
             <select
               value={discoveryLimit}
-              onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+              onChange={(e) => changeLimit(Number(e.target.value))}
             >
-              {[6, 12, 24].map((value) => (
+              {[2, 4, 6, 12, 25].map((value) => (
                 <option key={value} value={value}>
                   {value}
                 </option>
