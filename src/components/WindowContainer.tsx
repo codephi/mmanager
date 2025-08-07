@@ -366,7 +366,7 @@ export const WindowContainer: React.FC<Props> = ({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
         }
-      }, 500); // Aguardar animações do grid layout terminarem
+      }, 100); // Aguardar animações do grid layout terminarem
     }
   };
 
