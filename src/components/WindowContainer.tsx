@@ -17,10 +17,11 @@ export const WindowContainerWrapper = styled.div`
   -webkit-backdrop-filter: blur(20px);
   position: relative;
   border-radius: var(--border-radius);
+  overflow: hidden;
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
+  
   /* Esconder o header por padrão */
   .window-header {
     opacity: 0;
@@ -31,7 +32,6 @@ export const WindowContainerWrapper = styled.div`
     left: 0;
     right: 0;
     z-index: 10;
-    overflow: visible;
   }
   
   /* Mostrar header no hover */

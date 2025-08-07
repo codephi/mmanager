@@ -11,7 +11,7 @@
   --text-color: #ffffff;
   --font-family: 'Roboto', 'Segoe UI', 'Helvetica Neue', sans-serif;
   --input-height: 1.8rem;
-  --border-radius: 15px;
+  --border-radius: 6px;
   --shadow-sm: 0 1px 3px rgba(60, 64, 67, 0.15);
   --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
