@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { downloadManager, useDownloadStore } from "../store/downloadStore";
 import { Download, Stop } from "../icons";
+import { useMobile } from "../hooks/useMobile";
 const Container = styled.div`
   position: relative;
   display: flex;
@@ -9,10 +10,16 @@ const Container = styled.div`
   justify-content: flex-end;
 `;
 
-const Dropdown = styled.div`
-  position: absolute;
-  bottom: calc(100% + 1rem);
-  right: 0;
+const Dropdown = styled.div<{ $isMobile: boolean }>`
+  position: ${({ $isMobile }) => $isMobile ? 'fixed' : 'absolute'};
+  ${({ $isMobile }) => $isMobile ? `
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  ` : `
+    bottom: calc(100% + 1rem);
+    right: 0;
+  `}
   background:  var(--primary-color-alpha);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(20px);
@@ -21,10 +28,23 @@ const Dropdown = styled.div`
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  min-width: 350px;
-  max-height: 600px;
+  min-width: ${({ $isMobile }) => $isMobile ? '90vw' : '350px'};
+  max-width: ${({ $isMobile }) => $isMobile ? '90vw' : '500px'};
+  max-height: ${({ $isMobile }) => $isMobile ? '80vh' : '600px'};
   overflow-y: auto;
   border-radius: 12px;
+  z-index: ${({ $isMobile }) => $isMobile ? '99999' : '999'};
+  
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: 80vh;
+    z-index: 99999;
+  }
 `;
 
 const DownloadItem = styled.div`
@@ -159,7 +179,22 @@ const MainButton = styled.button`
   }
 `;
 
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99998;
+  
+  @media (min-width: 769px) {
+    display: none;
+  }
+`;
+
 export const DownloadMonitor: React.FC = () => {
+  const { isMobile } = useMobile();
   const downloads = useDownloadStore((s) => s.downloads);
   const refresh = useDownloadStore((s) => s.refresh);
   const [open, setOpen] = useState(false);
@@ -253,8 +288,9 @@ export const DownloadMonitor: React.FC = () => {
 
   return (
     <Container>
+      {open && isMobile && <Overlay onClick={() => setOpen(false)} />}
       {open && (
-        <Dropdown style={{ display: open ? "block" : "none" }}>
+        <Dropdown $isMobile={isMobile} style={{ display: open ? "block" : "none" }}>
           {downloads.map((d) => {
             const levels = downloadManager.getLevels(d.id);
             return (

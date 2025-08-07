@@ -6,18 +6,26 @@ import { Pagination } from "./Pagination";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
-import { AudioMute, Star, Search } from "../icons";
+import { AudioMute, Star, Search, Arrange } from "../icons";
+import { useMobile } from "../hooks/useMobile";
 
 // Styled Components
-const ToolbarContainer = styled.div`
-  padding: 10px;
+const ToolbarContainer = styled.div<{ $isMobile: boolean }>`
+  padding: ${({ $isMobile }) => $isMobile ? '8px' : '10px'};
   display: flex;
-  gap: 0.5rem;
+  gap: ${({ $isMobile }) => $isMobile ? '0.25rem' : '0.5rem'};
   flex-wrap: wrap;
-  flex-direction: row;
+  flex-direction: ${({ $isMobile }) => $isMobile ? 'column' : 'row'};
   align-items: center;
-  justify-content: space-between;
+  justify-content: ${({ $isMobile }) => $isMobile ? 'stretch' : 'space-between'};
   z-index: 1000000;
+  
+  @media (max-width: 768px) {
+    padding: 8px;
+    gap: 0.25rem;
+    flex-direction: column;
+    justify-content: stretch;
+  }
 `;
 
 const DiscoveryControls = styled.div`
@@ -25,31 +33,54 @@ const DiscoveryControls = styled.div`
   gap: 0.5rem;
 `;
 
-const LeftOptions = styled.div`
+const LeftOptions = styled.div<{ $isMobile: boolean }>`
   display: flex;
-  flex: 1;
+  flex: ${({ $isMobile }) => $isMobile ? 'unset' : '1'};
+  width: ${({ $isMobile }) => $isMobile ? '100%' : 'auto'};
   align-items: center;
   flex-direction: row;
-  justify-content: flex-start;
-  gap: 0.5rem;
+  justify-content: ${({ $isMobile }) => $isMobile ? 'center' : 'flex-start'};
+  gap: ${({ $isMobile }) => $isMobile ? '0.25rem' : '0.5rem'};
+  
+  @media (max-width: 768px) {
+    flex: unset;
+    width: 100%;
+    justify-content: center;
+    gap: 0.25rem;
+  }
 `;
 
-const RightOptions = styled.div`
+const RightOptions = styled.div<{ $isMobile: boolean }>`
   display: flex;
   align-items: center;
   flex-direction: row;
-  justify-content: flex-end;
-  flex: 1;
-  gap: 0.5rem;
+  justify-content: ${({ $isMobile }) => $isMobile ? 'center' : 'flex-end'};
+  flex: ${({ $isMobile }) => $isMobile ? 'unset' : '1'};
+  width: ${({ $isMobile }) => $isMobile ? '100%' : 'auto'};
+  gap: ${({ $isMobile }) => $isMobile ? '0.25rem' : '0.5rem'};
+  
+  @media (max-width: 768px) {
+    flex: unset;
+    width: 100%;
+    justify-content: center;
+    gap: 0.25rem;
+  }
 `;
 
-const CenterOptions = styled.div`
+const CenterOptions = styled.div<{ $isMobile: boolean }>`
   display: flex;
   align-items: center;
-  flex: 1;
+  flex: ${({ $isMobile }) => $isMobile ? 'unset' : '1'};
+  width: ${({ $isMobile }) => $isMobile ? '100%' : 'auto'};
   flex-direction: row;
   justify-content: center;
-  gap: 0.5rem;
+  gap: ${({ $isMobile }) => $isMobile ? '0.25rem' : '0.5rem'};
+  
+  @media (max-width: 768px) {
+    flex: unset;
+    width: 100%;
+    gap: 0.25rem;
+  }
 `;
 
 const AudioMuteIcon = styled(AudioMute)`
@@ -58,6 +89,9 @@ const AudioMuteIcon = styled(AudioMute)`
 `
 
 function Toolbar() {
+  // Mobile detection
+  const { isMobile } = useMobile();
+  
   // React Router hooks
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,15 +121,15 @@ function Toolbar() {
   };
 
   return (
-    <ToolbarContainer>
-      <LeftOptions>
+    <ToolbarContainer $isMobile={isMobile}>
+      <LeftOptions $isMobile={isMobile}>
         <Button
           key={"discovery"}
           onClick={() => navigate("/")}
           $active={isDiscovery}
         >
           <Search size={16} style={{ marginRight: "6px" }} />
-          Discovery
+          {isMobile ? "Discovery" : "Discovery"}
         </Button>
         <Button
           key={"favorites"}
@@ -103,14 +137,17 @@ function Toolbar() {
           $active={isFavorites}
         >
           <Star size={16} style={{ color: "#ffd700", marginRight: "6px" }} />
-          Favorites {favoritesOnlineCount > 0 && `(${favoritesOnlineCount})`}
+          {isMobile ? "Favorites" : `Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
         </Button>
-        <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
-
-        <button onClick={() => rearrangeWindows(true)}>Arrange</button>
+        {!isMobile && (
+          <>
+            <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
+            <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
+          </>
+        )}
       </LeftOptions>
 
-      <CenterOptions>
+      <CenterOptions $isMobile={isMobile}>
         {isDiscovery ? (
           <DiscoveryControls>
             <select
@@ -135,8 +172,14 @@ function Toolbar() {
         ) : null}
       </CenterOptions>
 
-      <RightOptions>
+      <RightOptions $isMobile={isMobile}>
         <DownloadMonitor />
+        {isMobile && (
+          <>
+            <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>{isMobile ? "Mute" : "Mute All"}</button>
+            <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
+          </>
+        )}
       </RightOptions>
     </ToolbarContainer>
   );
