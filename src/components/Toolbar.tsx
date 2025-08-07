@@ -125,10 +125,10 @@ function Toolbar() {
   // Discovery store
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);
   const discoveryLimit = useDiscoveryStore((s) => s.discoveryLimit);
+  const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
   const currentPage = useDiscoveryStore((s) => s.currentPage);
   const totalPages = useDiscoveryStore((s) => s.totalPages);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   
   // Determina se estamos na rota discovery
@@ -136,10 +136,6 @@ function Toolbar() {
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
-  };
-
-  const changeLimit = (newLimit: number) => {
-    setSearchParams({ limit: newLimit.toString() }, { replace: true });
   };
 
   if (isMobile) {
@@ -151,7 +147,7 @@ function Toolbar() {
             <DiscoveryControls>
               <select
                 value={discoveryLimit}
-                onChange={(e) => changeLimit(Number(e.target.value))}
+                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
               >
                 {[2, 4, 6].map((value) => (
                   <option key={value} value={value}>
@@ -213,7 +209,7 @@ function Toolbar() {
           <DiscoveryControls>
             <select
               value={discoveryLimit}
-              onChange={(e) => changeLimit(Number(e.target.value))}
+              onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
             >
               {[2, 4, 6, 12, 25].map((value) => (
                 <option key={value} value={value}>
