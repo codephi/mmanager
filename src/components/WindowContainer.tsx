@@ -22,10 +22,46 @@ export const WindowContainerWrapper = styled.div`
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  
+  /* Esconder o header por padrão */
+  .window-header {
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+  
+  /* Mostrar header no hover */
+  &:hover .window-header {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Indicador de gravação - visível por padrão quando gravando */
+  .recording-indicator {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 9;
+  }
+  
+  /* Esconder indicador de gravação no hover */
+  &:hover .recording-indicator {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 `;
 
 const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
-  height: 30px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -59,7 +95,7 @@ const HeaderRight = styled.div`
 
 const WindowContent = styled.div`
   width: 100%;
-  height: calc(100% - 30px);
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -105,6 +141,16 @@ const CopyMessage = styled.div`
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 `;
 
+const RecordingIndicator = styled.div`
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+`;
+
 export const WindowHeaderButton = styled.button`
   border: none;
   cursor: pointer;
@@ -138,16 +184,14 @@ export const WindowContainer: React.FC<Props> = ({
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
-  const copyWindowToSpace = useSpacesStore((s) => s.copyWindowToSpace);
   const togglePin = useSpacesStore((s) => s.togglePin);
-  const spaces = useSpacesStore((s) => s.spaces);
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
 
   const [isPrivate, setIsPrivate] = useState(false);
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [copyMessage] = useState<string | null>(null);
 
   const { start, stop, downloads } = useDownloadStore();
   const isRecording = downloads.some((d) => d.id === id);
@@ -237,12 +281,6 @@ export const WindowContainer: React.FC<Props> = ({
     fetchHls(room, id);
   }, [room, id]);
 
-  const copyWindowToSpaceLocal = (windowId: string, targetSpaceId: string) => {
-    copyWindowToSpace(windowId, targetSpaceId);
-    const spaceName = spaces.find((s) => s.id === targetSpaceId)?.name ?? "";
-    setCopyMessage(`Room copied to ${spaceName}`);
-    setTimeout(() => setCopyMessage(null), 3000);
-  };
 
   const toggleRecording = () => {
     if (!hlsSource) {
@@ -259,6 +297,13 @@ export const WindowContainer: React.FC<Props> = ({
 
   return (
     <WindowContainerWrapper onMouseDown={() => bringToFront(id)}>
+      {/* Indicador de gravação que aparece quando header está oculto */}
+      {isRecording && (
+        <RecordingIndicator className="recording-indicator">
+          <RecordButton active={true} />
+        </RecordingIndicator>
+      )}
+      
       <WindowHeader
         className="window-header"
         $maximized={maximized}

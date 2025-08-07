@@ -14,12 +14,11 @@ const RecordBlink = styled(Record)<{ $active: boolean }>`
   ${(props) =>
     props.$active &&
     css`
-      animation: blink-red 1s steps(1, end) infinite;
+      animation: blink-red-fade 1s linear infinite;
     `}
 
-  @keyframes blink-red {
-    0%,
-    100% {
+  @keyframes blink-red-fade {
+    0%, 100% {
       color: white;
     }
     50% {
