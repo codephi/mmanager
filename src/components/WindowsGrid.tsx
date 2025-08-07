@@ -18,7 +18,7 @@ const Window = styled.div`
   height: 100%;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ $isMobile: boolean }>`
   width: 100%;
   height: 100%;
   position: relative;
@@ -30,27 +30,37 @@ const Wrapper = styled.div`
     display: none;
   }
 
-  ${Window}:hover {
-    .react-resizable-handle {
-      display: block;
-      color: #fff;
-      background-color: #fff;
+  /* Só mostra handles de resize no desktop */
+  ${({ $isMobile }) => !$isMobile && `
+    ${Window}:hover {
+      .react-resizable-handle {
+        display: block;
+        color: #fff;
+        background-color: #fff;
 
-      border-radius: 50%;
-      width: 10px;
-      height: 10px;
-      background-image: none !important;
+        border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        background-image: none !important;
 
-      &::after {
-        border-right: none !important;
-        border-bottom: none !important;
-      }
+        &::after {
+          border-right: none !important;
+          border-bottom: none !important;
+        }
 
-      &:hover {
-        background-color: var(--primary-color-hover);
+        &:hover {
+          background-color: var(--primary-color-hover);
+        }
       }
     }
-  }
+  `}
+
+  /* No mobile, garante que handles nunca aparecem */
+  ${({ $isMobile }) => $isMobile && `
+    .react-resizable-handle {
+      display: none !important;
+    }
+  `}
 `;
 
 export const WindowsGrid: React.FC = () => {
@@ -264,7 +274,7 @@ export const WindowsGrid: React.FC = () => {
   };
 
   return (
-    <Wrapper ref={wrapperRef}>
+    <Wrapper ref={wrapperRef} $isMobile={isMobile}>
       <ResponsiveGridLayout
         className="layout"
         layouts={{ lg: layout }}

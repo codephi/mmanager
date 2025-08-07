@@ -22,7 +22,6 @@ export const Discovery = () => {
   useEffect(() => {
     if (initializedRef.current) return;
     
-    const offsetParam = searchParams.get("offset");
     const pageParam = searchParams.get("page");
     const limitParam = searchParams.get("limit");
 
@@ -37,12 +36,9 @@ export const Discovery = () => {
       }
     }
 
-    // Calcula página com base no limit correto
+    // Processa página
     if (pageParam) {
       targetPage = Math.max(1, parseInt(pageParam, 10));
-    } else if (offsetParam) {
-      const offset = Math.max(0, parseInt(offsetParam, 10));
-      targetPage = Math.floor(offset / targetLimit) + 1;
     }
 
 
@@ -71,16 +67,15 @@ export const Discovery = () => {
   useEffect(() => {
     if (!initializedRef.current || updatingUrlRef.current) return;
     
-    const offset = (currentPage - 1) * discoveryLimit;
     const newParams = new URLSearchParams();
     
-    if (offset > 0) {
-      newParams.set("offset", offset.toString());
-    }
+    // Só adiciona page se for diferente de 1
     if (currentPage > 1) {
       newParams.set("page", currentPage.toString());
     }
-    if (discoveryLimit !== 6) { // 12 é o padrão
+    
+    // Só adiciona limit se for diferente do padrão (12)
+    if (discoveryLimit !== 12) {
       newParams.set("limit", discoveryLimit.toString());
     }
 
