@@ -15,17 +15,39 @@ interface DiscoveryState {
   loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   loadDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
-  resetDiscoveryLimit: () => void;
   togglePin: (windowId: string) => void;
   addSpaceFromPinned: () => void;
 }
+
+const getQueryParam = (param: string): string | null => {
+  if (typeof window === 'undefined') return null; // SSR fallback
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+const setQueryParam = (param: string, value: string) => {
+  if (typeof window === 'undefined') return; // SSR fallback
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.set(param, value);
+  window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+};
 
 // Função para detectar mobile no início
 const getInitialDiscoveryLimit = () => {
   if (typeof window === 'undefined') return 12; // SSR fallback
   const isMobile = window.innerWidth < 768;
+
+  const paramLimit = getQueryParam('limit');
+  if (paramLimit) {
+    const limit = parseInt(paramLimit, 10);
+    if (!isNaN(limit) && limit > 0) {
+      return isMobile ? Math.min(limit, 6) : Math.min(limit, 12);
+    }
+  }
+
   return isMobile ? 6 : 12;
 };
+
 
 export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   discoveryOffset: 0,
@@ -165,16 +187,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   setDiscoveryLimit: (limit) => {
     set({ discoveryLimit: limit, discoveryOffset: 0 });
+    setQueryParam('limit', limit.toString());
     get().loadDiscoveryPage(0).catch(error => {
       console.error('[DiscoveryStore] Error in setDiscoveryLimit:', error);
-    });
-  },
-
-  resetDiscoveryLimit: () => {
-    const newLimit = getInitialDiscoveryLimit();
-    set({ discoveryLimit: newLimit, discoveryOffset: 0 });
-    get().loadDiscoveryPage(0).catch(error => {
-      console.error('[DiscoveryStore] Error in resetDiscoveryLimit:', error);
     });
   },
 

@@ -141,7 +141,6 @@ function Toolbar() {
   if (isMobile) {
     return (
       <ToolbarContainer $isMobile={isMobile}>
-        {/* Linha 1: Paginação (apenas em Discovery) */}
         {isDiscovery && (
           <CenterOptions $isMobile={isMobile}>
             <DiscoveryControls>
