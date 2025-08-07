@@ -12,12 +12,16 @@ import { useDownloadStore } from "../store/downloadStore";
 export const WindowContainerWrapper = styled.div`
   width: 100%;
   height: 100%;
-  background: #000;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   position: relative;
   border-radius: var(--border-radius);
   overflow: hidden;
-  border: 1px solid var(--primary-color);
-  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 `;
 
 const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
@@ -28,16 +32,21 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   padding: 0 10px;
   cursor: ${({ $maximized }) => ($maximized ? "default" : "move")};
   font-size: 14px;
-  background-color: ${({ $pinned }) =>
-    $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   button {
-    background-color: ${({ $pinned }) =>
-      $pinned ? "var(--secundary-color)" : "var(--primary-color)"};
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
   }
   button:hover {
-    background-color: ${({ $pinned }) =>
-      $pinned ? "var(--secundary-color-hover)" : "var(--primary-color-hover)"};
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 `;
 
@@ -84,12 +93,16 @@ const CopyMessage = styled.div`
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--dark-color);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 14px;
   z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 `;
 
 export const WindowHeaderButton = styled.button`
