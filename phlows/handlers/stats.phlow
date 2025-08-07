@@ -1,0 +1,10 @@
+steps:
+  - use: cache
+    input:
+      action: stats
+
+  - return:
+      status: 200
+      body: !phs payload
+      headers:
+        Content-Type: application/json

@@ -16,6 +16,9 @@ steps:
   - assert: !phs main.path == "/roomlist" && main.method == "GET"
     then:
       !include handlers/roomlist.phlow
+  - assert: !phs main.path == "/stats" && main.method == "GET"
+    then:
+      !include handlers/stats.phlow
   - return:
       status: 404
       body:
