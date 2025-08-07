@@ -86,7 +86,28 @@ const CenterOptions = styled.div<{ $isMobile: boolean }>`
 const AudioMuteIcon = styled(AudioMute)`
   font-size: 16px;
   margin-right: 6px;
-`
+`;
+
+const MobileButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+`;
 
 function Toolbar() {
   // Mobile detection
@@ -120,6 +141,67 @@ function Toolbar() {
     setGlobalMuted(true);
   };
 
+  if (isMobile) {
+    return (
+      <ToolbarContainer $isMobile={isMobile}>
+        {/* Linha 1: Paginação (apenas em Discovery) */}
+        {isDiscovery && (
+          <CenterOptions $isMobile={isMobile}>
+            <DiscoveryControls>
+              <select
+                value={discoveryLimit}
+                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+              >
+                {[6, 12, 24]
+                  .filter((value) => value >= Math.max(1, pinnedCount))
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+              </select>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => goToDiscoveryPage(page)}
+                isMobile={isMobile}
+              />
+            </DiscoveryControls>
+          </CenterOptions>
+        )}
+        
+        {/* Linha 2: Todos os botões */}
+        <LeftOptions $isMobile={isMobile}>
+          <Button
+            key={"discovery"}
+            onClick={() => navigate("/")}
+            $active={isDiscovery}
+            title="Discovery"
+          >
+            <Search size={16} />
+          </Button>
+          <Button
+            key={"favorites"}
+            onClick={() => navigate("/favorites")}
+            $active={isFavorites}
+            title={`Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
+          >
+            <Star size={16} style={{ color: "#ffd700" }} />
+          </Button>
+          <MobileButton onClick={handlerGlobalMuted} title="Mute All">
+            <AudioMute size={16} />
+          </MobileButton>
+          <MobileButton onClick={() => rearrangeWindows(true)} title="Arrange">
+            <Arrange size={16} />
+          </MobileButton>
+          <DownloadMonitor />
+        </LeftOptions>
+      </ToolbarContainer>
+    );
+  }
+
+  // Layout Desktop
   return (
     <ToolbarContainer $isMobile={isMobile}>
       <LeftOptions $isMobile={isMobile}>
@@ -129,7 +211,7 @@ function Toolbar() {
           $active={isDiscovery}
         >
           <Search size={16} style={{ marginRight: "6px" }} />
-          {isMobile ? "Discovery" : "Discovery"}
+          Discovery
         </Button>
         <Button
           key={"favorites"}
@@ -137,14 +219,10 @@ function Toolbar() {
           $active={isFavorites}
         >
           <Star size={16} style={{ color: "#ffd700", marginRight: "6px" }} />
-          {isMobile ? "Favorites" : `Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
+          {`Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
         </Button>
-        {!isMobile && (
-          <>
-            <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
-            <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
-          </>
-        )}
+        <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
+        <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
       </LeftOptions>
 
       <CenterOptions $isMobile={isMobile}>
@@ -174,12 +252,6 @@ function Toolbar() {
 
       <RightOptions $isMobile={isMobile}>
         <DownloadMonitor />
-        {isMobile && (
-          <>
-            <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>{isMobile ? "Mute" : "Mute All"}</button>
-            <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
-          </>
-        )}
       </RightOptions>
     </ToolbarContainer>
   );

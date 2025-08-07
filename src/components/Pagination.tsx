@@ -38,16 +38,45 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  isMobile?: boolean;
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  isMobile = false,
 }) => {
   const generatePages = () => {
     const pages: (number | string)[] = [];
 
+    // Mobile: página atual, próxima e última
+    if (isMobile) {
+      if (totalPages <= 3) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+        return pages;
+      }
+      
+      // Sempre mostra: página atual
+      pages.push(currentPage);
+      
+      // Se não for a última página, mostra a próxima
+      if (currentPage < totalPages) {
+        pages.push(currentPage + 1);
+      }
+      
+      // Se a próxima página não é a última, adiciona "..." e a última
+      if (currentPage + 1 < totalPages) {
+        if (currentPage + 2 < totalPages) {
+          pages.push("...");
+        }
+        pages.push(totalPages);
+      }
+      
+      return pages;
+    }
+
+    // Desktop: lógica original
     if (totalPages <= 5) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
       return pages;
