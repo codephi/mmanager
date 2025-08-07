@@ -3,6 +3,7 @@ import Toolbar from "./components/Toolbar";
 import styled from "styled-components";
 import { useSpacesStorageSync } from "./hooks/useSpacesStorageSync";
 import { Pinneds } from "./components/Pinneds";
+import { AppInitializer } from "./components/AppInitializer";
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -20,6 +21,7 @@ function App() {
 
   return (
     <Wrapper>
+      <AppInitializer />
       <Pinneds />
       <WindowsGrid />
       <Toolbar />

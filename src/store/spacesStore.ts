@@ -84,7 +84,9 @@ export const useSpacesStore = create<SpacesState>()(
 
           if (id === "discovery") {
             // força o carregamento sempre que ativar discovery
-            // useDiscoveryStore.getState().loadDiscovery();
+            import("./discoveryStore").then(({ useDiscoveryStore }) => {
+              useDiscoveryStore.getState().loadDiscovery();
+            });
           } else {
             get().arrangeFilteredWindows();
           }
