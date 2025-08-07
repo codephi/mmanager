@@ -19,6 +19,15 @@ const Wrapper = styled.div<{ backgroundImage?: string }>`
   background-size: cover;
 `;
 
+const VideoElement = styled.video<{ $loaded: boolean }>`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
+  transition: opacity 500ms ease-in-out;
+`;
+
 interface Props {
   src: string;
   muted: boolean;
@@ -40,6 +49,7 @@ export const HlsPlayer: React.FC<Props> = ({
   const initialized = useRef(false);
   const [paused, setPaused] = useState(false);
   const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const getTargetResolution = (h: number): number => {
     if (h <= 180) return 180;
@@ -67,10 +77,25 @@ export const HlsPlayer: React.FC<Props> = ({
     const container = containerRef.current;
     if (!video || !container) return;
 
+    // Reset estado de carregamento ao inicializar novo vídeo
+    setVideoLoaded(false);
+
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
+
+    // Adicionar event listeners para detectar quando o vídeo carregou
+    const handleLoadedData = () => {
+      setVideoLoaded(true);
+    };
+
+    const handleCanPlay = () => {
+      setVideoLoaded(true);
+    };
+
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('canplay', handleCanPlay);
 
     if (Hls.isSupported()) {
       const hls = new Hls({ progressive: true });
@@ -118,6 +143,13 @@ export const HlsPlayer: React.FC<Props> = ({
   useEffect(() => {
     initializeHls();
     return () => {
+      // Limpar event listeners
+      const video = videoRef.current;
+      if (video) {
+        video.removeEventListener('loadeddata', () => setVideoLoaded(true));
+        video.removeEventListener('canplay', () => setVideoLoaded(true));
+      }
+      
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -172,17 +204,12 @@ export const HlsPlayer: React.FC<Props> = ({
 
   return (
     <Wrapper ref={containerRef} backgroundImage={snapshot || undefined}>
-      <video
+      <VideoElement
         ref={videoRef}
         autoPlay
         playsInline
         controls={false}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-        }}
+        $loaded={videoLoaded}
       />
     </Wrapper>
   );
