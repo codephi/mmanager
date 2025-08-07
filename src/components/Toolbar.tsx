@@ -8,6 +8,7 @@ import { rearrangeWindows } from "../utils/rearrangeWindows";
 import { AudioMute, Search, Arrange } from "../icons";
 import { useMobile } from "../hooks/useMobile";
 import { useAgeGate } from "../hooks/useAgeGate";
+import { LimitSelector } from "./LimitSelector";
 
 // Styled Components
 const ToolbarContainer = styled.div<{ $isMobile: boolean }>`
@@ -171,16 +172,11 @@ function Toolbar() {
           <MobileButton onClick={() => rearrangeWindows(true)} title="Arrange">
             <Arrange size={16} />
           </MobileButton>
-            <select
-                value={discoveryLimit}
-                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
-              >
-                {[2, 4, 6].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+            <LimitSelector
+              value={discoveryLimit}
+              onChange={setDiscoveryLimit}
+              options={[2, 4, 6]}
+            />
 
           <DownloadMonitor />
         </LeftOptions>
@@ -217,16 +213,11 @@ function Toolbar() {
       </CenterOptions>
 
       <RightOptions $isMobile={isMobile}>
-        <select
-              value={discoveryLimit}
-              onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
-            >
-              {[2, 4, 6, 12, 25].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+        <LimitSelector
+          value={discoveryLimit}
+          onChange={setDiscoveryLimit}
+          options={[6, 12, 24]}
+        />
         <DownloadMonitor />
       </RightOptions>
     </ToolbarContainer>
