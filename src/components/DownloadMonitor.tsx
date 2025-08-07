@@ -142,7 +142,6 @@ const MainButton = styled.button`
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 8px 12px;
   cursor: pointer;

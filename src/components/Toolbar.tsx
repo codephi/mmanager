@@ -108,17 +108,6 @@ function Toolbar() {
         </Button>
         <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
 
-        <select
-          value={filterMode}
-          onChange={(e) =>
-            setFilterMode(e.target.value as "all" | "online" | "offline")
-          }
-        >
-          <option value="online">Online rooms</option>
-          <option value="offline">Offline rooms</option>
-          <option value="all">All rooms</option>
-        </select>
-
         <button onClick={() => rearrangeWindows(true)}>Arrange</button>
       </LeftOptions>
 
