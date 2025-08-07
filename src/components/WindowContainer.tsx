@@ -71,6 +71,10 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+  overflow: hidden;
+  
   button {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
