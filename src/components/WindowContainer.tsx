@@ -228,6 +228,7 @@ export const WindowContainer: React.FC<Props> = ({
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
   const togglePin = useSpacesStore((s) => s.togglePin);
+  const setWindowMaximized = useSpacesStore((s) => s.setWindowMaximized);
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
   const [hlsSource, setHlsSource] = useState<string | null>(null);
@@ -258,9 +259,20 @@ export const WindowContainer: React.FC<Props> = ({
   const muted = windowState?.isMuted ?? true;
   const volume = windowState?.volume ?? 1.0;
 
+  // Sincroniza o estado local com o da store
+  useEffect(() => {
+    const storeMaximized = windowState?.maximized || false;
+    if (storeMaximized !== maximized) {
+      setMaximized(storeMaximized);
+    }
+  }, [windowState?.maximized]);
+
   const toggleMaximize = () => {
     const value = !maximized;
-    setMaximized(!maximized);
+    setMaximized(value);
+    
+    // Atualiza o estado na store
+    setWindowMaximized(id, value);
 
     if (value) {
       onMaximize();

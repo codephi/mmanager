@@ -53,8 +53,10 @@ export function rearrangeWindows(force: boolean = false) {
   }
 
   for (const win of sortedWindows) {
+    // Se force=true (botão Arrange), minimiza todas as janelas
     const w = force ? 1 : win.w ?? 1;
     const h = force ? 1 : win.h ?? 1;
+    const isMaximized = force ? false : (win.maximized || false);
 
     let placed = false;
 
@@ -69,6 +71,8 @@ export function rearrangeWindows(force: boolean = false) {
             y: row,
             w,
             h,
+            // Se force=true, define maximized como false (minimiza)
+            maximized: isMaximized,
           });
           placed = true;
           break;
@@ -157,8 +161,14 @@ export function rearrangeWindowsFromLayout(
   });
 
   for (const item of sortedLayout) {
+    // Procuramos o objeto original para manter outras props
+    const win = space.windows.find((w) => w.id === item.i);
+    if (!win) continue;
+
+    // Se force=true (botão Arrange), minimiza todas as janelas
     const w = force ? 1 : item.w ?? 1;
     const h = force ? 1 : item.h ?? 1;
+    const isMaximized = force ? false : (win.maximized || false);
 
     let placed = false;
 
@@ -168,16 +178,14 @@ export function rearrangeWindowsFromLayout(
         if (fitsAt(row, col, w, h)) {
           occupy(row, col, w, h);
 
-          // Procuramos o objeto original para manter outras props
-          const win = space.windows.find((w) => w.id === item.i);
-          if (!win) continue;
-
           updatedWindows.push({
             ...win,
             x: col,
             y: row,
             w,
             h,
+            // Se force=true, define maximized como false (minimiza)
+            maximized: isMaximized,
           });
 
           placed = true;

@@ -20,6 +20,7 @@ export const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
   const newWindows = space.windows.map((win, index) => {
     const col = index % cols;
     const row = Math.floor(index / cols);
+    
     return {
       ...win,
       x: padding.left + col * cellSize,
@@ -28,6 +29,8 @@ export const arrangeWindowsInternal = (space: SpaceConfig): SpaceConfig => {
       height: cellSize,
       w: 1,
       h: 1,
+      // arrangeWindowsInternal sempre minimiza (usado pelo botão Arrange)
+      maximized: false,
     };
   });
 
