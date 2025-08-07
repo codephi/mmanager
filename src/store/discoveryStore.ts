@@ -41,7 +41,7 @@ const getInitialDiscoveryLimit = () => {
   if (paramLimit) {
     const limit = parseInt(paramLimit, 10);
     if (!isNaN(limit) && limit > 0) {
-      return isMobile ? Math.min(limit, 6) : Math.min(limit, 12);
+      return isMobile ? Math.min(limit, 6) : Math.min(limit, 25);
     }
   }
 
