@@ -67,25 +67,58 @@ const StopButton = styled.button`
   }
 `;
 
-const SelectQuality = styled.select`
+const QualitySliderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const QualityLabel = styled.div`
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+`;
+
+const SliderContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 8px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-  color: #fff;
-  border-radius: 6px;
-  padding: 6px 10px;
-  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+`;
+
+const SliderTrack = styled.div<{ progress: number }>`
+  height: 100%;
+  width: ${({ progress }) => progress}%;
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+`;
+
+const SliderThumb = styled.div<{ position: number }>`
+  position: absolute;
+  top: 50%;
+  left: ${({ position }) => position}%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  option {
-    background: rgba(0, 0, 0, 0.9);
-    color: #fff;
+    transform: translate(-50%, -50%) scale(1.2);
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 `;
 
@@ -112,6 +145,8 @@ export const DownloadMonitor: React.FC = () => {
   const [open, setOpen] = useState(false);
   const stop = useDownloadStore((s) => s.stop); // <-- este é o correto agora!
   const [, setTick] = useState(0);
+  const [currentLevels, setCurrentLevels] = useState<Record<string, number>>({});
+  const [isDragging, setIsDragging] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
@@ -129,6 +164,61 @@ export const DownloadMonitor: React.FC = () => {
       .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  const handleSliderChange = (downloadId: string, levels: any[], clientX: number, sliderElement: HTMLElement) => {
+    const rect = sliderElement.getBoundingClientRect();
+    const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const levelIndex = Math.round((percentage / 100) * (levels.length - 1));
+    
+    setCurrentLevels(prev => ({ ...prev, [downloadId]: levelIndex }));
+    downloadManager.setLevel(downloadId, levelIndex);
+  };
+
+  const getCurrentLevel = (downloadId: string, levels: any[]) => {
+    return currentLevels[downloadId] ?? 0;
+  };
+
+  const handleMouseDown = (downloadId: string) => {
+    setIsDragging(downloadId);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent, downloadId: string, levels: any[]) => {
+    if (isDragging === downloadId) {
+      const sliderElement = e.currentTarget as HTMLElement;
+      handleSliderChange(downloadId, levels, e.clientX, sliderElement);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+
+  const handleWheel = (e: React.WheelEvent, downloadId: string, levels: any[]) => {
+    e.preventDefault();
+    const currentIndex = getCurrentLevel(downloadId, levels);
+    const delta = e.deltaY > 0 ? -1 : 1; // Scroll para baixo diminui, para cima aumenta
+    const newIndex = Math.max(0, Math.min(levels.length - 1, currentIndex + delta));
+    
+    if (newIndex !== currentIndex) {
+      setCurrentLevels(prev => ({ ...prev, [downloadId]: newIndex }));
+      downloadManager.setLevel(downloadId, newIndex);
+    }
+  };
+
+  // Adicionar event listeners globais para mouseup
+  useEffect(() => {
+    const handleGlobalMouseUp = () => setIsDragging(null);
+    
+    if (isDragging) {
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mouseleave', handleGlobalMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mouseleave', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
   return (
     <Container>
       {open && (
@@ -145,21 +235,36 @@ export const DownloadMonitor: React.FC = () => {
                   </div>
                 </HeaderRow>
 
-                <div>
-                  <SelectQuality
-                    onChange={(e) => {
-                      const index = parseInt(e.target.value, 10);
-                      downloadManager.setLevel(d.id, index);
-                    }}
-                  >
-                    {levels.map((level, index) => (
-                      <option key={index} value={index}>
-                        {level.height}p ({Math.round(level.bitrate / 1000)}{" "}
-                        kbps)
-                      </option>
-                    ))}
-                  </SelectQuality>
-                </div>
+                <QualitySliderContainer>
+                  {(() => {
+                    const currentIndex = getCurrentLevel(d.id, levels);
+                    const currentLevel = levels[currentIndex];
+                    const progress = levels.length > 1 ? (currentIndex / (levels.length - 1)) * 100 : 0;
+                    
+                    return (
+                      <>
+                        <QualityLabel>
+                          {currentLevel ? `${currentLevel.height}p (${Math.round(currentLevel.bitrate / 1000)} kbps)` : 'Loading...'}
+                        </QualityLabel>
+                        <SliderContainer
+                          onClick={(e) => handleSliderChange(d.id, levels, e.clientX, e.currentTarget)}
+                          onMouseMove={(e) => handleMouseMove(e, d.id, levels)}
+                          onMouseUp={handleMouseUp}
+                          onWheel={(e) => handleWheel(e, d.id, levels)}
+                        >
+                          <SliderTrack progress={progress} />
+                          <SliderThumb 
+                            position={progress} 
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleMouseDown(d.id);
+                            }}
+                          />
+                        </SliderContainer>
+                      </>
+                    );
+                  })()} 
+                </QualitySliderContainer>
               </DownloadItem>
             );
           })}
