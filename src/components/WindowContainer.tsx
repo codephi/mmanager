@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
 import { useWindowsStore } from "../store/windowsStore";
-import { useSpacesStore } from "../store/spacesStore";
+import { useSpacesStore } from "../store/windowsMainStore";
 import styled from "styled-components";
-import { FavoriteButton } from "./FavoriteButton";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
@@ -241,19 +240,7 @@ export const WindowContainer: React.FC<Props> = ({
   const isRecording = downloads.some((d) => d.id === id);
 
   const windowState = useSpacesStore((s) => {
-    const activeSpace = s.spaces.find((sp) => sp.id === s.activeSpaceId);
-    let window = activeSpace?.windows.find((w) => w.id === id);
-    
-    // Se não encontrou no space ativo, procura em todos os spaces
-    // (isso é necessário para o space "favorites" que não tem os windows localmente)
-    if (!window) {
-      for (const space of s.spaces) {
-        window = space.windows.find((w) => w.id === id);
-        if (window) break;
-      }
-    }
-    
-    return window;
+    return s.windows.find((w) => w.id === id);
   });
 
   const muted = windowState?.isMuted ?? true;
@@ -281,45 +268,13 @@ export const WindowContainer: React.FC<Props> = ({
     }
   };
   const setVolume = (v: number) => {
-    const spacesState = useSpacesStore.getState();
-    const activeSpace = spacesState.getCurrentSpace();
-    const windowExists = activeSpace?.windows.find((w) => w.id === id);
-    
-    if (windowExists) {
-      spacesState.setWindowVolume(id, v);
-    } else {
-      // Para casos onde a janela não existe no space ativo (como favorites),
-      // usa o método que busca em qualquer space
-      spacesState.updateWindowInAnySpace(id, { 
-        volume: v, 
-        isMuted: v === 0 
-      });
-    }
+    const windowsState = useSpacesStore.getState();
+    windowsState.setWindowVolume(id, v);
   };
 
   const toggleMute = () => {
-    const spacesState = useSpacesStore.getState();
-    const activeSpace = spacesState.getCurrentSpace();
-    const windowExists = activeSpace?.windows.find((w) => w.id === id);
-    
-    if (windowExists) {
-      spacesState.toggleWindowMute(id);
-    } else {
-      // Para casos onde a janela não existe no space ativo (como favorites),
-      // busca a janela em qualquer space e atualiza o mute
-      const allSpaces = spacesState.getSpaces();
-      const spaceWithWindow = allSpaces.find((sp) => 
-        sp.windows.find((w) => w.id === id)
-      );
-      if (spaceWithWindow) {
-        const window = spaceWithWindow.windows.find((w) => w.id === id);
-        if (window) {
-          spacesState.updateWindowInAnySpace(id, { 
-            isMuted: !window.isMuted 
-          });
-        }
-      }
-    }
+    const windowsState = useSpacesStore.getState();
+    windowsState.toggleWindowMute(id);
   };
 
   const fetchHls = async (room: string, id: string) => {
@@ -331,24 +286,24 @@ export const WindowContainer: React.FC<Props> = ({
 
       if (data.hls_source) {
         setHlsSource(data.hls_source);
-        useWindowsStore.getState().updateWindow(id, { isOnline: true });
+        useSpacesStore.getState().updateWindow(id, { isOnline: true });
         setIsOffline(false);
       } else if (data.room_status === "private") {
         setHlsSource(null);
         setIsPrivate(true);
-        useWindowsStore.getState().updateWindow(id, { isOnline: false });
+        useSpacesStore.getState().updateWindow(id, { isOnline: false });
       } else {
         setHlsSource(null);
         setIsOffline(true);
         setIsPrivate(false);
-        useWindowsStore.getState().updateWindow(id, { isOnline: false });
+        useSpacesStore.getState().updateWindow(id, { isOnline: false });
       }
     } catch (err) {
       console.error("Erro carregando HLS:", err);
       setHlsSource(null);
       setIsOffline(true);
       setIsPrivate(false);
-      useWindowsStore.getState().updateWindow(id, { isOnline: false });
+      useSpacesStore.getState().updateWindow(id, { isOnline: false });
     }
   };
 
@@ -422,22 +377,18 @@ export const WindowContainer: React.FC<Props> = ({
         $pinned={isPinned && isFloating}
       >
         <a
-          href={`https://handplayspaces.chaturbate.com/${room}`}
+          href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="no-drag"
           style={{ color: "#fff", textDecoration: "underline" }}
         >
-          {room}
+          {typeof room === 'string' ? room : String(room)}
         </a>
         <HeaderRight>
           <WindowHeaderButton className="no-drag" onClick={toggleRecording} title="Toggle Recording">
             <RecordButton active={isRecording} />
           </WindowHeaderButton>
-          <FavoriteButton
-            windowId={id}
-            className="no-drag"
-          />
           <VolumeControl
             muted={muted}
             volume={volume}

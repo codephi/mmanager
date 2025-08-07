@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { SpaceConfig, WindowConfig } from "./types";
-import { useSpacesStore } from "./spacesStore";
+import type { WindowConfig } from "./types";
+import { useSpacesStore } from "./windowsMainStore";
 
 interface WindowsState {
   removeWindow: (id: string) => void;
@@ -9,58 +9,31 @@ interface WindowsState {
 
 export const useWindowsStore = create<WindowsState>((_set, _get) => ({
   removeWindow: (id) => {
-    const spacesState = useSpacesStore.getState();
-    const activeSpaceId = spacesState.getActiveSpaceId();
-
-    if (!activeSpaceId) return;
-
-    const space = spacesState.getSpace(activeSpaceId);
-    if (!space) return;
-
-    // Remover o ID também dos pinnedWindows, se existir
-    const isPinned = spacesState.pinnedWindows.some((w) => w.id === id);
+    const windowsState = useSpacesStore.getState();
+    
+    // Remove from pinned if it exists
+    const isPinned = windowsState.pinnedWindows.some((w) => w.id === id);
     if (isPinned) {
-      spacesState.togglePin(id);
+      windowsState.togglePin(id);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [id]: _, ...newZIndexes } = space.zIndexes;
-
-    const updatedSpace: SpaceConfig = {
-      ...space,
-      windows: space.windows.filter((w) => w.id !== id),
-      zIndexes: newZIndexes,
-    };
-
-    const finalSpace = updatedSpace;
-
-    spacesState.updateSpace(space.id, finalSpace);
+    // Remove from windows array
+    const updatedWindows = windowsState.windows.filter((w) => w.id !== id);
+    windowsState.setWindows(updatedWindows);
+    
+    // Remove from zIndexes
+    const { [id]: _, ...newZIndexes } = windowsState.zIndexes;
+    windowsState.zIndexes = newZIndexes;
   },
 
   updateWindow: (id, pos) => {
-    const spacesState = useSpacesStore.getState();
-    const activeSpaceId = spacesState.getActiveSpaceId();
-
-    if (!activeSpaceId) return;
-
-    const space = spacesState.getSpace(activeSpaceId);
-    if (!space) return;
-
-    const updatedWindows = space.windows.map((w) =>
-      w.id === id ? { ...w, ...pos } : w
-    );
-
-    const updatedSpace: SpaceConfig = {
-      ...space,
-      windows: updatedWindows,
-    };
-
-    spacesState.updateSpace(space.id, updatedSpace);
-
-    // Agora também atualizamos o pinnedWindows se existir
-    const pinnedWindow = spacesState.pinnedWindows.find((w) => w.id === id);
+    const windowsState = useSpacesStore.getState();
+    windowsState.updateWindow(id, pos);
+    
+    // Also update pinned window if it exists
+    const pinnedWindow = windowsState.pinnedWindows.find((w) => w.id === id);
     if (pinnedWindow) {
-      spacesState.updatePinnedWindow(id, pos);
+      windowsState.updatePinnedWindow(id, pos);
     }
   },
 }));

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { useSpacesStore } from "./spacesStore";
-import type { WindowConfig, SpaceConfig, Room } from "./types";
+import { useSpacesStore } from "./windowsMainStore";
+import type { WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
 
 interface DiscoveryState {
@@ -48,24 +48,24 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   loadDiscoveryPage: async (newOffset: number, force = false) => {
     const state = get();
-    const spacesState = useSpacesStore.getState();
-    const discovery = spacesState.getSpace("discovery");
-    if (!discovery) return;
+    const windowsState = useSpacesStore.getState();
 
     if (!force && state.isLoadingDiscovery) return;
     set({ isLoadingDiscovery: true });
 
-    const pinned = spacesState.pinnedWindows;
+    const pinned = windowsState.pinnedWindows;
     const availableSlots = state.discoveryLimit <= 0 ? 0 : state.discoveryLimit;
 
     if (availableSlots === 0) {
-      const updatedDiscovery = arrangeWindowsInternal({
-        ...discovery,
+      const updatedWindows = arrangeWindowsInternal({
+        id: "main",
+        name: "Main",
         windows: pinned,
         zIndexes: Object.fromEntries(pinned.map((w, idx) => [w.id, idx + 1])),
+        autoArrange: true,
       });
 
-      spacesState.updateSpace("discovery", updatedDiscovery);
+      windowsState.setWindows(updatedWindows.windows);
 
       set({ discoveryOffset: 0, isLoadingDiscovery: false });
       return;
@@ -78,11 +78,13 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
     const fetchedRooms = data.rooms.slice(0, availableSlots);
 
-    const newWindows: WindowConfig[] = fetchedRooms.map((room: Room) => ({
-      id: room.username,
-      room: room.username,
+    const newWindows: WindowConfig[] = fetchedRooms.map((room: string) => ({
+      id: room,
+      room,
       x: 50,
       y: 50,
+      w: 1,
+      h: 1,
       width: 800,
       height: 600,
       volume: 0.5,
@@ -95,16 +97,18 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       isOnline: true,
     }));
 
-    const updatedDiscovery = arrangeWindowsInternal({
-      ...discovery,
+    const updatedWindows = arrangeWindowsInternal({
+      id: "main",
+      name: "Main",
       windows: newWindows,
       zIndexes: Object.fromEntries([
         ...pinned.map((w) => [w.id, 9999]),
         ...newWindows.map((w, idx) => [w.id, idx + 1]),
       ]),
+      autoArrange: true,
     });
 
-    spacesState.updateSpace("discovery", updatedDiscovery);
+    windowsState.setWindows(updatedWindows.windows);
 
     const totalRooms = data.total_count || 0;
     const totalPages = Math.ceil(totalRooms / state.discoveryLimit);
@@ -129,32 +133,13 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   },
 
   togglePin: (windowId: string) => {
-    const spacesState = useSpacesStore.getState();
-    spacesState.togglePin(windowId); // 🔥 delega completamente pro spacesStore
+    const windowsState = useSpacesStore.getState();
+    windowsState.togglePin(windowId);
   },
 
   addSpaceFromPinned: () => {
-    const spacesState = useSpacesStore.getState();
-    const pinnedWindows = spacesState.pinnedWindows;
-    if (pinnedWindows.length === 0) return;
-
-    const id = Math.random().toString(36).substring(2, 9);
-    const totalSpaces = spacesState.getSpaces().length;
-    const finalName = `Space ${totalSpaces + 1}`;
-
-    const newSpace: SpaceConfig = {
-      id,
-      name: finalName,
-      windows: pinnedWindows.map((w) => ({ ...w, pinned: undefined })),
-      zIndexes: Object.fromEntries(
-        pinnedWindows.map((w, idx) => [w.id, idx + 1])
-      ),
-      autoArrange: true,
-    };
-
-    spacesState.addSpace(finalName);
-
-    spacesState.updateSpace(id, newSpace);
+    // Esta funcionalidade não é mais necessária em um sistema sem múltiplos spaces
+    console.log("addSpaceFromPinned não é mais suportado");
   },
 
   goToDiscoveryPage: async (page: number) => {

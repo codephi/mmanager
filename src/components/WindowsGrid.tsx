@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useSpacesStore } from "../store/spacesStore";
+import { useSpacesStore } from "../store/windowsMainStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
 import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
@@ -19,7 +18,7 @@ const Window = styled.div`
   height: 100%;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ $isMobile: boolean }>`
   width: 100%;
   height: 100%;
   position: relative;
@@ -31,40 +30,46 @@ const Wrapper = styled.div`
     display: none;
   }
 
-  ${Window}:hover {
-    .react-resizable-handle {
-      display: block;
-      color: #fff;
-      background-color: #fff;
+  /* Só mostra handles de resize no desktop */
+  ${({ $isMobile }) => !$isMobile && `
+    ${Window}:hover {
+      .react-resizable-handle {
+        display: block;
+        color: #fff;
+        background-color: #fff;
 
-      border-radius: 50%;
-      width: 10px;
-      height: 10px;
-      background-image: none !important;
+        border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        background-image: none !important;
 
-      &::after {
-        border-right: none !important;
-        border-bottom: none !important;
-      }
+        &::after {
+          border-right: none !important;
+          border-bottom: none !important;
+        }
 
-      &:hover {
-        background-color: var(--primary-color-hover);
+        &:hover {
+          background-color: var(--primary-color-hover);
+        }
       }
     }
-  }
+  `}
+
+  /* No mobile, garante que handles nunca aparecem */
+  ${({ $isMobile }) => $isMobile && `
+    .react-resizable-handle {
+      display: none !important;
+    }
+  `}
 `;
 
 export const WindowsGrid: React.FC = () => {
-  const spaces = useSpacesStore((s) => s.spaces);
-  const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
-  const getActiveSpaceId = useSpacesStore((s) => s.getActiveSpaceId);
-  const getCurrentSpace = useSpacesStore((s) => s.getCurrentSpace);
-  const updateWindowInActiveSpace = useSpacesStore((s) => s.updateWindowInActiveSpace);
+  const storeWindows = useSpacesStore((s) => s.windows);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
-  const updateWindow = useWindowsStore((s) => s.updateWindow);
+  const updateWindow = useSpacesStore((s) => s.updateWindow);
   const { isMobile } = useMobile();
-  const [windows, setWindows] = useState<WindowConfig[]>([]);
+  const [displayWindows, setDisplayWindows] = useState<WindowConfig[]>([]);
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
   const [layout, setLayout] = useState<Layout[]>([]);
@@ -80,82 +85,64 @@ export const WindowsGrid: React.FC = () => {
 
   useEffect(() => {
     try {
-      const activeSpace = spaces.find((t) => t.id === activeSpaceId);
-      if (!activeSpace) {
-        // Se não encontrar o space, limpa tudo
-        setWindows([]);
-        setLayout([]);
-        setRowHeight(100);
-        setColsValue(1);
-        return;
-      }
-
-      // Proteção adicional
-      if (!activeSpace.windows || !Array.isArray(activeSpace.windows)) {
-        setWindows([]);
-        setLayout([]);
-        setRowHeight(100);
-        setColsValue(1);
-        return;
-      }
-
-      const localWindows = activeSpace.windows.filter((w) => {
+      // Filtra as janelas baseado no filterMode
+      let filteredWindows = storeWindows.filter((w) => {
         return w && w.id && w.isOnline !== false;
       });
 
+      // Aplica filtro se necessário
+      if (filterMode === "online") {
+        filteredWindows = filteredWindows.filter((w) => w.isOnline === true);
+      } else if (filterMode === "offline") {
+        filteredWindows = filteredWindows.filter((w) => w.isOnline === false);
+      }
+
       // Se não há janelas, define valores padrão seguros
-      if (localWindows.length === 0) {
-        setWindows([]);
+      if (filteredWindows.length === 0) {
+        setDisplayWindows([]);
         setLayout([]);
         setRowHeight(100);
         setColsValue(1);
         return;
       }
 
-      const { rows, cols } = calculateGridSize(localWindows.length);
+      const { rows, cols } = calculateGridSize(filteredWindows.length);
       const safeRows = Math.max(1, rows);
       const safeCols = Math.max(1, cols);
 
       const availableHeight = Math.max(100, window.innerHeight - 110);
       const rowHeight = Math.max(50, availableHeight / safeRows);
 
-      // Para o space "favorites", sempre organizamos as janelas automaticamente
-      // porque elas vêm de diferentes spaces com posições que podem não fazer sentido juntas
-      const layout: Layout[] = localWindows.map((win, index) => {
-        if (activeSpaceId === "favorite") {
-          // Para favoritos, sempre organiza em grid limpo
-          return {
-            i: win.id,
-            x: index % safeCols,
-            y: Math.floor(index / safeCols),
-            w: 1, // Tamanho padrão para favoritos
-            h: 1,
-          };
-        } else {
-          // Para outros spaces, usa posições salvas ou calcula
-          return {
-            i: win.id,
-            x: win.x ?? index % safeCols,
-            y: win.y ?? Math.floor(index / safeCols),
-            w: Math.max(1, win.w ?? 1),
-            h: Math.max(1, win.h ?? 1),
-          };
-        }
+      // Usa posições salvas ou calcula automaticamente
+      // Garante que todos os IDs sejam strings únicas
+      const uniqueWindows = filteredWindows.filter((win, index, arr) => 
+        win && win.id && arr.findIndex(w => w?.id === win.id) === index
+      );
+      
+      const layout: Layout[] = uniqueWindows.map((win, index) => {
+        const safeId = String(win.id);
+        return {
+          i: safeId,
+          x: win.x ?? index % safeCols,
+          y: win.y ?? Math.floor(index / safeCols),
+          w: Math.max(1, win.w ?? 1),
+          h: Math.max(1, win.h ?? 1),
+        };
       });
-
+      
+      setDisplayWindows(uniqueWindows);
       setLayout(layout);
       setRowHeight(rowHeight);
       setColsValue(safeCols);
-      setWindows(localWindows);
     } catch (error) {
       console.error("[WindowsGrid] Error in useEffect:", error);
       // Em caso de erro, define valores seguros
-      setWindows([]);
+      setDisplayWindows([]);
       setLayout([]);
       setRowHeight(100);
       setColsValue(1);
     }
-  }, [spaces, pinnedWindows, activeSpaceId, filterMode]);
+  }, [storeWindows, pinnedWindows, filterMode]);
 
   // Função para comparar se o layout realmente mudou
   const layoutsAreEqual = useCallback((layout1: Layout[], layout2: Layout[]) => {
@@ -177,7 +164,7 @@ export const WindowsGrid: React.FC = () => {
   const onLayoutChange = useCallback((newLayout: Layout[]) => {
     try {
       // Se não há windows ou o layout está vazio, não faz nada
-      if (!windows.length || !newLayout.length) {
+      if (!displayWindows.length || !newLayout.length) {
         return;
       }
 
@@ -196,13 +183,7 @@ export const WindowsGrid: React.FC = () => {
 
       // Debounce de 100ms para evitar muitas atualizações seguidas
       updateTimeoutRef.current = setTimeout(() => {
-        // Se estamos no space "favorite", não atualizamos o store
-        // porque pode causar loops já que o space favorite não tem os windows localmente
-        if (activeSpaceId === "favorite") {
-          return;
-        }
-
-        // Atualiza o store apenas se não for o space favorites
+        // Atualiza o store
         newLayout.forEach(({ i, x, y, w, h }) => {
           updateWindow(i, { x, y, w, h });
         });
@@ -214,7 +195,7 @@ export const WindowsGrid: React.FC = () => {
     } catch (error) {
       console.error("[WindowsGrid] Error in onLayoutChange:", error);
     }
-  }, [activeSpaceId, windows.length, layoutsAreEqual, updateWindow]);
+  }, [displayWindows.length, layoutsAreEqual, updateWindow]);
 
   // Cleanup do timeout quando componente desmonta
   useEffect(() => {
@@ -226,16 +207,12 @@ export const WindowsGrid: React.FC = () => {
   }, []);
 
   const handleMaximize = (id: string) => {
-    const currentActiveSpaceId = getActiveSpaceId();
-    const space = getCurrentSpace();
-    if (!space) return;
-
-    const totalWindows = space.windows.filter(
+    const totalWindows = displayWindows.filter(
       (w) => w.isOnline !== false
     ).length;
     const { rows, cols } = calculateGridSize(totalWindows);
 
-    const win = space.windows.find((w) => w.id === id);
+    const win = displayWindows.find((w) => w.id === id);
     if (!win) return;
 
     // Salvar tamanho atual no state auxiliar
@@ -251,22 +228,12 @@ export const WindowsGrid: React.FC = () => {
       return copy;
     });
 
-    // Use o método apropriado dependendo do space
-    if (currentActiveSpaceId === "favorite") {
-      updateWindowInActiveSpace(id, {
-        x: 0,
-        y: 0,
-        w: cols,
-        h: rows,
-      });
-    } else {
-      updateWindow(id, {
-        x: 0,
-        y: 0,
-        w: cols,
-        h: rows,
-      });
-    }
+    updateWindow(id, {
+      x: 0,
+      y: 0,
+      w: cols,
+      h: rows,
+    });
 
     // Scroll automático para a janela maximizada
     setTimeout(() => {
@@ -291,31 +258,19 @@ export const WindowsGrid: React.FC = () => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
-    }, 500); // Aguardar animações do grid layout terminarem
+    }, 200); // Aguardar animações do grid layout terminarem
   };
 
   const handleMinimize = (id: string) => {
     const original = originalSizes.get(id);
     if (!original) return; // Não temos backup, não faz nada.
 
-    const currentActiveSpaceId = getActiveSpaceId();
-    
-    // Use o método apropriado dependendo do space
-    if (currentActiveSpaceId === "favorite") {
-      updateWindowInActiveSpace(id, {
-        x: original.x,
-        y: original.y,
-        w: original.w,
-        h: original.h,
-      });
-    } else {
-      updateWindow(id, {
-        x: original.x,
-        y: original.y,
-        w: original.w,
-        h: original.h,
-      });
-    }
+    updateWindow(id, {
+      x: original.x,
+      y: original.y,
+      w: original.w,
+      h: original.h,
+    });
 
     setOriginalSizes((prev) => {
       const copy = new Map(prev);
@@ -325,7 +280,7 @@ export const WindowsGrid: React.FC = () => {
   };
 
   return (
-    <Wrapper ref={wrapperRef}>
+    <Wrapper ref={wrapperRef} $isMobile={isMobile}>
       <ResponsiveGridLayout
         className="layout"
         layouts={{ lg: layout }}
@@ -339,26 +294,31 @@ export const WindowsGrid: React.FC = () => {
         autoSize={true}
         rowHeight={rowHeight}
         width={window.innerWidth}
-        isResizable={activeSpaceId !== "favorite" && !isMobile}
-        isDraggable={activeSpaceId !== "favorite" && !isMobile}
+        isResizable={!isMobile}
+        isDraggable={!isMobile}
         onLayoutChange={onLayoutChange}
         compactType={null}
         resizeHandles={["s", "e", "se"]}
         draggableCancel=".no-drag"
       >
-        {windows.map((win) => (
-          <Window key={win.id} className="window-header" data-window-id={win.id}>
-            <WindowContainer
-              id={win.id}
-              room={win.room}
-              pinned={win.pinned}
-              onMaximize={() => handleMaximize(win.id)}
-              onMinimize={() => handleMinimize(win.id)}
-              isMobile={isMobile}
-              scrollElementRef={wrapperRef}
-            />
-          </Window>
-        ))}
+        {displayWindows.map((win, index) => {
+          const safeKey = `${win.id}-${index}`;
+          const safeId = String(win.id);
+          const safeRoom = String(win.room || '');
+          return (
+            <Window key={safeKey} className="window-header" data-window-id={safeId}>
+              <WindowContainer
+                id={safeId}
+                room={safeRoom}
+                pinned={win.pinned}
+                onMaximize={() => handleMaximize(safeId)}
+                onMinimize={() => handleMinimize(safeId)}
+                isMobile={isMobile}
+                scrollElementRef={wrapperRef}
+              />
+            </Window>
+          );
+        })}
       </ResponsiveGridLayout>
     </Wrapper>
   );

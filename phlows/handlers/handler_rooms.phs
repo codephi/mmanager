@@ -1,0 +1,8 @@
+
+let rooms = [];
+
+for (a, i) in steps.fetch_rooms.response.body.rooms {
+    rooms.push(a.username);
+}
+
+rooms
