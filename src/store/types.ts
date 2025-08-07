@@ -26,10 +26,8 @@ export interface SpaceConfig {
   zIndexes: Record<string, number>;
   autoArrange: boolean;
 }
-export interface Root {
+export interface RoomList {
   rooms: string[];
   total_count: number;
   all_rooms_count: number;
-  room_list_id: string;
-  bls_payload: string;
 }
