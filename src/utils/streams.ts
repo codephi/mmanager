@@ -3,7 +3,7 @@ export async function getStreamUrlForRoom(
 ): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://chaturbate.com/api/chatvideocontext/${room}/`
+      `https://api.winturbate.com/chatvideocontext?room=${room}`
     );
     const data = await res.json();
     return data.hls_source ?? null;

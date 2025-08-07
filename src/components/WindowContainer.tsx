@@ -168,7 +168,7 @@ export const WindowContainer: React.FC<Props> = ({
   const fetchHls = async (room: string, id: string) => {
     try {
       const res = await fetch(
-        `https://chaturbate.com/api/chatvideocontext/${room}/`
+        `https://api.winturbate.com/chatvideocontext?room=${room}`
       );
       const data = await res.json();
 
