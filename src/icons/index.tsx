@@ -12,6 +12,7 @@ import StarSVG from "./star.svg?react";
 import StarOutlineSVG from "./star-outline.svg?react";
 import ChevronLeftSVG from "./chevron-left.svg?react";
 import ChevronRightSVG from "./chevron-right.svg?react";
+import DownloadSVG from "./download.svg?react";
 
 export interface IconProps {
   size?: number;
@@ -68,4 +69,8 @@ export const ChevronLeft = ({ size = 18, ...props }: IconProps) => (
 
 export const ChevronRight = ({ size = 18, ...props }: IconProps) => (
   <ChevronRightSVG {...props} width={size} height={size} />
+);
+
+export const Download = ({ size = 20, ...props }: IconProps) => (
+  <DownloadSVG {...props} width={size} height={size} />
 );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { downloadManager, useDownloadStore } from "../store/downloadStore";
+import { Download } from "../icons";
 const Container = styled.div`
   position: relative;
   display: flex;
@@ -88,10 +89,14 @@ const SelectQuality = styled.select`
 `;
 
 const MainButton = styled.button`
+  display: flex;
+  align-items: center;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
+  border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -161,7 +166,8 @@ export const DownloadMonitor: React.FC = () => {
         </Dropdown>
       )}
       <MainButton onClick={() => setOpen(!open)}>
-        📥 {downloads.length > 0 && `(${downloads.length})`}
+        <Download size={18} style={{ marginRight: downloads.length > 0 ? "6px" : "0" }} />
+        {downloads.length > 0 && `(${downloads.length})`}
       </MainButton>
     </Container>
   );

@@ -1,14 +1,12 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
 import { Pagination } from "./Pagination";
-import SpaceButtons from "./SpaceButtons";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
-import { Star } from "../icons";
+import { AudioMute, Star } from "../icons";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -54,6 +52,11 @@ const CenterOptions = styled.div`
   gap: 0.5rem;
 `;
 
+const AudioMuteIcon = styled(AudioMute)`
+  font-size: 16px;
+  margin-right: 6px;
+`
+
 function Toolbar() {
   // React Router hooks
   const navigate = useNavigate();
@@ -61,7 +64,6 @@ function Toolbar() {
   
   // Spaces agora vindo do spacesStore
   const spaces = useSpacesStore((s) => s.getSpaces());
-  const addSpace = useSpacesStore((s) => s.addSpace);
   // Windows e Discovery seguem igual
   const setFilterMode = useSpacesStore((s) => s.setFilterMode);
   const filterMode = useSpacesStore((s) => s.filterMode);
@@ -73,7 +75,6 @@ function Toolbar() {
   const totalPages = useDiscoveryStore((s) => s.totalPages);
   const discovery = spaces.find((s) => s.id === "discovery");
   const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
-  const [newSpaceName, setNewSpaceName] = useState("");
   
   // Determina se estamos na rota discovery ou favorites
   const isDiscovery = location.pathname === "/";
@@ -105,7 +106,7 @@ function Toolbar() {
           <Star size={16} style={{ color: "#ffd700", marginRight: "6px" }} />
           Favorites {favoritesOnlineCount > 0 && `(${favoritesOnlineCount})`}
         </Button>
-        <button onClick={handlerGlobalMuted}>{"🔇 Mute All"}</button>
+        <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
 
         <select
           value={filterMode}
