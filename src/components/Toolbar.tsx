@@ -7,6 +7,7 @@ import { DownloadMonitor } from "./DownloadMonitor";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
 import { AudioMute, Search, Arrange } from "../icons";
 import { useMobile } from "../hooks/useMobile";
+import { useAgeGate } from "../hooks/useAgeGate";
 
 // Styled Components
 const ToolbarContainer = styled.div<{ $isMobile: boolean }>`
@@ -17,7 +18,7 @@ const ToolbarContainer = styled.div<{ $isMobile: boolean }>`
   flex-direction: ${({ $isMobile }) => $isMobile ? 'column' : 'row'};
   align-items: center;
   justify-content: ${({ $isMobile }) => $isMobile ? 'stretch' : 'space-between'};
-  z-index: 1000000;
+  z-index: 1000;
   
   @media (max-width: 768px) {
     padding: 8px;
@@ -133,6 +134,9 @@ function Toolbar() {
   
   // Determina se estamos na rota discovery
   const isDiscovery = location.pathname === "/";
+  
+  // Age gate hook (apenas para desenvolvimento)
+  const { resetAgeGate } = useAgeGate();
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);

@@ -3,7 +3,9 @@ import styled from "styled-components";
 import Toolbar from "./components/Toolbar";
 import { Discovery } from "./pages/Discovery";
 import { AppInitializer } from "./components/AppInitializer";
+import { AgeGate } from "./components/AgeGate";
 import { useViewportHeight } from "./hooks/useViewportHeight";
+import { useAgeGate } from "./hooks/useAgeGate";
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -28,9 +30,18 @@ function App() {
   // Hook para ajustar viewport height no mobile
   useViewportHeight();
   
+  // Hook para gerenciar o age gate
+  const { isAccepted, acceptAgeGate, isLoading } = useAgeGate();
+  
+  // Mostra uma tela de carregamento enquanto verifica o localStorage
+  if (isLoading) {
+    return null;
+  }
+  
   return (
     <Wrapper>
       <AppInitializer />
+      { !isAccepted && <AgeGate onAccept={acceptAgeGate} />}
       <Routes>
         <Route path="/" element={<Discovery />} />
       </Routes>
