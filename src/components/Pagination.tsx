@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { ChevronLeft, ChevronRight } from "../icons";
 
 const PaginationContainer = styled.div`
   display: flex;
@@ -15,13 +16,22 @@ const PageButton = styled.button<{ $active?: boolean }>`
 `;
 
 const NavButton = styled.button<{ disabled?: boolean }>`
-  background: transparent;
-  border: 1px solid #888;
-  color: #333;
-  font-size: 1.1em;
-  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: #fff;
+  padding: 6px 8px;
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
-  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
 `;
 
 interface PaginationProps {
@@ -73,7 +83,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
         aria-label="Previous page"
       >
-        {"<"}
+        <ChevronLeft size={16} />
       </NavButton>
       {pages.map((p, idx) =>
         p === "..." ? (
@@ -95,7 +105,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         }
         aria-label="Next page"
       >
-        {">"}
+        <ChevronRight size={16} />
       </NavButton>
     </PaginationContainer>
   );

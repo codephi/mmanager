@@ -10,6 +10,8 @@ import MinimizeSVG from "./minimize.svg?react";
 import RecordSVG from "./record.svg?react";
 import StarSVG from "./star.svg?react";
 import StarOutlineSVG from "./star-outline.svg?react";
+import ChevronLeftSVG from "./chevron-left.svg?react";
+import ChevronRightSVG from "./chevron-right.svg?react";
 
 export interface IconProps {
   size?: number;
@@ -58,4 +60,12 @@ export const Star = ({ size = 22, ...props }: IconProps) => (
 
 export const StarOutline = ({ size = 22, ...props }: IconProps) => (
   <StarOutlineSVG {...props} width={size} height={size} />
+);
+
+export const ChevronLeft = ({ size = 18, ...props }: IconProps) => (
+  <ChevronLeftSVG {...props} width={size} height={size} />
+);
+
+export const ChevronRight = ({ size = 18, ...props }: IconProps) => (
+  <ChevronRightSVG {...props} width={size} height={size} />
 );
