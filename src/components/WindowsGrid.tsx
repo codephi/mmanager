@@ -10,6 +10,7 @@ import styled from "styled-components";
 import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
 import type { WindowConfig } from "../store/types";
+import { useMobile } from "../hooks/useMobile";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -59,6 +60,7 @@ export const WindowsGrid: React.FC = () => {
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
   const updateWindow = useWindowsStore((s) => s.updateWindow);
+  const { isMobile } = useMobile();
   const [windows, setWindows] = useState<WindowConfig[]>([]);
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
@@ -284,8 +286,8 @@ export const WindowsGrid: React.FC = () => {
         autoSize={true}
         rowHeight={rowHeight}
         width={window.innerWidth}
-        isResizable={activeSpaceId !== "favorite"}
-        isDraggable={activeSpaceId !== "favorite"}
+        isResizable={activeSpaceId !== "favorite" && !isMobile}
+        isDraggable={activeSpaceId !== "favorite" && !isMobile}
         onLayoutChange={onLayoutChange}
         compactType={null}
         resizeHandles={["s", "e", "se"]}
@@ -299,6 +301,7 @@ export const WindowsGrid: React.FC = () => {
               pinned={win.pinned}
               onMaximize={() => handleMaximize(win.id)}
               onMinimize={() => handleMinimize(win.id)}
+              isMobile={isMobile}
             />
           </Window>
         ))}

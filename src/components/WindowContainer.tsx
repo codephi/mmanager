@@ -9,7 +9,7 @@ import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
-export const WindowContainerWrapper = styled.div`
+export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximized: boolean }>`
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.2);
@@ -24,8 +24,8 @@ export const WindowContainerWrapper = styled.div`
   
   /* Esconder o header por padrão */
   .window-header {
-    opacity: 0;
-    transform: translateY(-100%);
+    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
+    transform: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'translateY(0)' : 'translateY(-100%)'};
     transition: all 0.3s ease;
     position: absolute;
     top: 0;
@@ -35,16 +35,18 @@ export const WindowContainerWrapper = styled.div`
     overflow: visible;
   }
   
-  /* Mostrar header no hover */
-  &:hover .window-header {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Mostrar header no hover (apenas se não for mobile maximizado) */
+  ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
+    &:hover .window-header {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  `}
   
   /* Indicador de gravação - visível por padrão quando gravando */
   .recording-indicator {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '0' : '1'};
+    transform: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'translateY(-10px)' : 'translateY(0)'};
     transition: all 0.3s ease;
     position: absolute;
     top: 12px;
@@ -52,11 +54,13 @@ export const WindowContainerWrapper = styled.div`
     z-index: 9;
   }
   
-  /* Esconder indicador de gravação no hover */
-  &:hover .recording-indicator {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
+  /* Esconder indicador de gravação no hover (apenas se não for mobile maximizado) */
+  ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
+    &:hover .recording-indicator {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  `}
 `;
 
 const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
@@ -179,6 +183,7 @@ interface Props {
   isFloating?: boolean;
   onMaximize: () => void;
   onMinimize?: () => void;
+  isMobile?: boolean;
 }
 
 export const WindowContainer: React.FC<Props> = ({
@@ -188,6 +193,7 @@ export const WindowContainer: React.FC<Props> = ({
   onMaximize,
   onMinimize,
   isFloating,
+  isMobile = false,
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
@@ -302,8 +308,19 @@ export const WindowContainer: React.FC<Props> = ({
     }
   };
 
+  // Função para lidar com clique no conteúdo no mobile
+  const handleContentClick = () => {
+    if (isMobile && !maximized) {
+      toggleMaximize();
+    }
+  };
+
   return (
-    <WindowContainerWrapper onMouseDown={() => bringToFront(id)}>
+    <WindowContainerWrapper 
+      $isMobile={isMobile} 
+      $maximized={maximized}
+      onMouseDown={() => bringToFront(id)}
+    >
       {/* Indicador de gravação que aparece quando header está oculto */}
       {isRecording && (
         <RecordingIndicator className="recording-indicator">
@@ -358,7 +375,7 @@ export const WindowContainer: React.FC<Props> = ({
           )}
         </HeaderRight>
       </WindowHeader>
-      <WindowContent>
+      <WindowContent onClick={handleContentClick}>
         {isOffline ? (
           <OfflineText>OFFLINE</OfflineText>
         ) : isPrivate ? (

@@ -22,10 +22,9 @@ interface DiscoveryState {
 
 // Função para detectar mobile no início
 const getInitialDiscoveryLimit = () => {
-  if (typeof window === 'undefined') return 6; // SSR fallback
+  if (typeof window === 'undefined') return 12; // SSR fallback
   const isMobile = window.innerWidth < 768;
-  const limit = isMobile ? 6 : 12;
-  return limit;
+  return isMobile ? 6 : 12;
 };
 
 export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
@@ -130,7 +129,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   resetDiscoveryLimit: () => {
     const newLimit = getInitialDiscoveryLimit();
-    console.log('resetDiscoveryLimit:', newLimit);
     set({ discoveryLimit: newLimit, discoveryOffset: 0 });
     get().loadDiscoveryPage(0);
   },
