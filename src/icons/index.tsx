@@ -8,6 +8,8 @@ import CloseSVG from "./close.svg?react";
 import MaximizeSVG from "./maximize.svg?react";
 import MinimizeSVG from "./minimize.svg?react";
 import RecordSVG from "./record.svg?react";
+import StarSVG from "./star.svg?react";
+import StarOutlineSVG from "./star-outline.svg?react";
 
 export interface IconProps {
   size?: number;
@@ -48,4 +50,12 @@ export const Minimize = ({ size = 22, ...props }: IconProps) => (
 );
 export const Record = ({ size = 22, ...props }: IconProps) => (
   <RecordSVG {...props} width={size} height={size} />
+);
+
+export const Star = ({ size = 22, ...props }: IconProps) => (
+  <StarSVG {...props} width={size} height={size} />
+);
+
+export const StarOutline = ({ size = 22, ...props }: IconProps) => (
+  <StarOutlineSVG {...props} width={size} height={size} />
 );

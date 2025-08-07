@@ -4,7 +4,7 @@ import { VolumeControl } from "./VolumeControl";
 import { useWindowsStore } from "../store/windowsStore";
 import { useSpacesStore } from "../store/spacesStore";
 import styled from "styled-components";
-import { CopyToSpaceDropdown } from "./CopyToSpaceDropdown";
+import { FavoriteButton } from "./FavoriteButton";
 import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
@@ -265,10 +265,8 @@ export const WindowContainer: React.FC<Props> = ({
           <WindowHeaderButton className="no-drag" onClick={toggleRecording}>
             <RecordButton active={isRecording} />
           </WindowHeaderButton>
-          <CopyToSpaceDropdown
-            spaces={spaces}
+          <FavoriteButton
             windowId={id}
-            onCopy={copyWindowToSpaceLocal}
             className="no-drag"
           />
           <VolumeControl
