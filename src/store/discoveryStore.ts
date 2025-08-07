@@ -69,6 +69,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const response = await fetch(
       `https://api.winturbate.com/roomlist?limit=${availableSlots}&offset=${newOffset}`
     );
+    console.log(response);
     const data = await response.json();
 
     const fetchedRooms = data.rooms.slice(0, availableSlots);

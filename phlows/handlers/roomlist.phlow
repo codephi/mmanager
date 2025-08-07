@@ -1,16 +1,6 @@
-modules:
-  - module: http_request
-  - module: http_server
-  - module: log
-  - module: cache
-    with:
-      capacity: 300
-      default_ttl: 60
-
-main: http_server
-
 steps:
   - id: query
+    assert: true
     payload:
       limit: !phs if is_empty(main.query_params.limit) { 10 } else { main.query_params.limit }
       offset: !phs if is_empty(main.query_params.offset) { 12 } else { main.query_params.offset }
@@ -18,11 +8,18 @@ steps:
   - use: cache
     input:
       action: get
-      key: !phs "roomlist-${steps.query.limit}-${steps.query.offset}"
+      key: !phs `roomlist:${steps.query.limit}-${steps.query.offset}`
 
-  - assert: !phs !is_empty(payload.value)
+  - assert: !phs payload.found && !is_empty(payload.value)
     then:
-      return payload.value
+      - use: log
+        input:
+          message: !phs `Cache hit for limit=${steps.query.limit} and offset=${steps.query.offset}`
+      - return:
+          status: 200
+          body: !phs payload.value
+          headers:
+            Content-Type: application/json
 
   - use: log
     input:
@@ -50,7 +47,7 @@ steps:
   - use: cache
     input:
       action: set
-      key: !phs "roomlist-${steps.query.limit}-${steps.query.offset}"
+      key: !phs `roomlist:${steps.query.limit}-${steps.query.offset}`
       value: !phs steps.result
 
   - return:
@@ -58,11 +55,3 @@ steps:
       body: !phs steps.result
       headers:
         Content-Type: application/json
-
-tests:
-  - describe: "Room List Fetching"
-    main:
-      query_params:
-          limit: 5
-          offset: 12
-    assert: !phs payload.status == 200 && len(payload.body.rooms) > 0

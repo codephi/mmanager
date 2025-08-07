@@ -1,0 +1,64 @@
+steps:
+  - assert: !phs is_empty(main.query_params.room)
+    then:
+      return:
+        status: 400
+        body:
+          error: "Missing 'room' query parameter"
+        headers:
+          Content-Type: application/json
+
+  - id: query
+    payload:
+      room: !phs main.query_params.room
+
+  - use: cache
+    input:
+      action: get
+      key: !phs `chatvideocontext:${steps.query.room}`
+
+  - assert: !phs payload.found && !is_empty(payload.value)
+    then:
+      - use: log
+        input:
+          message: !phs `Cache hit for room=${steps.query.room}`
+      - return:
+          status: 200
+          body: !phs payload.value
+          headers:
+            Content-Type: application/json
+
+  - use: log
+    input:
+      message: !phs `Fetching room list with room=${steps.query.room}`
+
+  - id: chatvideocontext
+    use: http_request
+    input:
+      method: GET
+      url: !phs `https://chaturbate.com/api/chatvideocontext/${steps.query.room}`
+      headers:
+          Accept: application/json
+          cache: true
+
+  - use: log
+    input:
+      message:
+        status_code: !phs steps.chatvideocontext.response.status_code
+        body: !phs len(steps.chatvideocontext.response.body)
+
+  - id: result
+    assert: !phs steps.chatvideocontext.response.status_code == 200
+    payload: !phs steps.chatvideocontext.response.body
+
+  - use: cache
+    input:
+      action: set
+      key: !phs `chatvideocontext:${steps.query.room}`
+      value: !phs steps.result
+
+  - return:
+      status: 200
+      body: !phs steps.result
+      headers:
+        Content-Type: application/json

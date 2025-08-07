@@ -1,0 +1,65 @@
+modules:
+  - module: http_request
+  - module: http_server
+  - module: log
+  - module: cache
+    with:
+      capacity: 600
+      default_ttl: 60
+
+main: http_server
+
+steps:
+  - assert: !phs main.path == "/chatvideocontext" && main.method == "GET"
+    then:
+      !include handlers/chatvideocontext.phlow
+  - assert: !phs main.path == "/roomlist" && main.method == "GET"
+    then:
+      !include handlers/roomlist.phlow
+  - return:
+      status: 404
+      body:
+        error: "Not Found"
+        path: !phs main.path
+        method: !phs main.method
+      headers:
+        Content-Type: application/json
+
+tests:
+  - describe: "Context Fetching"
+    main:
+      path: /chatvideocontext
+      method: GET
+      query_params:
+        room: luser2233
+    assert: !phs payload.status == 200
+  - describe: "Context Fetching on cache"
+    main:
+      path: /chatvideocontext
+      method: GET
+      query_params:
+        room: luser2233
+    assert: !phs payload.status == 200
+
+  - describe: "Room List Fetching"
+    main:
+      path: /roomlist
+      method: GET
+      query_params:
+          limit: 5
+          offset: 12
+    assert: !phs payload.status == 200 && len(payload.body.rooms) > 0
+  - describe: "Room List Fetching on cache"
+    main:
+      path: /roomlist
+      method: GET
+      query_params:
+          limit: 5
+          offset: 12
+    assert: !phs payload.status == 200 && len(payload.body.rooms) > 0
+
+  - describe: "Not Found"
+    main:
+      path: /nonexistent
+      method: GET
+    assert: !phs payload.status == 404 && payload.body.error == "Not Found"
