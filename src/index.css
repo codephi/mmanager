@@ -1,5 +1,6 @@
 :root {
   --primary-color: #29074b;
+  --primary-color-alpha: rgba(41, 7, 75, 0.3);
   --primary-color-hover: #ff0066;
   --secundary-color: #be004c;
   --secundary-color-hover: #8f1747;

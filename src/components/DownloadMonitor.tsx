@@ -13,7 +13,8 @@ const Dropdown = styled.div`
   position: absolute;
   bottom: calc(100% + 1rem);
   right: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background:  var(--primary-color-alpha);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: #fff;
@@ -96,7 +97,6 @@ const MainButton = styled.button`
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
-  border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -67,7 +67,7 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   padding: 0 10px;
   cursor: ${({ $maximized }) => ($maximized ? "default" : "move")};
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--primary-color-alpha);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
