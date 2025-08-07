@@ -32,6 +32,7 @@ export const WindowContainerWrapper = styled.div`
     left: 0;
     right: 0;
     z-index: 10;
+    overflow: visible;
   }
   
   /* Mostrar header no hover */
