@@ -39,8 +39,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const { discoveryOffset, isLoadingDiscovery } = get();
     if (isLoadingDiscovery) return;
 
-    console.log({ isLoadingDiscovery });
-
     set({ isLoadingDiscovery: true });
 
     await get().loadDiscoveryPage(discoveryOffset, true);
@@ -67,7 +65,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         zIndexes: Object.fromEntries(pinned.map((w, idx) => [w.id, idx + 1])),
       });
 
-      console.log("loadDiscoveryPage");
       spacesState.updateSpace("discovery", updatedDiscovery);
 
       set({ discoveryOffset: 0, isLoadingDiscovery: false });
@@ -77,7 +74,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     const response = await fetch(
       `https://api.winturbate.com/roomlist?limit=${availableSlots}&offset=${newOffset}`
     );
-    console.log(response);
     const data = await response.json();
 
     const fetchedRooms = data.rooms.slice(0, availableSlots);
@@ -107,7 +103,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         ...newWindows.map((w, idx) => [w.id, idx + 1]),
       ]),
     });
-    console.log("loadDiscoveryPage 2");
 
     spacesState.updateSpace("discovery", updatedDiscovery);
 
@@ -158,7 +153,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     };
 
     spacesState.addSpace(finalName);
-    console.log("addSpaceFromPinned");
 
     spacesState.updateSpace(id, newSpace);
   },
@@ -166,9 +160,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   goToDiscoveryPage: async (page: number) => {
     const state = get();
     const newOffset = (page - 1) * state.discoveryLimit;
+    set({ currentPage: page });
     await get().loadDiscoveryPage(newOffset, true);
 
-    set({ currentPage: page });
   },
 
   setCurrentPage: (page: number) => {

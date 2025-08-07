@@ -55,7 +55,6 @@ export const useWindowsStore = create<WindowsState>((_set, _get) => ({
       windows: updatedWindows,
     };
 
-    console.log("Updating window:", id, pos);
     spacesState.updateSpace(space.id, updatedSpace);
 
     // Agora também atualizamos o pinnedWindows se existir

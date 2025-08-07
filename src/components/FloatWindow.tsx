@@ -29,7 +29,6 @@ export const FloatWindow: React.FC<Props> = ({
   const zIndex = activeSpace?.zIndexes[id] ?? 10;
   const [maximized, setMaximized] = useState(false);
   const isPinned = pinned ?? false;
-  console.log({ x, y });
   return (
     <Rnd
       size={
@@ -46,7 +45,6 @@ export const FloatWindow: React.FC<Props> = ({
           .updatePinnedWindow(id, { pinnedX: d.x, pinnedY: d.y });
       }}
       onResizeStop={(_e, _direction, ref, _delta, pos) => {
-        console.log({ pos });
         useSpacesStore.getState().updatePinnedWindow(id, {
           pinnedX: pos.x ?? x,
           pinnedY: pos.y ?? y,

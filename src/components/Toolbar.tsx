@@ -140,7 +140,6 @@ function Toolbar() {
   };
 
   if (isMobile) {
-    console.log(discoveryLimit)
     return (
       <ToolbarContainer $isMobile={isMobile}>
         {/* Linha 1: Paginação (apenas em Discovery) */}

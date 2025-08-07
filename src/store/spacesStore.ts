@@ -399,7 +399,7 @@ export const useSpacesStore = create<SpacesState>()(devtools((set, get) => ({
               );
             } else {
               const windowToPin = updatedWindows.find((w) => w.id === windowId);
-              console.log({ windowToPin });
+
               if (!windowToPin) return state;
 
               updatedPinnedWindows = [

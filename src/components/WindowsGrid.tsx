@@ -72,6 +72,8 @@ export const WindowsGrid: React.FC = () => {
   // Para prevenir loops de atualização
   const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastLayoutRef = useRef<Layout[]>([]);
+  // Ref para o wrapper que tem scroll
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -251,6 +253,31 @@ export const WindowsGrid: React.FC = () => {
       w: cols,
       h: rows,
     });
+
+    // Scroll automático para a janela maximizada
+    setTimeout(() => {
+      // Encontra a janela maximizada
+      const maximizedWindow = document.querySelector(`[data-window-id="${id}"]`);
+      
+      if (maximizedWindow) {
+        // Scroll para a janela específica
+        maximizedWindow.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      } else {
+        // Fallback: scroll para o topo
+        if (wrapperRef.current) {
+          wrapperRef.current.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }, 500); // Aguardar animações do grid layout terminarem
   };
 
   const handleMinimize = (id: string) => {
@@ -272,7 +299,7 @@ export const WindowsGrid: React.FC = () => {
   };
 
   return (
-    <Wrapper>
+    <Wrapper ref={wrapperRef}>
       <ResponsiveGridLayout
         className="layout"
         layouts={{ lg: layout }}
@@ -294,7 +321,7 @@ export const WindowsGrid: React.FC = () => {
         draggableCancel=".no-drag"
       >
         {windows.map((win) => (
-          <Window key={win.id} className="window-header">
+          <Window key={win.id} className="window-header" data-window-id={win.id}>
             <WindowContainer
               id={win.id}
               room={win.room}
@@ -302,6 +329,7 @@ export const WindowsGrid: React.FC = () => {
               onMaximize={() => handleMaximize(win.id)}
               onMinimize={() => handleMinimize(win.id)}
               isMobile={isMobile}
+              scrollElementRef={wrapperRef}
             />
           </Window>
         ))}

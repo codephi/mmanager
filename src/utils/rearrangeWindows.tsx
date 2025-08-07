@@ -95,40 +95,28 @@ export function rearrangeWindowsFromLayout(
     const activeSpaceId = spacesState.activeSpaceId;
     const space = spacesState.spaces.find((s) => s.id === activeSpaceId);
     
-    console.log("[rearrangeWindowsFromLayout] Starting", { activeSpaceId, spaceFound: !!space });
     
     if (!space) {
-      console.log("[rearrangeWindowsFromLayout] No space found");
       return;
     }
 
     // Proteção contra layout inválido
     if (!layout || !Array.isArray(layout)) {
-      console.log("[rearrangeWindowsFromLayout] Invalid layout", { layout });
       return;
     }
 
     const windowCount = layout.length;
     if (windowCount === 0) {
-      console.log("[rearrangeWindowsFromLayout] Empty layout");
       return;
     }
 
     // Proteção contra windows inválidos
     if (!space.windows || !Array.isArray(space.windows)) {
-      console.log("[rearrangeWindowsFromLayout] Invalid space.windows", { windows: space.windows });
       return;
     }
 
-    console.log("[rearrangeWindowsFromLayout] Processing", { 
-      layoutCount: windowCount, 
-      spaceWindowsCount: space.windows.length,
-      spaceName: space.name
-    });
-
     const { cols } = calculateGridSize(windowCount);
     if (cols <= 0) {
-      console.log("[rearrangeWindowsFromLayout] Invalid cols", { cols });
       return;
     }
 

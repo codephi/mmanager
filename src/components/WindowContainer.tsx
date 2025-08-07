@@ -184,6 +184,7 @@ interface Props {
   onMaximize: () => void;
   onMinimize?: () => void;
   isMobile?: boolean;
+  scrollElementRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const WindowContainer: React.FC<Props> = ({
@@ -194,6 +195,7 @@ export const WindowContainer: React.FC<Props> = ({
   onMinimize,
   isFloating,
   isMobile = false,
+  scrollElementRef,
 }) => {
   const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
@@ -312,6 +314,31 @@ export const WindowContainer: React.FC<Props> = ({
   const handleContentClick = () => {
     if (isMobile && !maximized) {
       toggleMaximize();
+      // Scroll automático para a janela maximizada no mobile
+      setTimeout(() => {
+        
+        // Encontra a janela maximizada
+        const maximizedWindow = document.querySelector(`[data-window-id="${id}"]`);
+        
+        if (maximizedWindow) {
+          // Scroll para a janela específica
+          maximizedWindow.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest'
+          });
+        } else {
+          // Fallback: scroll para o topo
+          if (scrollElementRef?.current) {
+            scrollElementRef.current.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }, 500); // Aguardar animações do grid layout terminarem
     }
   };
 
