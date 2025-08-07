@@ -74,3 +74,16 @@ export const ChevronRight = ({ size = 18, ...props }: IconProps) => (
 export const Download = ({ size = 20, ...props }: IconProps) => (
   <DownloadSVG {...props} width={size} height={size} />
 );
+
+export const Stop = ({ size = 18, ...props }: IconProps) => (
+  <svg {...props} width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect 
+      x="6" 
+      y="6" 
+      width="12" 
+      height="12" 
+      rx="2" 
+      fill="currentColor"
+    />
+  </svg>
+);

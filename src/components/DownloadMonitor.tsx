@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { downloadManager, useDownloadStore } from "../store/downloadStore";
-import { Download } from "../icons";
+import { Download, Stop } from "../icons";
 const Container = styled.div`
   position: relative;
   display: flex;
@@ -40,9 +40,16 @@ const DownloadItem = styled.div`
 
 const HeaderRow = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 8px;
+
+  div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 `;
 
 const TimeText = styled.span`
@@ -52,19 +59,27 @@ const TimeText = styled.span`
 `;
 
 const StopButton = styled.button`
-  background: rgba(255, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  color: white;
-  border-radius: 6px;
-  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 59, 48, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 59, 48, 0.9);
+  border-radius: 8px;
+  padding: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
   
   &:hover {
-    background: rgba(255, 0, 0, 0.9);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 59, 48, 0.2);
+    border-color: rgba(255, 59, 48, 0.5);
+    color: rgba(255, 59, 48, 1);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
   }
+  
 `;
 
 const QualitySliderContainer = styled.div`
@@ -108,7 +123,6 @@ const SliderThumb = styled.div<{ position: number }>`
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -231,7 +245,9 @@ export const DownloadMonitor: React.FC = () => {
                   <div>{d.room}</div>
                   <div>
                     <TimeText>{formatDuration(d.startTime)}</TimeText>
-                    <StopButton onClick={() => stop(d.id)}>⏹</StopButton>
+                    <StopButton onClick={() => stop(d.id)} title="Stop Download">
+                      <Stop size={14} />
+                    </StopButton>
                   </div>
                 </HeaderRow>
 
