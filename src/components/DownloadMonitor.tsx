@@ -58,6 +58,16 @@ const DownloadItem = styled.div`
   }
 `;
 
+const EmptyState = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9em;
+  text-align: center;
+`;
+
 const HeaderRow = styled.div`
   display: flex;
   justify-content: center;
@@ -108,58 +118,46 @@ const StopButton = styled.button`
   
 `;
 
-const QualitySliderContainer = styled.div`
+const QualityButtonContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+`;
+
+const QualityButton = styled.button<{ $active: boolean }>`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-`;
-
-const QualityLabel = styled.div`
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-`;
-
-const SliderContainer = styled.div`
-  position: relative;
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border-radius: 4px;
-  cursor: pointer;
-`;
-
-const SliderTrack = styled.div<{ progress: number }>`
-  height: 100%;
-  width: ${({ progress }) => progress}%;
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-`;
-
-const SliderThumb = styled.div<{ position: number }>`
-  position: absolute;
-  top: 50%;
-  left: ${({ position }) => position}%;
-  transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  min-width: 60px;
+  min-height: 50px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 0.8em;
+  font-weight: 500;
+  
+  background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.1)'};
+  color: ${({ $active }) => $active ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)'};
   
   &:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-    background: rgba(255, 255, 255, 1);
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    background: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.2)'};
+    border-color: ${({ $active }) => $active ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.3)'};
   }
+`;
+
+const QualityText = styled.div`
+  font-weight: bold;
+  line-height: 1;
+`;
+
+const BitrateText = styled.div`
+  font-size: 0.75em;
+  opacity: 0.8;
+  margin-top: 2px;
+  line-height: 1;
 `;
 
 const MainButton = styled.button`
@@ -201,8 +199,6 @@ export const DownloadMonitor: React.FC = () => {
   const stop = useDownloadStore((s) => s.stop); // <-- este é o correto agora!
   const [, setTick] = useState(0);
   const [currentLevels, setCurrentLevels] = useState<Record<string, number>>({});
-  const [isDragging, setIsDragging] = useState<string | null>(null);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setTick((t) => t + 1);
@@ -231,114 +227,60 @@ export const DownloadMonitor: React.FC = () => {
     return `${mb.toFixed(2)} MB`;
   };
 
-  const handleSliderChange = (downloadId: string, levels: any[], clientX: number, sliderElement: HTMLElement) => {
-    const rect = sliderElement.getBoundingClientRect();
-    const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    const levelIndex = Math.round((percentage / 100) * (levels.length - 1));
-    
-    setCurrentLevels(prev => ({ ...prev, [downloadId]: levelIndex }));
-    downloadManager.setLevel(downloadId, levelIndex);
-  };
-
   const getCurrentLevel = (downloadId: string) => {
     return currentLevels[downloadId] ?? 0;
   };
-
-  const handleMouseDown = (downloadId: string) => {
-    setIsDragging(downloadId);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent, downloadId: string, levels: any[]) => {
-    if (isDragging === downloadId) {
-      const sliderElement = e.currentTarget as HTMLElement;
-      handleSliderChange(downloadId, levels, e.clientX, sliderElement);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(null);
-  };
-
-  const handleWheel = (e: React.WheelEvent, downloadId: string, levels: any[]) => {
-    e.preventDefault();
-    const currentIndex = getCurrentLevel(downloadId);
-    const delta = e.deltaY > 0 ? -1 : 1; // Scroll para baixo diminui, para cima aumenta
-    const newIndex = Math.max(0, Math.min(levels.length - 1, currentIndex + delta));
-    
-    if (newIndex !== currentIndex) {
-      setCurrentLevels(prev => ({ ...prev, [downloadId]: newIndex }));
-      downloadManager.setLevel(downloadId, newIndex);
-    }
-  };
-
-  // Adicionar event listeners globais para mouseup
-  useEffect(() => {
-    const handleGlobalMouseUp = () => setIsDragging(null);
-    
-    if (isDragging) {
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('mouseleave', handleGlobalMouseUp);
-    }
-    
-    return () => {
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('mouseleave', handleGlobalMouseUp);
-    };
-  }, [isDragging]);
 
   return (
     <Container>
       {open && isMobile && <Overlay onClick={() => setOpen(false)} />}
       {open && (
         <Dropdown $isMobile={isMobile} style={{ display: open ? "block" : "none" }}>
-          {downloads.map((d) => {
-            const levels = downloadManager.getLevels(d.id);
-            return (
-              <DownloadItem key={d.id}>
-                <HeaderRow>
-                  <div>{d.room}</div>
-                  <div>
-                    <TimeText>{formatDuration(d.startTime)}</TimeText>
-                    <SizeText>{formatSize(d.totalBytes)}</SizeText>
-                    <StopButton onClick={() => stop(d.id)} title="Stop Download">
-                      <Stop size={14} />
-                    </StopButton>
-                  </div>
-                </HeaderRow>
+          {downloads.length > 0 ? (
+            downloads.map((d) => {
+              const levels = downloadManager.getLevels(d.id);
+              return (
+                <DownloadItem key={d.id}>
+                  <HeaderRow>
+                    <div>{d.room}</div>
+                    <div>
+                      <TimeText>{formatDuration(d.startTime)}</TimeText>
+                      <SizeText>{formatSize(d.totalBytes)}</SizeText>
+                      <StopButton onClick={() => stop(d.id)} title="Stop Download">
+                        <Stop size={14} />
+                      </StopButton>
+                    </div>
+                  </HeaderRow>
 
-                <QualitySliderContainer>
-                  {(() => {
-                    const currentIndex = getCurrentLevel(d.id);
-                    const currentLevel = levels[currentIndex];
-                    const progress = levels.length > 1 ? (currentIndex / (levels.length - 1)) * 100 : 0;
-                    
-                    return (
-                      <>
-                        <QualityLabel>
-                          {currentLevel ? `${currentLevel.height}p (${Math.round(currentLevel.bitrate / 1000)} kbps)` : 'Loading...'}
-                        </QualityLabel>
-                        <SliderContainer
-                          onClick={(e) => handleSliderChange(d.id, levels, e.clientX, e.currentTarget)}
-                          onMouseMove={(e) => handleMouseMove(e, d.id, levels)}
-                          onMouseUp={handleMouseUp}
-                          onWheel={(e) => handleWheel(e, d.id, levels)}
+                  <QualityButtonContainer>
+                    {levels.slice(0, 4).map((level, index) => {
+                      const currentIndex = getCurrentLevel(d.id);
+                      const isActive = currentIndex === index;
+                      
+                      return (
+                        <QualityButton
+                          key={index}
+                          $active={isActive}
+                          onClick={() => {
+                            setCurrentLevels(prev => ({ ...prev, [d.id]: index }));
+                            downloadManager.setLevel(d.id, index);
+                          }}
+                          title={`${level.height}p - ${Math.round(level.bitrate / 1000)} kbps`}
                         >
-                          <SliderTrack progress={progress} />
-                          <SliderThumb 
-                            position={progress} 
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              handleMouseDown(d.id);
-                            }}
-                          />
-                        </SliderContainer>
-                      </>
-                    );
-                  })()} 
-                </QualitySliderContainer>
-              </DownloadItem>
-            );
-          })}
+                          <QualityText>{level.height}p</QualityText>
+                          <BitrateText>{Math.round(level.bitrate / 1000)}k</BitrateText>
+                        </QualityButton>
+                      );
+                    })}
+                  </QualityButtonContainer>
+                </DownloadItem>
+              );
+            })
+          ) : (
+            <EmptyState>
+              No active downloads
+            </EmptyState>
+          )}
         </Dropdown>
       )}
       <MainButton onClick={() => setOpen(!open)}>

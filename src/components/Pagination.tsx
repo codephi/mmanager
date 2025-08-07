@@ -12,7 +12,12 @@ const PaginationContainer = styled.div`
 
 const PageButton = styled.button<{ $active?: boolean }>`
   font-weight: ${({ $active }) => ($active ? "bold" : "normal")};
-  background: ${({ $active }) => ($active ? "#ccc" : "transparent")};
+  background: ${({ $active }) => ($active ? "var(--primary-color)" : "transparent")};
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 `;
 
 const NavButton = styled.button<{ disabled?: boolean }>`
@@ -29,6 +34,7 @@ const NavButton = styled.button<{ disabled?: boolean }>`
   transition: all 0.2s ease;
   
   &:hover:not(:disabled) {
+    color: --var(--primary-color);
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
   }
