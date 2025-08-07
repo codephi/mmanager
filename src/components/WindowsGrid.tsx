@@ -33,8 +33,8 @@ const Wrapper = styled.div`
   ${Window}:hover {
     .react-resizable-handle {
       display: block;
-      color: var(--primary-color);
-      background-color: var(--primary-color);
+      color: #fff;
+      background-color: #fff;
 
       border-radius: 50%;
       width: 10px;
