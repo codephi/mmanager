@@ -8,6 +8,7 @@ import SpaceButtons from "./SpaceButtons";
 import { DownloadMonitor } from "./DownloadMonitor";
 import { Button } from "./SpaceButton";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
+import { Star } from "../icons";
 
 // Styled Components
 const ToolbarContainer = styled.div`
@@ -77,6 +78,10 @@ function Toolbar() {
   // Determina se estamos na rota discovery ou favorites
   const isDiscovery = location.pathname === "/";
   const isFavorites = location.pathname === "/favorites";
+  
+  // Conta favoritos online
+  const favoriteSpace = spaces.find((s) => s.id === "favorite");
+  const favoritesOnlineCount = favoriteSpace?.windows.filter((w) => w.isOnline === true).length ?? 0;
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
@@ -97,7 +102,8 @@ function Toolbar() {
           onClick={() => navigate("/favorites")}
           $active={isFavorites}
         >
-          Favorites
+          <Star size={16} style={{ color: "#ffd700", marginRight: "6px" }} />
+          Favorites {favoritesOnlineCount > 0 && `(${favoritesOnlineCount})`}
         </Button>
         <button onClick={handlerGlobalMuted}>{"🔇 Mute All"}</button>
 
@@ -141,17 +147,6 @@ function Toolbar() {
       </CenterOptions>
 
       <RightOptions>
-        <SpaceButtons />
-
-        <button
-          onClick={() => {
-            addSpace(newSpaceName);
-            setNewSpaceName("");
-          }}
-        >
-          + Add Space
-        </button>
-
         <DownloadMonitor />
       </RightOptions>
     </ToolbarContainer>

@@ -68,7 +68,7 @@ export const WindowsGrid: React.FC = () => {
   );
   
   // Para prevenir loops de atualização
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastLayoutRef = useRef<Layout[]>([]);
 
   useEffect(() => {
