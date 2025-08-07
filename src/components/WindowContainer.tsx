@@ -20,7 +20,7 @@ export const WindowContainerWrapper = styled.div`
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  
+  overflow: hidden;
   /* Esconder o header por padrão */
   .window-header {
     opacity: 0;

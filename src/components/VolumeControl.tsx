@@ -5,14 +5,16 @@ import { WindowHeaderButton } from "./WindowContainer";
 
 const SliderContainer = styled.div`
   position: absolute;
-  top: 100%;
+  top: 120%;
   left: 50%;
   width: 30px;
   height: 120px;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: var(--primary-color-alpha);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.9);
+
   border-radius: 8px;
   display: flex;
   justify-content: center;

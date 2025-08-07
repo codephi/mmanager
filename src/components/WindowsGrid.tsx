@@ -288,7 +288,8 @@ export const WindowsGrid: React.FC = () => {
         isDraggable={activeSpaceId !== "favorite"}
         onLayoutChange={onLayoutChange}
         compactType={null}
-        resizeHandles={["s", "e", "se"]} // <--- aqui o segredo
+        resizeHandles={["s", "e", "se"]}
+        draggableCancel=".no-drag"
       >
         {windows.map((win) => (
           <Window key={win.id} className="window-header">
