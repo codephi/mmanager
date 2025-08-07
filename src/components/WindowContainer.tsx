@@ -140,8 +140,19 @@ export const WindowContainer: React.FC<Props> = ({
   const isRecording = downloads.some((d) => d.id === id);
 
   const windowState = useSpacesStore((s) => {
-    const space = s.spaces.find((sp) => sp.id === s.activeSpaceId);
-    return space?.windows.find((w) => w.id === id);
+    const activeSpace = s.spaces.find((sp) => sp.id === s.activeSpaceId);
+    let window = activeSpace?.windows.find((w) => w.id === id);
+    
+    // Se não encontrou no space ativo, procura em todos os spaces
+    // (isso é necessário para o space "favorites" que não tem os windows localmente)
+    if (!window) {
+      for (const space of s.spaces) {
+        window = space.windows.find((w) => w.id === id);
+        if (window) break;
+      }
+    }
+    
+    return window;
   });
 
   const muted = windowState?.isMuted ?? true;
@@ -158,11 +169,25 @@ export const WindowContainer: React.FC<Props> = ({
     }
   };
   const setVolume = (v: number) => {
-    useSpacesStore.getState().setWindowVolume(id, v);
+    // Só atualiza volume se o window existir no space ativo
+    const spacesState = useSpacesStore.getState();
+    const activeSpace = spacesState.spaces.find((sp) => sp.id === spacesState.activeSpaceId);
+    const windowExists = activeSpace?.windows.find((w) => w.id === id);
+    
+    if (windowExists) {
+      spacesState.setWindowVolume(id, v);
+    }
   };
 
   const toggleMute = () => {
-    useSpacesStore.getState().toggleWindowMute(id);
+    // Só atualiza mute se o window existir no space ativo
+    const spacesState = useSpacesStore.getState();
+    const activeSpace = spacesState.spaces.find((sp) => sp.id === spacesState.activeSpaceId);
+    const windowExists = activeSpace?.windows.find((w) => w.id === id);
+    
+    if (windowExists) {
+      spacesState.toggleWindowMute(id);
+    }
   };
 
   const fetchHls = async (room: string, id: string) => {

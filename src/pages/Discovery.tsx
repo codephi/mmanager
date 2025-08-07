@@ -4,7 +4,6 @@ import { useSpacesStore } from "../store/spacesStore";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { WindowsGrid } from "../components/WindowsGrid";
 import { Pinneds } from "../components/Pinneds";
-import { AppInitializer } from "../components/AppInitializer";
 
 export const Discovery = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +19,9 @@ export const Discovery = () => {
   useEffect(() => {
     // Garante que estamos no space discovery
     setActiveSpace("discovery");
+    
+    // Carrega discovery quando entra na página
+    useDiscoveryStore.getState().loadDiscovery();
   }, [setActiveSpace]);
 
   // Inicialização única baseada na URL
@@ -49,7 +51,6 @@ export const Discovery = () => {
       targetPage = Math.floor(offset / targetLimit) + 1;
     }
 
-    console.log("Discovery: Inicializando com", { targetPage, targetLimit, currentPage, discoveryLimit });
 
     // Bloqueia atualizacoes de URL durante inicializacao
     updatingUrlRef.current = true;
@@ -93,14 +94,12 @@ export const Discovery = () => {
     const currentUrlState = searchParams.toString();
     
     if (newUrlState !== currentUrlState) {
-      console.log("Discovery: Atualizando URL", { from: currentUrlState, to: newUrlState });
       setSearchParams(newParams, { replace: true });
     }
   }, [currentPage, discoveryLimit, setSearchParams, searchParams]);
 
   return (
     <>
-      <AppInitializer />
       <Pinneds />
       <WindowsGrid />
     </>

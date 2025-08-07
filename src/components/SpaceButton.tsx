@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useSpacesStore, type FilterMode } from "../store/spacesStore";
 import type { SpaceConfig } from "../store/types";
@@ -40,11 +41,21 @@ interface SpaceButtonProps {
 }
 
 export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
+  const navigate = useNavigate();
   const [renameValue, setRenameValue] = useState("");
   const [renamingSpaceId, setRenamingSpaceId] = useState<string | null>(null);
   const renameSpace = useSpacesStore((s) => s.renameSpace);
-  const switchSpace = useSpacesStore((s) => s.setActiveSpace);
   const removeSpace = useSpacesStore((s) => s.removeSpace);
+  
+  const handleSpaceClick = () => {
+    if (space.id === "favorite") {
+      navigate("/favorites");
+    } else {
+      // Para outros spaces customizados, ainda usa setActiveSpace
+      // porque não temos rotas específicas para eles
+      useSpacesStore.getState().setActiveSpace(space.id);
+    }
+  };
 
   if (!space) return null;
 
@@ -75,7 +86,7 @@ export function SpaceButton({ space, active, filterMode }: SpaceButtonProps) {
       ) : (
         <Button
           key={space.id}
-          onClick={() => switchSpace(space.id)}
+          onClick={handleSpaceClick}
           $active={active}
         >
           {space.name} ({selectWindows.length})
