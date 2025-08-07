@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type { SpaceConfig, WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
-import { persist } from "zustand/middleware";
 import { devtools } from "zustand/middleware";
 
 export type FilterMode = "online" | "offline" | "all";
@@ -39,10 +38,7 @@ interface SpacesState {
   setWindowMaximized: (id: string, maximized: boolean) => void;
 }
 
-export const useSpacesStore = create<SpacesState>()(
-  devtools(
-    persist(
-      (set, get) => ({
+export const useSpacesStore = create<SpacesState>()(devtools((set, get) => ({
         spaces: [
           {
             id: "discovery",
@@ -447,10 +443,5 @@ export const useSpacesStore = create<SpacesState>()(
             return { spaces };
           });
         },
-      }),
-      {
-        name: "spaces-storage",
-      }
-    )
-  )
+    }))
 );
