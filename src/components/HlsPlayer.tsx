@@ -2,19 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import styled from "styled-components";
 
-const Wrapper = styled.div<{ backgroundImage?: string }>`
+const Wrapper = styled.div<{ backgroundImage?: string; $videoLoaded: boolean }>`
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
-  background: black;
+  background: ${({ $videoLoaded }) => $videoLoaded ? 'black' : 'transparent'};
   display: flex;
   justify-content: center;
   align-items: center;
   background-image: ${(props) =>
     props.backgroundImage ? `url(${props.backgroundImage})` : "none"};
   background-position: center;
-  transition: background-image 0.3s ease, opacity 0.3s ease;
+  transition: background 0.3s ease, background-image 0.3s ease, opacity 0.3s ease;
   background-repeat: no-repeat;
   background-size: cover;
 `;
@@ -203,7 +203,11 @@ export const HlsPlayer: React.FC<Props> = ({
   }, []);
 
   return (
-    <Wrapper ref={containerRef} backgroundImage={snapshot || undefined}>
+    <Wrapper 
+      ref={containerRef} 
+      backgroundImage={snapshot || undefined}
+      $videoLoaded={videoLoaded}
+    >
       <VideoElement
         ref={videoRef}
         autoPlay

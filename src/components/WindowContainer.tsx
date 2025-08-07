@@ -136,6 +136,7 @@ const LoadingContainer = styled.div`
   justify-content: center;
   align-items: center;
   color: #fff;
+  position: absolute;
 `;
 
 const LoadingSpinner = styled.div`
@@ -155,6 +156,14 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const VideoContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 const CopyMessage = styled.div`
   position: absolute;
   bottom: 20px;
@@ -436,13 +445,14 @@ export const WindowContainer: React.FC<Props> = ({
               View on Chaturbate
             </PrivateLink>
           </PrivateContainer>
-        ) : hlsSource ? (
-          <HlsPlayer src={hlsSource} muted={muted} volume={volume} />
-        ) : (
-          <LoadingContainer>
-            <LoadingSpinner />
-          </LoadingContainer>
-        )}
+          ) : (<VideoContainer>
+               <LoadingContainer>
+                <LoadingSpinner />
+              </LoadingContainer>
+              {hlsSource && <HlsPlayer src={hlsSource} muted={muted} volume={volume} />}
+             
+            </VideoContainer>)
+            }
 
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
       </WindowContent>
