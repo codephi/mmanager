@@ -94,7 +94,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       pinnedWidth: 350,
       pinnedHeight: 250,
       pinned: false,
-      isOnline: true,
+      isOnline: room.is_online,
     }));
 
     const updatedWindows = arrangeWindowsInternal({

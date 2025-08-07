@@ -377,7 +377,7 @@ export const WindowContainer: React.FC<Props> = ({
         $pinned={isPinned && isFloating}
       >
         <a
-          href={`https://handplayspaces.chaturbate.com/${room}`}
+          href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${room}`}
           target="_blank"
           rel="noopener noreferrer"
           className="no-drag"
