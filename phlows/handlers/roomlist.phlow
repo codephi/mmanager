@@ -42,7 +42,9 @@ steps:
 
   - id: result
     assert: !phs steps.fetch_rooms.response.status_code == 200
-    payload: !phs steps.fetch_rooms.response.body
+    payload:
+      rooms: !import handler_rooms.phs
+      total_count: !phs steps.fetch_rooms.response.body.total_count
 
 
   - use: cache
