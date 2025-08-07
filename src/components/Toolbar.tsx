@@ -135,9 +135,6 @@ function Toolbar() {
   // Determina se estamos na rota discovery
   const isDiscovery = location.pathname === "/";
   
-  // Age gate hook (apenas para desenvolvimento)
-  const { resetAgeGate } = useAgeGate();
-
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
   };
@@ -147,18 +144,7 @@ function Toolbar() {
       <ToolbarContainer $isMobile={isMobile}>
         {isDiscovery && (
           <CenterOptions $isMobile={isMobile}>
-            <DiscoveryControls>
-              <select
-                value={discoveryLimit}
-                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
-              >
-                {[2, 4, 6].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-
+            <DiscoveryControls>            
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -185,6 +171,17 @@ function Toolbar() {
           <MobileButton onClick={() => rearrangeWindows(true)} title="Arrange">
             <Arrange size={16} />
           </MobileButton>
+            <select
+                value={discoveryLimit}
+                onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+              >
+                {[2, 4, 6].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+
           <DownloadMonitor />
         </LeftOptions>
       </ToolbarContainer>
@@ -210,17 +207,6 @@ function Toolbar() {
       <CenterOptions $isMobile={isMobile}>
         {isDiscovery ? (
           <DiscoveryControls>
-            <select
-              value={discoveryLimit}
-              onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
-            >
-              {[2, 4, 6, 12, 25].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -231,6 +217,16 @@ function Toolbar() {
       </CenterOptions>
 
       <RightOptions $isMobile={isMobile}>
+        <select
+              value={discoveryLimit}
+              onChange={(e) => setDiscoveryLimit(Number(e.target.value))}
+            >
+              {[2, 4, 6, 12, 25].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
         <DownloadMonitor />
       </RightOptions>
     </ToolbarContainer>
