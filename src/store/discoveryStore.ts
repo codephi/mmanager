@@ -67,7 +67,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     }
 
     const response = await fetch(
-      `https://chaturbate.com/api/ts/roomlist/room-list/?limit=${availableSlots}&offset=${newOffset}`
+      `https://api.winturbate.com/roomlist?limit=${availableSlots}&offset=${newOffset}`
     );
     const data = await response.json();
 
