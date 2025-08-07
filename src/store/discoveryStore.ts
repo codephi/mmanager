@@ -94,9 +94,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       const rooms = Array.isArray(data.rooms) ? data.rooms : [];
       const fetchedRooms = rooms.slice(0, availableSlots);
 
-      const newWindows: WindowConfig[] = fetchedRooms.map((room: string) => ({
-        id: room,
-        room,
+      const newWindows: WindowConfig[] = fetchedRooms.map((room: {username: string}) => ({
+        id: room.username,
+        room: room.username,
         x: 50,
         y: 50,
         w: 1,
