@@ -114,26 +114,20 @@ export const WindowsGrid: React.FC = () => {
       const rowHeight = Math.max(50, availableHeight / safeRows);
 
       // Usa posições salvas ou calcula automaticamente
-      // Garante que todos os IDs sejam strings únicas
-      const uniqueWindows = filteredWindows.filter((win, index, arr) => 
-        win && win.id && arr.findIndex(w => w?.id === win.id) === index
-      );
-      
-      const layout: Layout[] = uniqueWindows.map((win, index) => {
-        const safeId = String(win.id);
+      const layout: Layout[] = filteredWindows.map((win, index) => {
         return {
-          i: safeId,
+          i: win.id,
           x: win.x ?? index % safeCols,
           y: win.y ?? Math.floor(index / safeCols),
           w: Math.max(1, win.w ?? 1),
           h: Math.max(1, win.h ?? 1),
         };
       });
-      
-      setDisplayWindows(uniqueWindows);
+
       setLayout(layout);
       setRowHeight(rowHeight);
       setColsValue(safeCols);
+      setDisplayWindows(filteredWindows);
     } catch (error) {
       console.error("[WindowsGrid] Error in useEffect:", error);
       // Em caso de erro, define valores seguros
@@ -301,24 +295,19 @@ export const WindowsGrid: React.FC = () => {
         resizeHandles={["s", "e", "se"]}
         draggableCancel=".no-drag"
       >
-        {displayWindows.map((win, index) => {
-          const safeKey = `${win.id}-${index}`;
-          const safeId = String(win.id);
-          const safeRoom = String(win.room || '');
-          return (
-            <Window key={safeKey} className="window-header" data-window-id={safeId}>
-              <WindowContainer
-                id={safeId}
-                room={safeRoom}
-                pinned={win.pinned}
-                onMaximize={() => handleMaximize(safeId)}
-                onMinimize={() => handleMinimize(safeId)}
-                isMobile={isMobile}
-                scrollElementRef={wrapperRef}
-              />
-            </Window>
-          );
-        })}
+        {displayWindows.map((win) => (
+          <Window key={win.id} className="window-header" data-window-id={win.id}>
+            <WindowContainer
+              id={win.id}
+              room={win.room}
+              pinned={win.pinned}
+              onMaximize={() => handleMaximize(win.id)}
+              onMinimize={() => handleMinimize(win.id)}
+              isMobile={isMobile}
+              scrollElementRef={wrapperRef}
+            />
+          </Window>
+        ))}
       </ResponsiveGridLayout>
     </Wrapper>
   );
