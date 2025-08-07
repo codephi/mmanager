@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useSpacesStore } from "../store/spacesStore";
+import { useSpacesStore } from "../store/windowsMainStore";
 import { WindowContainer } from "./WindowContainer";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import type { Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { useWindowsStore } from "../store/windowsStore";
 import styled from "styled-components";
 import { rearrangeWindowsFromLayout } from "../utils/rearrangeWindows";
 import { calculateGridSize } from "../utils/gridUtils";
@@ -55,16 +54,12 @@ const Wrapper = styled.div`
 `;
 
 export const WindowsGrid: React.FC = () => {
-  const spaces = useSpacesStore((s) => s.spaces);
-  const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
-  const getActiveSpaceId = useSpacesStore((s) => s.getActiveSpaceId);
-  const getCurrentSpace = useSpacesStore((s) => s.getCurrentSpace);
-  const updateWindowInActiveSpace = useSpacesStore((s) => s.updateWindowInActiveSpace);
+  const storeWindows = useSpacesStore((s) => s.windows);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
-  const updateWindow = useWindowsStore((s) => s.updateWindow);
+  const updateWindow = useSpacesStore((s) => s.updateWindow);
   const { isMobile } = useMobile();
-  const [windows, setWindows] = useState<WindowConfig[]>([]);
+  const [displayWindows, setDisplayWindows] = useState<WindowConfig[]>([]);
   const [rowHeight, setRowHeight] = useState(1);
   const [colsValue, setColsValue] = useState(1);
   const [layout, setLayout] = useState<Layout[]>([]);
@@ -80,82 +75,58 @@ export const WindowsGrid: React.FC = () => {
 
   useEffect(() => {
     try {
-      const activeSpace = spaces.find((t) => t.id === activeSpaceId);
-      if (!activeSpace) {
-        // Se não encontrar o space, limpa tudo
-        setWindows([]);
-        setLayout([]);
-        setRowHeight(100);
-        setColsValue(1);
-        return;
-      }
-
-      // Proteção adicional
-      if (!activeSpace.windows || !Array.isArray(activeSpace.windows)) {
-        setWindows([]);
-        setLayout([]);
-        setRowHeight(100);
-        setColsValue(1);
-        return;
-      }
-
-      const localWindows = activeSpace.windows.filter((w) => {
+      // Filtra as janelas baseado no filterMode
+      let filteredWindows = storeWindows.filter((w) => {
         return w && w.id && w.isOnline !== false;
       });
 
+      // Aplica filtro se necessário
+      if (filterMode === "online") {
+        filteredWindows = filteredWindows.filter((w) => w.isOnline === true);
+      } else if (filterMode === "offline") {
+        filteredWindows = filteredWindows.filter((w) => w.isOnline === false);
+      }
+
       // Se não há janelas, define valores padrão seguros
-      if (localWindows.length === 0) {
-        setWindows([]);
+      if (filteredWindows.length === 0) {
+        setDisplayWindows([]);
         setLayout([]);
         setRowHeight(100);
         setColsValue(1);
         return;
       }
 
-      const { rows, cols } = calculateGridSize(localWindows.length);
+      const { rows, cols } = calculateGridSize(filteredWindows.length);
       const safeRows = Math.max(1, rows);
       const safeCols = Math.max(1, cols);
 
       const availableHeight = Math.max(100, window.innerHeight - 110);
       const rowHeight = Math.max(50, availableHeight / safeRows);
 
-      // Para o space "favorites", sempre organizamos as janelas automaticamente
-      // porque elas vêm de diferentes spaces com posições que podem não fazer sentido juntas
-      const layout: Layout[] = localWindows.map((win, index) => {
-        if (activeSpaceId === "favorite") {
-          // Para favoritos, sempre organiza em grid limpo
-          return {
-            i: win.id,
-            x: index % safeCols,
-            y: Math.floor(index / safeCols),
-            w: 1, // Tamanho padrão para favoritos
-            h: 1,
-          };
-        } else {
-          // Para outros spaces, usa posições salvas ou calcula
-          return {
-            i: win.id,
-            x: win.x ?? index % safeCols,
-            y: win.y ?? Math.floor(index / safeCols),
-            w: Math.max(1, win.w ?? 1),
-            h: Math.max(1, win.h ?? 1),
-          };
-        }
+      // Usa posições salvas ou calcula automaticamente
+      const layout: Layout[] = filteredWindows.map((win, index) => {
+        return {
+          i: win.id,
+          x: win.x ?? index % safeCols,
+          y: win.y ?? Math.floor(index / safeCols),
+          w: Math.max(1, win.w ?? 1),
+          h: Math.max(1, win.h ?? 1),
+        };
       });
 
       setLayout(layout);
       setRowHeight(rowHeight);
       setColsValue(safeCols);
-      setWindows(localWindows);
+      setDisplayWindows(filteredWindows);
     } catch (error) {
       console.error("[WindowsGrid] Error in useEffect:", error);
       // Em caso de erro, define valores seguros
-      setWindows([]);
+      setDisplayWindows([]);
       setLayout([]);
       setRowHeight(100);
       setColsValue(1);
     }
-  }, [spaces, pinnedWindows, activeSpaceId, filterMode]);
+  }, [storeWindows, pinnedWindows, filterMode]);
 
   // Função para comparar se o layout realmente mudou
   const layoutsAreEqual = useCallback((layout1: Layout[], layout2: Layout[]) => {
@@ -177,7 +148,7 @@ export const WindowsGrid: React.FC = () => {
   const onLayoutChange = useCallback((newLayout: Layout[]) => {
     try {
       // Se não há windows ou o layout está vazio, não faz nada
-      if (!windows.length || !newLayout.length) {
+      if (!displayWindows.length || !newLayout.length) {
         return;
       }
 
@@ -196,13 +167,7 @@ export const WindowsGrid: React.FC = () => {
 
       // Debounce de 100ms para evitar muitas atualizações seguidas
       updateTimeoutRef.current = setTimeout(() => {
-        // Se estamos no space "favorite", não atualizamos o store
-        // porque pode causar loops já que o space favorite não tem os windows localmente
-        if (activeSpaceId === "favorite") {
-          return;
-        }
-
-        // Atualiza o store apenas se não for o space favorites
+        // Atualiza o store
         newLayout.forEach(({ i, x, y, w, h }) => {
           updateWindow(i, { x, y, w, h });
         });
@@ -214,7 +179,7 @@ export const WindowsGrid: React.FC = () => {
     } catch (error) {
       console.error("[WindowsGrid] Error in onLayoutChange:", error);
     }
-  }, [activeSpaceId, windows.length, layoutsAreEqual, updateWindow]);
+  }, [displayWindows.length, layoutsAreEqual, updateWindow]);
 
   // Cleanup do timeout quando componente desmonta
   useEffect(() => {
@@ -226,16 +191,12 @@ export const WindowsGrid: React.FC = () => {
   }, []);
 
   const handleMaximize = (id: string) => {
-    const currentActiveSpaceId = getActiveSpaceId();
-    const space = getCurrentSpace();
-    if (!space) return;
-
-    const totalWindows = space.windows.filter(
+    const totalWindows = displayWindows.filter(
       (w) => w.isOnline !== false
     ).length;
     const { rows, cols } = calculateGridSize(totalWindows);
 
-    const win = space.windows.find((w) => w.id === id);
+    const win = displayWindows.find((w) => w.id === id);
     if (!win) return;
 
     // Salvar tamanho atual no state auxiliar
@@ -251,22 +212,12 @@ export const WindowsGrid: React.FC = () => {
       return copy;
     });
 
-    // Use o método apropriado dependendo do space
-    if (currentActiveSpaceId === "favorite") {
-      updateWindowInActiveSpace(id, {
-        x: 0,
-        y: 0,
-        w: cols,
-        h: rows,
-      });
-    } else {
-      updateWindow(id, {
-        x: 0,
-        y: 0,
-        w: cols,
-        h: rows,
-      });
-    }
+    updateWindow(id, {
+      x: 0,
+      y: 0,
+      w: cols,
+      h: rows,
+    });
 
     // Scroll automático para a janela maximizada
     setTimeout(() => {
@@ -291,31 +242,19 @@ export const WindowsGrid: React.FC = () => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
-    }, 500); // Aguardar animações do grid layout terminarem
+    }, 200); // Aguardar animações do grid layout terminarem
   };
 
   const handleMinimize = (id: string) => {
     const original = originalSizes.get(id);
     if (!original) return; // Não temos backup, não faz nada.
 
-    const currentActiveSpaceId = getActiveSpaceId();
-    
-    // Use o método apropriado dependendo do space
-    if (currentActiveSpaceId === "favorite") {
-      updateWindowInActiveSpace(id, {
-        x: original.x,
-        y: original.y,
-        w: original.w,
-        h: original.h,
-      });
-    } else {
-      updateWindow(id, {
-        x: original.x,
-        y: original.y,
-        w: original.w,
-        h: original.h,
-      });
-    }
+    updateWindow(id, {
+      x: original.x,
+      y: original.y,
+      w: original.w,
+      h: original.h,
+    });
 
     setOriginalSizes((prev) => {
       const copy = new Map(prev);
@@ -339,14 +278,14 @@ export const WindowsGrid: React.FC = () => {
         autoSize={true}
         rowHeight={rowHeight}
         width={window.innerWidth}
-        isResizable={activeSpaceId !== "favorite" && !isMobile}
-        isDraggable={activeSpaceId !== "favorite" && !isMobile}
+        isResizable={!isMobile}
+        isDraggable={!isMobile}
         onLayoutChange={onLayoutChange}
         compactType={null}
         resizeHandles={["s", "e", "se"]}
         draggableCancel=".no-drag"
       >
-        {windows.map((win) => (
+        {displayWindows.map((win) => (
           <Window key={win.id} className="window-header" data-window-id={win.id}>
             <WindowContainer
               id={win.id}

@@ -1,13 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useSpacesStore } from "../store/spacesStore";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { WindowsGrid } from "../components/WindowsGrid";
-import { Pinneds } from "../components/Pinneds";
 
 export const Discovery = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const setActiveSpace = useSpacesStore((s) => s.setActiveSpace);
   const goToDiscoveryPage = useDiscoveryStore((s) => s.goToDiscoveryPage);
   const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);
   const currentPage = useDiscoveryStore((s) => s.currentPage);
@@ -17,12 +14,9 @@ export const Discovery = () => {
   const updatingUrlRef = useRef(false);
 
   useEffect(() => {
-    // Garante que estamos no space discovery
-    setActiveSpace("discovery");
-    
     // Carrega discovery quando entra na página
     useDiscoveryStore.getState().loadDiscovery();
-  }, [setActiveSpace]);
+  }, []);
 
   // Inicialização única baseada na URL
   useEffect(() => {
@@ -100,7 +94,6 @@ export const Discovery = () => {
 
   return (
     <>
-      <Pinneds />
       <WindowsGrid />
     </>
   );

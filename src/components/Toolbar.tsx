@@ -1,12 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
-import { useSpacesStore } from "../store/spacesStore";
+import { useSpacesStore } from "../store/windowsMainStore";
 import { Pagination } from "./Pagination";
 import { DownloadMonitor } from "./DownloadMonitor";
-import { Button } from "./SpaceButton";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
-import { AudioMute, Star, Search, Arrange } from "../icons";
+import { AudioMute, Search, Arrange } from "../icons";
 import { useMobile } from "../hooks/useMobile";
 
 // Styled Components
@@ -88,25 +87,31 @@ const AudioMuteIcon = styled(AudioMute)`
   margin-right: 6px;
 `;
 
-const MobileButton = styled.button`
+const Button = styled.button<{ $active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: ${({ $active }) =>
+    $active ? "var(--primary-color-hover)" : "rgba(255, 255, 255, 0.1)"};
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #fff;
-  padding: 8px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 6px;
-  min-width: 32px;
-  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   
   &:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.2);
   }
+`;
+
+const MobileButton = styled(Button)`
+  min-width: 32px;
+  min-height: 32px;
+  padding: 8px;
 `;
 
 function Toolbar() {
@@ -117,9 +122,7 @@ function Toolbar() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Spaces agora vindo do spacesStore
-  const spaces = useSpacesStore((s) => s.getSpaces());
-  // Windows e Discovery seguem igual
+  // Discovery store
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);
   const discoveryLimit = useDiscoveryStore((s) => s.discoveryLimit);
   const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);
@@ -127,13 +130,8 @@ function Toolbar() {
   const currentPage = useDiscoveryStore((s) => s.currentPage);
   const totalPages = useDiscoveryStore((s) => s.totalPages);
   
-  // Determina se estamos na rota discovery ou favorites
+  // Determina se estamos na rota discovery
   const isDiscovery = location.pathname === "/";
-  const isFavorites = location.pathname === "/favorites";
-  
-  // Conta favoritos online
-  const favoriteSpace = spaces.find((s) => s.id === "favorite");
-  const favoritesOnlineCount = favoriteSpace?.windows.filter((w) => w.isOnline === true).length ?? 0;
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
@@ -177,14 +175,6 @@ function Toolbar() {
           >
             <Search size={16} />
           </Button>
-          <Button
-            key={"favorites"}
-            onClick={() => navigate("/favorites")}
-            $active={isFavorites}
-            title={`Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
-          >
-            <Star size={16} style={{ color: "#ffd700" }} />
-          </Button>
           <MobileButton onClick={handlerGlobalMuted} title="Mute All">
             <AudioMute size={16} />
           </MobileButton>
@@ -208,14 +198,6 @@ function Toolbar() {
         >
           <Search size={16} style={{ marginRight: "6px" }} />
           Discovery
-        </Button>
-        <Button
-          key={"favorites"}
-          onClick={() => navigate("/favorites")}
-          $active={isFavorites}
-        >
-          <Star size={16} style={{ color: "#ffd700", marginRight: "6px" }} />
-          {`Favorites ${favoritesOnlineCount > 0 ? `(${favoritesOnlineCount})` : ""}`}
         </Button>
         <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
         <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
