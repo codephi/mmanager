@@ -184,7 +184,7 @@ interface Props {
   onMaximize: () => void;
   onMinimize?: () => void;
   isMobile?: boolean;
-  scrollElementRef?: React.RefObject<HTMLDivElement>;
+  scrollElementRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const WindowContainer: React.FC<Props> = ({
