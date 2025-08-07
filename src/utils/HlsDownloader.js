@@ -3,6 +3,7 @@ import Hls from "hls.js";
 export class HlsDownloader {
   constructor(url, fileStream) {
     this.fileStream = fileStream;
+    this.totalBytes = 0; // Rastrear total de bytes baixados
 
     this.hls = new Hls({
       enableWorker: false,
@@ -28,6 +29,7 @@ export class HlsDownloader {
         const response = await fetch(fragUrl);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = new Uint8Array(arrayBuffer);
+        this.totalBytes += buffer.length; // Incrementar o contador de bytes
         await this.fileStream.write(buffer);
       } catch (err) {
         console.error("Erro ao baixar fragmento:", err);
@@ -41,6 +43,10 @@ export class HlsDownloader {
 
   setLevel(index) {
     this.hls.currentLevel = index;
+  }
+
+  getTotalBytes() {
+    return this.totalBytes;
   }
 
   stop() {

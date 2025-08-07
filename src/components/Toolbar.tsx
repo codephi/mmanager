@@ -65,8 +65,6 @@ function Toolbar() {
   // Spaces agora vindo do spacesStore
   const spaces = useSpacesStore((s) => s.getSpaces());
   // Windows e Discovery seguem igual
-  const setFilterMode = useSpacesStore((s) => s.setFilterMode);
-  const filterMode = useSpacesStore((s) => s.filterMode);
   const setGlobalMuted = useSpacesStore((s) => s.setGlobalMuted);
   const discoveryLimit = useDiscoveryStore((s) => s.discoveryLimit);
   const setDiscoveryLimit = useDiscoveryStore((s) => s.setDiscoveryLimit);

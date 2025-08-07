@@ -39,6 +39,7 @@ export class DownloadManager {
       room: d.room,
       hlsSource: d.hlsSource,
       startTime: d.startTime,
+      totalBytes: d.downloader.getTotalBytes(),
     }));
   }
 

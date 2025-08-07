@@ -22,4 +22,5 @@ export interface PublicDownloadEntry {
   room: string;
   hlsSource: string;
   startTime: number;
+  totalBytes: number;
 }

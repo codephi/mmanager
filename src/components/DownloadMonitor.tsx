@@ -58,6 +58,12 @@ const TimeText = styled.span`
   margin-right: 8px;
 `;
 
+const SizeText = styled.span`
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-right: 8px;
+`;
+
 const StopButton = styled.button`
   display: flex;
   align-items: center;
@@ -155,6 +161,7 @@ const MainButton = styled.button`
 
 export const DownloadMonitor: React.FC = () => {
   const downloads = useDownloadStore((s) => s.downloads);
+  const refresh = useDownloadStore((s) => s.refresh);
   const [open, setOpen] = useState(false);
   const stop = useDownloadStore((s) => s.stop); // <-- este é o correto agora!
   const [, setTick] = useState(0);
@@ -162,9 +169,15 @@ export const DownloadMonitor: React.FC = () => {
   const [isDragging, setIsDragging] = useState<string | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 1000);
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+      // Só atualiza se há downloads ativos
+      if (downloads.length > 0) {
+        refresh();
+      }
+    }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refresh, downloads.length]);
 
   const formatDuration = (start?: number) => {
     if (!start) return "--:--:--";
@@ -177,6 +190,12 @@ export const DownloadMonitor: React.FC = () => {
       .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  const formatSize = (bytes: number) => {
+    if (!bytes) return "0 MB";
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
+
   const handleSliderChange = (downloadId: string, levels: any[], clientX: number, sliderElement: HTMLElement) => {
     const rect = sliderElement.getBoundingClientRect();
     const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
@@ -186,7 +205,7 @@ export const DownloadMonitor: React.FC = () => {
     downloadManager.setLevel(downloadId, levelIndex);
   };
 
-  const getCurrentLevel = (downloadId: string, levels: any[]) => {
+  const getCurrentLevel = (downloadId: string) => {
     return currentLevels[downloadId] ?? 0;
   };
 
@@ -207,7 +226,7 @@ export const DownloadMonitor: React.FC = () => {
 
   const handleWheel = (e: React.WheelEvent, downloadId: string, levels: any[]) => {
     e.preventDefault();
-    const currentIndex = getCurrentLevel(downloadId, levels);
+    const currentIndex = getCurrentLevel(downloadId);
     const delta = e.deltaY > 0 ? -1 : 1; // Scroll para baixo diminui, para cima aumenta
     const newIndex = Math.max(0, Math.min(levels.length - 1, currentIndex + delta));
     
@@ -244,6 +263,7 @@ export const DownloadMonitor: React.FC = () => {
                   <div>{d.room}</div>
                   <div>
                     <TimeText>{formatDuration(d.startTime)}</TimeText>
+                    <SizeText>{formatSize(d.totalBytes)}</SizeText>
                     <StopButton onClick={() => stop(d.id)} title="Stop Download">
                       <Stop size={14} />
                     </StopButton>
@@ -252,7 +272,7 @@ export const DownloadMonitor: React.FC = () => {
 
                 <QualitySliderContainer>
                   {(() => {
-                    const currentIndex = getCurrentLevel(d.id, levels);
+                    const currentIndex = getCurrentLevel(d.id);
                     const currentLevel = levels[currentIndex];
                     const progress = levels.length > 1 ? (currentIndex / (levels.length - 1)) * 100 : 0;
                     

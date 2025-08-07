@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import styled from "styled-components";
 import { AudioMute, AudioUnmute } from "../icons";
 import { WindowHeaderButton } from "./WindowContainer";
@@ -82,8 +81,7 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
   muted,
   volume,
   onMuteToggle,
-  onVolumeChange,
-  className
+  onVolumeChange
 }) => {
   const [hover, setHover] = useState(false);
   const [dragging, setDragging] = useState(false);

@@ -14,6 +14,7 @@ interface DownloadEntry {
   room: string;
   hlsSource: string;
   startTime: number;
+  totalBytes: number;
 }
 
 interface DownloadState {
