@@ -19,7 +19,7 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
   overflow: hidden;
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 var(--element-color);
   
   /* Esconder o header por padrão */
   .window-header {
@@ -75,10 +75,10 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   overflow: hidden;
   
   button {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--element-color);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--element-color);
     transition: all 0.2s ease;
   }
   button:hover {
@@ -166,7 +166,7 @@ const CopyMessage = styled.div`
   transform: translateX(-50%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--element-color);
   color: #fff;
   padding: 8px 16px;
   border-radius: 8px;

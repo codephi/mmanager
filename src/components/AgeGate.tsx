@@ -7,7 +7,7 @@ const Overlay = styled.div`
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(41, 7, 75, 0.95);
+  background: rgba(41, 7, 75, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 999999;
@@ -101,7 +101,7 @@ const Button = styled.button<{ $primary?: boolean }>`
       box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
     }
   ` : `
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--element-color);
     color: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.2);
     

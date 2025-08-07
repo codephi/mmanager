@@ -7,7 +7,7 @@ const SelectWrapper = styled.div`
 `;
 
 const StyledSelect = styled.select<{ $isMobile?: boolean }>`
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--element-color);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #fff;
@@ -38,7 +38,7 @@ const StyledSelect = styled.select<{ $isMobile?: boolean }>`
   &:focus {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px var(--element-color);
   }
   
   /* Style options */

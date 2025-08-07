@@ -102,7 +102,7 @@ const Button = styled.button<{ $active?: boolean }>`
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--element-color);
   
   &:hover {
     background: rgba(255, 255, 255, 0.2);
