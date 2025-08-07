@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { useSpacesStore } from "./windowsMainStore";
-import type { WindowConfig, Room } from "./types";
+import type { WindowConfig } from "./types";
 import { arrangeWindowsInternal } from "./utils";
 
 interface DiscoveryState {
@@ -78,9 +78,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
     const fetchedRooms = data.rooms.slice(0, availableSlots);
 
-    const newWindows: WindowConfig[] = fetchedRooms.map((room: Room) => ({
-      id: room.username,
-      room: room.username,
+    const newWindows: WindowConfig[] = fetchedRooms.map((room: string) => ({
+      id: room,
+      room,
       x: 50,
       y: 50,
       w: 1,
@@ -94,7 +94,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       pinnedWidth: 350,
       pinnedHeight: 250,
       pinned: false,
-      isOnline: room.is_online,
+      isOnline: true,
     }));
 
     const updatedWindows = arrangeWindowsInternal({

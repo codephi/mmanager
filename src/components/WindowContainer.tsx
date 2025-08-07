@@ -377,13 +377,13 @@ export const WindowContainer: React.FC<Props> = ({
         $pinned={isPinned && isFloating}
       >
         <a
-          href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${room}`}
+          href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="no-drag"
           style={{ color: "#fff", textDecoration: "underline" }}
         >
-          {room}
+          {typeof room === 'string' ? room : String(room)}
         </a>
         <HeaderRight>
           <WindowHeaderButton className="no-drag" onClick={toggleRecording} title="Toggle Recording">

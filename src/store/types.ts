@@ -27,13 +27,9 @@ export interface SpaceConfig {
   autoArrange: boolean;
 }
 export interface Root {
-  rooms: Room[];
+  rooms: string[];
   total_count: number;
   all_rooms_count: number;
   room_list_id: string;
   bls_payload: string;
-}
-
-export interface Room {
-  username: string;
 }
