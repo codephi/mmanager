@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/spacesStore";
@@ -53,9 +54,12 @@ const CenterOptions = styled.div`
 `;
 
 function Toolbar() {
+  // React Router hooks
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   // Spaces agora vindo do spacesStore
   const spaces = useSpacesStore((s) => s.getSpaces());
-  const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
   const addSpace = useSpacesStore((s) => s.addSpace);
   // Windows e Discovery seguem igual
   const setFilterMode = useSpacesStore((s) => s.setFilterMode);
@@ -69,8 +73,10 @@ function Toolbar() {
   const discovery = spaces.find((s) => s.id === "discovery");
   const pinnedCount = discovery?.windows.filter((w) => w.pinned).length ?? 0;
   const [newSpaceName, setNewSpaceName] = useState("");
-  const isDiscovery = activeSpaceId === "discovery";
-  const switchSpace = useSpacesStore((s) => s.setActiveSpace);
+  
+  // Determina se estamos na rota discovery ou favorites
+  const isDiscovery = location.pathname === "/";
+  const isFavorites = location.pathname === "/favorites";
 
   const handlerGlobalMuted = () => {
     setGlobalMuted(true);
@@ -81,10 +87,17 @@ function Toolbar() {
       <LeftOptions>
         <Button
           key={"discovery"}
-          onClick={() => switchSpace("discovery")}
+          onClick={() => navigate("/")}
           $active={isDiscovery}
         >
           Discovery
+        </Button>
+        <Button
+          key={"favorites"}
+          onClick={() => navigate("/favorites")}
+          $active={isFavorites}
+        >
+          Favorites
         </Button>
         <button onClick={handlerGlobalMuted}>{"🔇 Mute All"}</button>
 
@@ -103,7 +116,7 @@ function Toolbar() {
       </LeftOptions>
 
       <CenterOptions>
-        {activeSpaceId === "discovery" ? (
+        {isDiscovery ? (
           <DiscoveryControls>
             <select
               value={discoveryLimit}

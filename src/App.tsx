@@ -1,8 +1,8 @@
-import { WindowsGrid } from "./components/WindowsGrid";
-import Toolbar from "./components/Toolbar";
+import { Routes, Route } from "react-router-dom";
 import styled from "styled-components";
-import { Pinneds } from "./components/Pinneds";
-import { AppInitializer } from "./components/AppInitializer";
+import Toolbar from "./components/Toolbar";
+import { Discovery } from "./pages/Discovery";
+import { Favorites } from "./pages/Favorites";
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -18,9 +18,10 @@ const Wrapper = styled.div`
 function App() {
   return (
     <Wrapper>
-      <AppInitializer />
-      <Pinneds />
-      <WindowsGrid />
+      <Routes>
+        <Route path="/" element={<Discovery />} />
+        <Route path="/favorites" element={<Favorites />} />
+      </Routes>
       <Toolbar />
     </Wrapper>
   );
