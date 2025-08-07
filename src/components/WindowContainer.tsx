@@ -24,8 +24,7 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
   /* Esconder o header por padrão */
   .window-header {
     opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
-    transform: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'translateY(0)' : 'translateY(-100%)'};
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
     position: absolute;
     top: 0;
     left: 0;
@@ -38,15 +37,13 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
   ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
     &:hover .window-header {
       opacity: 1;
-      transform: translateY(0);
     }
   `}
   
   /* Indicador de gravação - visível por padrão quando gravando */
   .recording-indicator {
     opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '0' : '1'};
-    transform: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'translateY(-10px)' : 'translateY(0)'};
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
     position: absolute;
     top: 12px;
     left: 12px;
@@ -57,7 +54,6 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
   ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
     &:hover .recording-indicator {
       opacity: 0;
-      transform: translateY(-10px);
     }
   `}
 `;
