@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useDiscoveryStore } from "../store/discoveryStore";
 import { useSpacesStore } from "../store/windowsMainStore";
@@ -7,7 +7,6 @@ import { DownloadMonitor } from "./DownloadMonitor";
 import { rearrangeWindows } from "../utils/rearrangeWindows";
 import { AudioMute, Search, Arrange } from "../icons";
 import { useMobile } from "../hooks/useMobile";
-import { useAgeGate } from "../hooks/useAgeGate";
 import { LimitSelector } from "./LimitSelector";
 
 // Styled Components

@@ -56,6 +56,26 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
       opacity: 0;
     }
   `}
+  
+  /* Botão de chat - visível quando header está ativo */
+  .chat-tooltip {
+    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
+    transition: opacity 0.3s ease;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+    pointer-events: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'auto' : 'none'};
+  }
+  
+  /* Mostrar tooltip no hover (apenas se não for mobile maximizado) */
+  ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
+    &:hover .chat-tooltip {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  `}
 `;
 
 const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
@@ -182,7 +202,34 @@ const RecordingIndicator = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+`;
 
+const ChatButton = styled.a`
+  &, &:active {
+    background: var(--secundary-color);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  &:hover {
+    background: var(--secundary-color-hover);
+    color: #fff;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.3);
+    text-decoration: none;;
+  }
+  
 `;
 
 export const WindowHeaderButton = styled.button`
@@ -424,17 +471,26 @@ export const WindowContainer: React.FC<Props> = ({
               View on Chaturbate
             </PrivateLink>
           </PrivateContainer>
-          ) : (<VideoContainer>
-               <LoadingContainer>
-                <LoadingSpinner />
-              </LoadingContainer>
-              {hlsSource && <HlsPlayer src={hlsSource} muted={muted} volume={volume} />}
-             
-            </VideoContainer>)
-            }
-
+        ) : (
+          <VideoContainer>
+            <LoadingContainer>
+              <LoadingSpinner />
+            </LoadingContainer>
+            {hlsSource && <HlsPlayer src={hlsSource} muted={muted} volume={volume} />}
+          </VideoContainer>
+        )}
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
       </WindowContent>
+      
+      {/* Botão de chat que aparece quando header está ativo */}
+      <ChatButton
+        className="no-drag chat-tooltip"
+        href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Go to chat now!
+      </ChatButton>
     </WindowContainerWrapper>
   );
 };
