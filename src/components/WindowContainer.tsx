@@ -281,24 +281,44 @@ export const WindowContainer: React.FC<Props> = ({
     }
   };
   const setVolume = (v: number) => {
-    // Só atualiza volume se o window existir no space ativo
     const spacesState = useSpacesStore.getState();
-    const activeSpace = spacesState.spaces.find((sp) => sp.id === spacesState.activeSpaceId);
+    const activeSpace = spacesState.getCurrentSpace();
     const windowExists = activeSpace?.windows.find((w) => w.id === id);
     
     if (windowExists) {
       spacesState.setWindowVolume(id, v);
+    } else {
+      // Para casos onde a janela não existe no space ativo (como favorites),
+      // usa o método que busca em qualquer space
+      spacesState.updateWindowInAnySpace(id, { 
+        volume: v, 
+        isMuted: v === 0 
+      });
     }
   };
 
   const toggleMute = () => {
-    // Só atualiza mute se o window existir no space ativo
     const spacesState = useSpacesStore.getState();
-    const activeSpace = spacesState.spaces.find((sp) => sp.id === spacesState.activeSpaceId);
+    const activeSpace = spacesState.getCurrentSpace();
     const windowExists = activeSpace?.windows.find((w) => w.id === id);
     
     if (windowExists) {
       spacesState.toggleWindowMute(id);
+    } else {
+      // Para casos onde a janela não existe no space ativo (como favorites),
+      // busca a janela em qualquer space e atualiza o mute
+      const allSpaces = spacesState.getSpaces();
+      const spaceWithWindow = allSpaces.find((sp) => 
+        sp.windows.find((w) => w.id === id)
+      );
+      if (spaceWithWindow) {
+        const window = spaceWithWindow.windows.find((w) => w.id === id);
+        if (window) {
+          spacesState.updateWindowInAnySpace(id, { 
+            isMuted: !window.isMuted 
+          });
+        }
+      }
     }
   };
 

@@ -57,6 +57,9 @@ const Wrapper = styled.div`
 export const WindowsGrid: React.FC = () => {
   const spaces = useSpacesStore((s) => s.spaces);
   const activeSpaceId = useSpacesStore((s) => s.activeSpaceId);
+  const getActiveSpaceId = useSpacesStore((s) => s.getActiveSpaceId);
+  const getCurrentSpace = useSpacesStore((s) => s.getCurrentSpace);
+  const updateWindowInActiveSpace = useSpacesStore((s) => s.updateWindowInActiveSpace);
   const filterMode = useSpacesStore((s) => s.filterMode);
   const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
   const updateWindow = useWindowsStore((s) => s.updateWindow);
@@ -223,7 +226,8 @@ export const WindowsGrid: React.FC = () => {
   }, []);
 
   const handleMaximize = (id: string) => {
-    const space = spaces.find((t) => t.id === activeSpaceId);
+    const currentActiveSpaceId = getActiveSpaceId();
+    const space = getCurrentSpace();
     if (!space) return;
 
     const totalWindows = space.windows.filter(
@@ -247,12 +251,22 @@ export const WindowsGrid: React.FC = () => {
       return copy;
     });
 
-    updateWindow(id, {
-      x: 0,
-      y: 0,
-      w: cols,
-      h: rows,
-    });
+    // Use o método apropriado dependendo do space
+    if (currentActiveSpaceId === "favorite") {
+      updateWindowInActiveSpace(id, {
+        x: 0,
+        y: 0,
+        w: cols,
+        h: rows,
+      });
+    } else {
+      updateWindow(id, {
+        x: 0,
+        y: 0,
+        w: cols,
+        h: rows,
+      });
+    }
 
     // Scroll automático para a janela maximizada
     setTimeout(() => {
@@ -284,12 +298,24 @@ export const WindowsGrid: React.FC = () => {
     const original = originalSizes.get(id);
     if (!original) return; // Não temos backup, não faz nada.
 
-    updateWindow(id, {
-      x: original.x,
-      y: original.y,
-      w: original.w,
-      h: original.h,
-    });
+    const currentActiveSpaceId = getActiveSpaceId();
+    
+    // Use o método apropriado dependendo do space
+    if (currentActiveSpaceId === "favorite") {
+      updateWindowInActiveSpace(id, {
+        x: original.x,
+        y: original.y,
+        w: original.w,
+        h: original.h,
+      });
+    } else {
+      updateWindow(id, {
+        x: original.x,
+        y: original.y,
+        w: original.w,
+        h: original.h,
+      });
+    }
 
     setOriginalSizes((prev) => {
       const copy = new Map(prev);

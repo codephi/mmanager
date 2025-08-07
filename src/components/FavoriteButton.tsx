@@ -9,28 +9,24 @@ interface Props {
 }
 
 export const FavoriteButton: React.FC<Props> = ({ windowId, className }) => {
-  const spaces = useSpacesStore((s) => s.spaces);
+  const getSpace = useSpacesStore((s) => s.getSpace);
   const copyWindowToSpace = useSpacesStore((s) => s.copyWindowToSpace);
   const [showMessage, setShowMessage] = useState(false);
 
   // Verifica se o window já está nos favoritos
-  const favoriteSpace = spaces.find((s) => s.id === "favorite");
+  const favoriteSpace = getSpace("favorite");
   const isInFavorites = favoriteSpace?.windows.some((w) => w.id === windowId) ?? false;
 
   const toggleFavorite = () => {
     if (isInFavorites) {
       // Remove dos favoritos
-      // Como não temos uma função de remover, vamos criar uma lógica simples
       if (favoriteSpace) {
         const updatedWindows = favoriteSpace.windows.filter((w) => w.id !== windowId);
-        useSpacesStore.getState().updateSpace("favorite", {
+        const spacesState = useSpacesStore.getState();
+        spacesState.updateSpace("favorite", {
           ...favoriteSpace,
           windows: updatedWindows,
         });
-        
-        // Não mostra mensagem para remoção por enquanto
-        // setShowMessage(true);
-        // setTimeout(() => setShowMessage(false), 2000);
       }
     } else {
       // Adiciona aos favoritos

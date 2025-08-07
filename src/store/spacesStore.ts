@@ -36,6 +36,8 @@ interface SpacesState {
     updates: Partial<WindowConfig>
   ) => void;
   setWindowMaximized: (id: string, maximized: boolean) => void;
+  updateWindowInActiveSpace: (windowId: string, updates: Partial<WindowConfig>) => void;
+  updateWindowInAnySpace: (windowId: string, updates: Partial<WindowConfig>) => void;
 }
 
 export const useSpacesStore = create<SpacesState>()(devtools((set, get) => ({
@@ -441,6 +443,43 @@ export const useSpacesStore = create<SpacesState>()(devtools((set, get) => ({
               return { ...space, windows: updatedWindows };
             });
             return { spaces };
+          });
+        },
+
+        updateWindowInActiveSpace: (windowId: string, updates: Partial<WindowConfig>) => {
+          set((state) => {
+            const activeSpace = state.spaces.find((s) => s.id === state.activeSpaceId);
+            if (!activeSpace) return state;
+
+            const updatedWindows = activeSpace.windows.map((w) =>
+              w.id === windowId ? { ...w, ...updates } : w
+            );
+            
+            return {
+              spaces: state.spaces.map((s) =>
+                s.id === state.activeSpaceId ? { ...activeSpace, windows: updatedWindows } : s
+              ),
+            };
+          });
+        },
+
+        updateWindowInAnySpace: (windowId: string, updates: Partial<WindowConfig>) => {
+          set((state) => {
+            const spaceWithWindow = state.spaces.find((space) =>
+              space.windows.some((w) => w.id === windowId)
+            );
+            
+            if (!spaceWithWindow) return state;
+
+            const updatedWindows = spaceWithWindow.windows.map((w) =>
+              w.id === windowId ? { ...w, ...updates } : w
+            );
+            
+            return {
+              spaces: state.spaces.map((s) =>
+                s.id === spaceWithWindow.id ? { ...spaceWithWindow, windows: updatedWindows } : s
+              ),
+            };
           });
         },
     }))
