@@ -18,7 +18,6 @@ export const WindowContainerWrapper = styled.div`
   position: relative;
   border-radius: var(--border-radius);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -71,8 +70,7 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   button {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
