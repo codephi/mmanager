@@ -482,7 +482,6 @@ export const WindowContainer: React.FC<Props> = ({
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
       </WindowContent>
       
-      {/* Botão de chat que aparece quando header está ativo */}
       <ChatButton
         className="no-drag chat-tooltip"
         href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}

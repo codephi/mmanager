@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import styled from "styled-components";
+import Toolbar from "./components/Toolbar";
 import { Discovery } from "./pages/Discovery";
 import { AppInitializer } from "./components/AppInitializer";
 import { AgeGate } from "./components/AgeGate";
@@ -44,6 +45,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Discovery />} />
       </Routes>
+      <Toolbar />
     </Wrapper>
   );
 }
