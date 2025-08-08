@@ -489,7 +489,7 @@ export const WindowContainer: React.FC<Props> = ({
         target="_blank"
         rel="noopener noreferrer"
       >
-        Go to chat now!
+        Open live chat
       </ChatButton>
     </WindowContainerWrapper>
   );
