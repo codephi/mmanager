@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
+import { AdblockMessage } from "./AdblockMessage";
 import { useWindowsStore } from "../store/windowsStore";
 import { useSpacesStore } from "../store/windowsMainStore";
 import styled from "styled-components";
@@ -21,24 +22,6 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 var(--element-color);
   
-  /* Esconder o header por padrão */
-  .window-header {
-    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
-    transition: opacity 0.3s ease;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    overflow: visible;
-  }
-  
-  /* Mostrar header no hover (apenas se não for mobile maximizado) */
-  ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
-    &:hover .window-header {
-      opacity: 1;
-    }
-  `}
   
   /* Indicador de gravação - visível por padrão quando gravando */
   .recording-indicator {
@@ -56,29 +39,16 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
       opacity: 0;
     }
   `}
-  
-  /* Botão de chat - visível quando header está ativo */
-  .chat-tooltip {
-    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
-    transition: opacity 0.3s ease;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 11;
-    pointer-events: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? 'auto' : 'none'};
-  }
-  
-  /* Mostrar tooltip no hover (apenas se não for mobile maximizado) */
+
+    /* Mostrar header no hover (apenas se não for mobile maximizado) */
   ${({ $isMobile, $maximized }) => !($isMobile && $maximized) && `
-    &:hover .chat-tooltip {
+    &:hover .hidden {
       opacity: 1;
-      pointer-events: auto;
     }
   `}
 `;
 
-const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
+const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean; $isMobile: boolean }>`
   height: 40px;
   display: flex;
   align-items: center;
@@ -105,6 +75,21 @@ const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean }>`
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.2);
   }
+
+  /* Esconder o header por padrão */
+
+    opacity: ${({ $isMobile, $maximized }) => $isMobile && $maximized ? '1' : '0'};
+    transition: opacity 0.3s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    overflow: visible;
+
+  
+
+  
 `;
 
 const HeaderRight = styled.div`
@@ -220,6 +205,14 @@ const ChatButton = styled.a`
       0 4px 12px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    transition: opacity 0.3s ease;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+    pointer-events: auto;
+    bottom: 20px;
+    opacity: 0;
   }
 
   &:hover {
@@ -231,6 +224,7 @@ const ChatButton = styled.a`
   }
   
 `;
+
 
 export const WindowHeaderButton = styled.button`
   border: none;
@@ -278,6 +272,9 @@ export const WindowContainer: React.FC<Props> = ({
 
   const [isPrivate, setIsPrivate] = useState(false);
   const [copyMessage] = useState<string | null>(null);
+  
+  // Estados para detecção de adblock
+  const [adblockDetected, setAdblockDetected] = useState(false);
 
   const { start, stop, downloads } = useDownloadStore();
   const isRecording = downloads.some((d) => d.id === id);
@@ -354,6 +351,55 @@ export const WindowContainer: React.FC<Props> = ({
     fetchHls(room, id);
   }, [room, id]);
 
+  // Effect para detecção de adblock
+  useEffect(() => {
+    const checkAdblock = () => {
+      // Procura pelo elemento com classe "verify" dentro do componente atual
+      const containerElement = document.querySelector(`[data-window-id="${id}"]`);
+      if (!containerElement) return;
+      
+      const verifyElement = containerElement.querySelector('.verify');
+      const isAdblockActive = !verifyElement || 
+        window.getComputedStyle(verifyElement).display === 'none' ||
+        window.getComputedStyle(verifyElement).visibility === 'hidden';
+      
+      if (isAdblockActive && !adblockDetected) {
+        setAdblockDetected(true);
+        // Para o vídeo quando adblock é detectado
+        setHlsSource(null);
+      } else if (!isAdblockActive && adblockDetected) {
+        setAdblockDetected(false);
+        // Recarrega o HLS quando adblock é removido
+        fetchHls(room, id);
+      }
+    };
+
+    // Verifica imediatamente
+    const initialCheck = setTimeout(checkAdblock, 1000);
+    
+    // Configura um observer para mudanças no DOM
+    const observer = new MutationObserver(() => {
+      checkAdblock();
+    });
+
+    // Observa mudanças no documento inteiro
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+
+    // Também verifica periodicamente como fallback
+    const interval = setInterval(checkAdblock, 2000);
+
+    return () => {
+      clearTimeout(initialCheck);
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, [id, room, adblockDetected]);
+
 
   const toggleRecording = () => {
     if (!hlsSource) {
@@ -414,10 +460,11 @@ export const WindowContainer: React.FC<Props> = ({
       )}
       
       <WindowHeader
-        className="window-header no-drager"
+        className="no-drager hidden"
         $maximized={maximized}
         onMouseDown={() => bringToFront(id)}
         $pinned={isPinned && isFloating}
+        $isMobile={isMobile}
       >
         <a
           href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
@@ -457,7 +504,9 @@ export const WindowContainer: React.FC<Props> = ({
         </HeaderRight>
       </WindowHeader>
       <WindowContent onClick={handleContentClick}>
-        {isOffline ? (
+        {adblockDetected ? (
+          <AdblockMessage />
+        ) : isOffline ? (
           <OfflineText>OFFLINE</OfflineText>
         ) : isPrivate ? (
           <PrivateContainer>
@@ -483,7 +532,7 @@ export const WindowContainer: React.FC<Props> = ({
       </WindowContent>
       
       <ChatButton
-        className="no-drag chat-tooltip"
+        className="no-drag verify hidden"
         href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
         target="_blank"
         rel="noopener noreferrer"
