@@ -69,7 +69,80 @@ export const HlsPlayer: React.FC<Props> = ({
       availableLevels.length > 0
         ? availableLevels[availableLevels.length - 1]
         : levels[0];
-    hls.currentLevel = levels.findIndex((l) => l.height === selected.height);
+    
+    const newLevelIndex = levels.findIndex((l) => l.height === selected.height);
+    
+    // Se já estamos no nível correto, não fazer nada
+    if (hls.currentLevel === newLevelIndex) return;
+    
+    // Implementar transição suave
+    smoothLevelTransition(newLevelIndex);
+  };
+
+  const smoothLevelTransition = async (newLevelIndex: number) => {
+    const hls = hlsRef.current;
+    const video = videoRef.current;
+    if (!hls || !video) return;
+
+    try {
+      // Salvar o tempo atual para sincronização
+      const currentTime = video.currentTime;
+      const wasPlaying = !video.paused;
+
+      // Configurar um buffer maior temporariamente para suavizar a transição
+      const originalConfig = {
+        maxBufferLength: hls.config.maxBufferLength,
+        maxMaxBufferLength: hls.config.maxMaxBufferLength,
+        maxBufferSize: hls.config.maxBufferSize,
+      };
+
+      // Aumentar buffer temporariamente
+      hls.config.maxBufferLength = 60; // 60 segundos
+      hls.config.maxMaxBufferLength = 120; // 120 segundos  
+      hls.config.maxBufferSize = 60 * 1000 * 1000; // 60MB
+
+      // Forçar a mudança de nível
+      hls.currentLevel = newLevelIndex;
+
+      // Aguardar alguns frames para o HLS processar a mudança
+      await new Promise(resolve => {
+        const checkBuffer = () => {
+          if (video.buffered.length > 0) {
+            const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+            if (bufferedEnd > currentTime + 2) { // 2 segundos de buffer à frente
+              resolve(void 0);
+              return;
+            }
+          }
+          requestAnimationFrame(checkBuffer);
+        };
+        
+        // Timeout de segurança
+        setTimeout(resolve, 1000);
+        checkBuffer();
+      });
+
+      // Tentar manter a reprodução contínua
+      if (wasPlaying && video.paused) {
+        try {
+          await video.play();
+        } catch (error) {
+          console.warn('Erro ao retomar reprodução:', error);
+        }
+      }
+
+      // Restaurar configurações originais após um tempo
+      setTimeout(() => {
+        if (hls && hls.config) {
+          Object.assign(hls.config, originalConfig);
+        }
+      }, 5000);
+
+    } catch (error) {
+      console.warn('Erro na transição suave de qualidade:', error);
+      // Fallback: mudança direta sem otimizações
+      hls.currentLevel = newLevelIndex;
+    }
   };
 
   const initializeHls = () => {

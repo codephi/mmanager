@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { HlsPlayer } from "./HlsPlayer";
 import { VolumeControl } from "./VolumeControl";
 import { AdblockMessage } from "./AdblockMessage";
-import { useWindowsStore } from "../store/windowsStore";
 import { useSpacesStore } from "../store/windowsMainStore";
 import styled from "styled-components";
-import { Close, Maximize, Minimize, Pin, Unpin } from "../icons";
+import { Maximize, Minimize, Pin, Unpin } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
@@ -261,7 +260,6 @@ export const WindowContainer: React.FC<Props> = ({
   isMobile = false,
   scrollElementRef,
 }) => {
-  const removeWindow = useWindowsStore((s) => s.removeWindow);
   const bringToFront = useSpacesStore((s) => s.bringToFront);
   const togglePin = useSpacesStore((s) => s.togglePin);
   const setWindowMaximized = useSpacesStore((s) => s.setWindowMaximized);
@@ -493,14 +491,6 @@ export const WindowContainer: React.FC<Props> = ({
           <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
             {maximized ? <Minimize /> : <Maximize />}
           </WindowHeaderButton>
-          {!isPinned && (
-            <WindowHeaderButton
-              className="no-drag"
-              onClick={() => removeWindow(id)}
-            >
-              <Close />
-            </WindowHeaderButton>
-          )}
         </HeaderRight>
       </WindowHeader>
       <WindowContent onClick={handleContentClick}>
