@@ -45,7 +45,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Discovery />} />
       </Routes>
-      <Toolbar />
     </Wrapper>
   );
 }
