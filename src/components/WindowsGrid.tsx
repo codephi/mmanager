@@ -66,7 +66,6 @@ const Wrapper = styled.div<{ $isMobile: boolean }>`
 export const WindowsGrid: React.FC = () => {
   const storeWindows = useSpacesStore((s) => s.windows);
   const filterMode = useSpacesStore((s) => s.filterMode);
-  const pinnedWindows = useSpacesStore((s) => s.pinnedWindows);
   const updateWindow = useSpacesStore((s) => s.updateWindow);
   const { isMobile } = useMobile();
   const [displayWindows, setDisplayWindows] = useState<WindowConfig[]>([]);
@@ -136,7 +135,7 @@ export const WindowsGrid: React.FC = () => {
       setRowHeight(100);
       setColsValue(1);
     }
-  }, [storeWindows, pinnedWindows, filterMode]);
+  }, [storeWindows, filterMode]);
 
   // Função para comparar se o layout realmente mudou
   const layoutsAreEqual = useCallback((layout1: Layout[], layout2: Layout[]) => {
@@ -300,7 +299,6 @@ export const WindowsGrid: React.FC = () => {
             <WindowContainer
               id={win.id}
               room={win.room}
-              pinned={win.pinned}
               onMaximize={() => handleMaximize(win.id)}
               onMinimize={() => handleMinimize(win.id)}
               isMobile={isMobile}

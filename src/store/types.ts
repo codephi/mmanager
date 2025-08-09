@@ -7,16 +7,11 @@ export interface WindowConfig {
   h: number; // altura em linhas
   width: number;
   height: number;
-  pinned?: boolean;
   isOnline?: boolean;
   isMuted?: boolean;
   volume?: number;
   isPaused?: boolean;
   maximized?: boolean;
-  pinnedX: number;
-  pinnedY: number;
-  pinnedWidth: number;
-  pinnedHeight: number;
 }
 
 export interface SpaceConfig {

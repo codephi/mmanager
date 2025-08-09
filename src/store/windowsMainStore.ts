@@ -9,7 +9,6 @@ interface WindowsState {
   windows: WindowConfig[];
   globalMuted: boolean;
   filterMode: FilterMode;
-  pinnedWindows: WindowConfig[];
   zIndexes: Record<string, number>;
   bringToFront: (id: string) => void;
   arrangeWindows: () => void;
@@ -19,11 +18,6 @@ interface WindowsState {
   toggleGlobalMuted: () => void;
   toggleWindowMute: (windowId: string) => void;
   setGlobalMuted: (muted: boolean) => void;
-  togglePin: (windowId: string) => void;
-  updatePinnedWindow: (
-    windowId: string,
-    updates: Partial<WindowConfig>
-  ) => void;
   setWindowMaximized: (id: string, maximized: boolean) => void;
   updateWindow: (windowId: string, updates: Partial<WindowConfig>) => void;
   setWindows: (windows: WindowConfig[]) => void;
@@ -31,7 +25,6 @@ interface WindowsState {
 
 export const useSpacesStore = create<WindowsState>()(devtools((set, get) => ({
   windows: [],
-  pinnedWindows: [],
   globalMuted: false,
   filterMode: "online",
   zIndexes: {},
@@ -134,39 +127,6 @@ export const useSpacesStore = create<WindowsState>()(devtools((set, get) => ({
     set((state) => ({
       windows: state.windows.map((w) => ({ ...w, isMuted: muted })),
       globalMuted: muted,
-    }));
-  },
-
-  togglePin: (windowId) => {
-    set((state) => {
-      const alreadyPinned = state.pinnedWindows.some((w) => w.id === windowId);
-      const window = state.windows.find((w) => w.id === windowId);
-      
-      if (!window) return state;
-      
-      const updatedWindows = state.windows.map((w) =>
-        w.id === windowId ? { ...w, pinned: !alreadyPinned } : w
-      );
-
-      let updatedPinnedWindows;
-      if (alreadyPinned) {
-        updatedPinnedWindows = state.pinnedWindows.filter((w) => w.id !== windowId);
-      } else {
-        updatedPinnedWindows = [...state.pinnedWindows, { ...window, pinned: true }];
-      }
-
-      return {
-        windows: updatedWindows,
-        pinnedWindows: updatedPinnedWindows,
-      };
-    });
-  },
-
-  updatePinnedWindow: (id, updates) => {
-    set((state) => ({
-      pinnedWindows: state.pinnedWindows.map((w) =>
-        w.id === id ? { ...w, ...updates, zIndex: 100000 } : w
-      ),
     }));
   },
 

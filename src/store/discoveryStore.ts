@@ -15,8 +15,6 @@ interface DiscoveryState {
   loadDiscoveryPage: (offset: number, force?: boolean) => Promise<void>;
   loadDiscovery: () => Promise<void>;
   setDiscoveryLimit: (limit: number) => void;
-  togglePin: (windowId: string) => void;
-  addSpaceFromPinned: () => void;
 }
 
 const getQueryParam = (param: string): string | null => {
@@ -78,20 +76,10 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     if (!force && state.isLoadingDiscovery) return;
     set({ isLoadingDiscovery: true });
 
-    const pinned = windowsState.pinnedWindows;
     const availableSlots = state.discoveryLimit <= 0 ? 0 : state.discoveryLimit;
 
     if (availableSlots === 0) {
-      const updatedWindows = arrangeWindowsInternal({
-        id: "main",
-        name: "Main",
-        windows: pinned,
-        zIndexes: Object.fromEntries(pinned.map((w, idx) => [w.id, idx + 1])),
-        autoArrange: true,
-      });
-
-      windowsState.setWindows(updatedWindows.windows);
-
+      windowsState.setWindows([]);
       set({ discoveryOffset: 0, isLoadingDiscovery: false });
       return;
     }
@@ -127,11 +115,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         height: 600,
         volume: 0.5,
         isMuted: true,
-        pinnedX: 50,
-        pinnedY: 50,
-        pinnedWidth: 350,
-        pinnedHeight: 250,
-        pinned: false,
         isOnline: true,
       }));
 
@@ -139,10 +122,9 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         id: "main",
         name: "Main",
         windows: newWindows,
-        zIndexes: Object.fromEntries([
-          ...pinned.map((w) => [w.id, 9999]),
-          ...newWindows.map((w, idx) => [w.id, idx + 1]),
-        ]),
+        zIndexes: Object.fromEntries(
+          newWindows.map((w, idx) => [w.id, idx + 1])
+        ),
         autoArrange: true,
       });
 
@@ -160,7 +142,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     } catch (error) {
       console.error('[DiscoveryStore] Error loading discovery page:', error);
       
-      // Em caso de erro, define valores seguros
+      // Em caso de erro, define valores seguros e limpa as janelas
       set({
         discoveryOffset: newOffset,
         isLoadingDiscovery: false,
@@ -168,20 +150,7 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
         totalPages: 1,
       });
       
-      // Se há janelas fixadas, mantém elas
-      if (pinned.length > 0) {
-        const updatedWindows = arrangeWindowsInternal({
-          id: "main",
-          name: "Main",
-          windows: pinned,
-          zIndexes: Object.fromEntries(pinned.map((w, idx) => [w.id, idx + 1])),
-          autoArrange: true,
-        });
-        windowsState.setWindows(updatedWindows.windows);
-      } else {
-        // Se não há janelas fixadas, limpa tudo
-        windowsState.setWindows([]);
-      }
+      windowsState.setWindows([]);
     }
   },
 
@@ -191,16 +160,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     get().loadDiscoveryPage(0).catch(error => {
       console.error('[DiscoveryStore] Error in setDiscoveryLimit:', error);
     });
-  },
-
-  togglePin: (windowId: string) => {
-    const windowsState = useSpacesStore.getState();
-    windowsState.togglePin(windowId);
-  },
-
-  addSpaceFromPinned: () => {
-    // Esta funcionalidade não é mais necessária em um sistema sem múltiplos spaces
-    console.log("addSpaceFromPinned não é mais suportado");
   },
 
   goToDiscoveryPage: async (page: number) => {

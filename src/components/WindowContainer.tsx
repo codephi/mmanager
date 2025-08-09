@@ -4,7 +4,7 @@ import { VolumeControl } from "./VolumeControl";
 import { AdblockMessage } from "./AdblockMessage";
 import { useSpacesStore } from "../store/windowsMainStore";
 import styled from "styled-components";
-import { Maximize, Minimize, Pin, Unpin } from "../icons";
+import { Maximize, Minimize } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
 
@@ -47,7 +47,7 @@ export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximize
   `}
 `;
 
-const WindowHeader = styled.div<{ $maximized: boolean; $pinned?: boolean; $isMobile: boolean }>`
+const WindowHeader = styled.div<{ $maximized: boolean; $isMobile: boolean }>`
   height: 40px;
   display: flex;
   align-items: center;
@@ -242,7 +242,6 @@ export const WindowHeaderButton = styled.button`
 interface Props {
   id: string;
   room: string;
-  pinned?: boolean;
   isFloating?: boolean;
   onMaximize: () => void;
   onMinimize?: () => void;
@@ -253,18 +252,14 @@ interface Props {
 export const WindowContainer: React.FC<Props> = ({
   id,
   room,
-  pinned,
   onMaximize,
   onMinimize,
-  isFloating,
   isMobile = false,
   scrollElementRef,
 }) => {
   const bringToFront = useSpacesStore((s) => s.bringToFront);
-  const togglePin = useSpacesStore((s) => s.togglePin);
   const setWindowMaximized = useSpacesStore((s) => s.setWindowMaximized);
   const [maximized, setMaximized] = useState(false);
-  const isPinned = pinned ?? false;
   const [hlsSource, setHlsSource] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
 
@@ -461,7 +456,6 @@ export const WindowContainer: React.FC<Props> = ({
         className="no-drager hidden"
         $maximized={maximized}
         onMouseDown={() => bringToFront(id)}
-        $pinned={isPinned && isFloating}
         $isMobile={isMobile}
       >
         <a
@@ -484,9 +478,6 @@ export const WindowContainer: React.FC<Props> = ({
             onVolumeChange={setVolume}
             className="no-drag"
           />
-          <WindowHeaderButton onClick={() => togglePin(id)}>
-            {isPinned ? <Pin /> : <Unpin />}
-          </WindowHeaderButton>
 
           <WindowHeaderButton className="no-drag" onClick={toggleMaximize}>
             {maximized ? <Minimize /> : <Maximize />}
