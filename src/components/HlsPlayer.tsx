@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import styled from "styled-components";
 
-const Wrapper = styled.div<{ backgroundImage?: string; $videoLoaded: boolean }>`
+const Wrapper = styled.div<{ backgroundImage?: string; $videoLoaded: boolean; $pannable?: boolean }>`
   width: 100%;
   height: 100%;
   position: relative;
@@ -17,21 +17,39 @@ const Wrapper = styled.div<{ backgroundImage?: string; $videoLoaded: boolean }>`
   transition: background 0.3s ease, background-image 0.3s ease, opacity 0.3s ease;
   background-repeat: no-repeat;
   background-size: cover;
+  
+  /* Pan controls quando pannable */
+  touch-action: ${({ $pannable }) => $pannable ? 'pan-x' : 'auto'};
+  cursor: ${({ $pannable }) => $pannable ? 'grab' : 'default'};
+  
+  &:active {
+    cursor: ${({ $pannable }) => $pannable ? 'grabbing' : 'default'};
+  }
+  
 `;
 
-const VideoElement = styled.video<{ $loaded: boolean }>`
-  width: 100%;
+const VideoElement = styled.video<{ $loaded: boolean; $pannable?: boolean; $translateX?: number; $isDragging?: boolean }>`
+  ${({ $pannable }) => !$pannable && `
+    object-fit: cover;
+  `}
+
   height: 100%;
-  object-fit: cover;
+  position: absolute;
   display: block;
+  min-width: 100%;
   opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
-  transition: opacity 500ms ease-in-out;
+  transition: ${({ $isDragging }) => 
+    $isDragging ? 'none' : 'opacity 500ms ease-in-out, transform 0.3s ease-out'
+  };
+  transform: translateX(${({ $translateX = 0 }) => $translateX}px);
+  will-change: ${({ $pannable }) => $pannable ? 'transform' : 'auto'};
 `;
 
 interface Props {
   src: string;
   muted: boolean;
   volume: number;
+  pannable?: boolean;
   onError?: () => void;
   onData?: (data: Uint8Array) => void;
 }
@@ -40,6 +58,7 @@ export const HlsPlayer: React.FC<Props> = ({
   src,
   muted,
   volume,
+  pannable = false,
   onError,
   onData,
 }) => {
@@ -50,6 +69,12 @@ export const HlsPlayer: React.FC<Props> = ({
   const [paused, setPaused] = useState(false);
   const [snapshot, setSnapshot] = useState<string | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  
+  // Estados para pan
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [lastPos, setLastPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const getTargetResolution = (h: number): number => {
     if (h <= 180) return 180;
@@ -231,27 +256,101 @@ export const HlsPlayer: React.FC<Props> = ({
   }, [src]);
 
   useEffect(() => {
-    // const video = videoRef.current;
-    // const hls = hlsRef.current;
-    // if (!video || !hls) return;
-    // if (paused) {
-    //   captureSnapshot(); // captura o frame antes de parar
-    //   video.pause();
-    //   hls.stopLoad();
-    //   initialized.current = false;
-    // } else {
-    //   if (!initialized.current) {
-    //     initializeHls();
-    //   }
-    // }
-  }, [paused]);
-
-  useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = muted;
       videoRef.current.volume = volume;
     }
   }, [muted, volume]);
+
+  // Reset pan position quando não pannable
+  useEffect(() => {
+    if (!pannable) {
+      setTranslateX(0);
+      setLastPos({ x: 0, y: 0 });
+    }
+  }, [pannable]);
+
+  // Funções de pan
+  const getPanLimits = () => {
+    if (!containerRef.current || !videoRef.current) return { maxX: 0 };
+    
+    const container = containerRef.current;
+    const video = videoRef.current;
+    
+    const containerRect = container.getBoundingClientRect();
+    const videoRect = video.getBoundingClientRect();
+    
+    const maxX = Math.max(0, (videoRect.width - containerRect.width) / 2);
+    return { maxX };
+  };
+
+  const applyPanLimits = (x: number) => {
+    const { maxX } = getPanLimits();
+    return Math.max(-maxX, Math.min(maxX, x));
+  };
+
+  const handleStart = (clientX: number) => {
+    if (!pannable) return;
+    setIsDragging(true);
+    setStartPos({ x: clientX, y: 0 });
+    setLastPos({ x: translateX, y: 0 });
+  };
+
+  const handleMove = (clientX: number) => {
+    if (!pannable || !isDragging || !startPos) return;
+    const deltaX = clientX - startPos.x;
+    const newX = lastPos.x + deltaX;
+    const clampedX = applyPanLimits(newX);
+    setTranslateX(clampedX);
+  };
+
+  const handleEnd = () => {
+    if (!pannable) return;
+    setIsDragging(false);
+    setStartPos(null);
+  };
+
+  const handleDoubleClick = () => {
+    if (!pannable) return;
+    setTranslateX(0);
+    setLastPos({ x: 0, y: 0 });
+  };
+
+  // Effect para adicionar event listeners com passive: false
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !pannable) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        handleStart(touch.clientX);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault(); // Agora funciona!
+        const touch = e.touches[0];
+        handleMove(touch.clientX);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      handleEnd();
+    };
+
+    // Adicionar com passive: false para permitir preventDefault
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pannable, isDragging, translateX, startPos, lastPos]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -280,6 +379,16 @@ export const HlsPlayer: React.FC<Props> = ({
       ref={containerRef} 
       backgroundImage={snapshot || undefined}
       $videoLoaded={videoLoaded}
+      $pannable={pannable}
+      onMouseDown={pannable ? (e) => {
+        e.preventDefault();
+        handleStart(e.clientX);
+      } : undefined}
+      onMouseMove={pannable && isDragging ? (e) => handleMove(e.clientX) : undefined}
+      onMouseUp={pannable ? handleEnd : undefined}
+      onMouseLeave={pannable ? handleEnd : undefined}
+      onDoubleClick={pannable ? handleDoubleClick : undefined}
+      onContextMenu={pannable ? (e) => e.preventDefault() : undefined}
     >
       <VideoElement
         ref={videoRef}
@@ -287,6 +396,9 @@ export const HlsPlayer: React.FC<Props> = ({
         playsInline
         controls={false}
         $loaded={videoLoaded}
+        $pannable={pannable}
+        $translateX={translateX}
+        $isDragging={isDragging}
       />
     </Wrapper>
   );

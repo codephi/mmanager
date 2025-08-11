@@ -415,6 +415,11 @@ export const WindowContainer: React.FC<Props> = ({
 
   // Função para lidar com clique no conteúdo no mobile
   const handleContentClick = () => {
+    // Se é mobile maximizado com pan ativo, não fazer nada (deixar o pan funcionar)
+    if (isMobile && maximized) {
+      return;
+    }
+    
     if (isMobile && !maximized) {
       toggleMaximize();
       // Scroll automático para a janela maximizada no mobile
@@ -512,7 +517,14 @@ export const WindowContainer: React.FC<Props> = ({
             <LoadingContainer>
               <LoadingSpinner />
             </LoadingContainer>
-            {hlsSource && <HlsPlayer src={hlsSource} muted={muted} volume={volume} />}
+            {hlsSource && (
+              <HlsPlayer 
+                src={hlsSource} 
+                muted={muted} 
+                volume={volume} 
+                pannable={isMobile && maximized}
+              />
+            )}
           </VideoContainer>
         )}
         {copyMessage && <CopyMessage>{copyMessage}</CopyMessage>}
