@@ -188,7 +188,7 @@ const RecordingIndicator = styled.div`
   justify-content: center;
 `;
 
-const ChatButton = styled.a`
+const ChatButton = styled.a<{ $isMobile: boolean; $maximized: boolean }>`
   &, &:active {
     background: var(--secundary-color);
     color: #fff;
@@ -211,7 +211,9 @@ const ChatButton = styled.a`
     z-index: 11;
     pointer-events: auto;
     bottom: 20px;
-    opacity: 0;
+    /* Ajusta opacidade baseado no estado mobile/maximized */
+    opacity: ${({ $isMobile, $maximized }) => 
+      $isMobile && $maximized ? '1' : '0'};
   }
 
   &:hover {
@@ -219,9 +221,13 @@ const ChatButton = styled.a`
     color: #fff;
     box-shadow: 
       0 4px 12px rgba(0, 0, 0, 0.3);
-    text-decoration: none;;
+    text-decoration: none;
   }
   
+  /* Media query para mobile */
+  @media (max-width: 768px) {
+    opacity: ${({ $maximized }) => $maximized ? '1' : '0'};
+  }
 `;
 
 
@@ -517,6 +523,8 @@ export const WindowContainer: React.FC<Props> = ({
         href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
         target="_blank"
         rel="noopener noreferrer"
+        $isMobile={isMobile}
+        $maximized={maximized}
       >
         Open live chat
       </ChatButton>
