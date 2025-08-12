@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Query Params Behavior</title>
+</head>
+<body>
+    <h1>Query Params Test</h1>
+    
+    <div>
+        <h3>Current State:</h3>
+        <div id="current-state"></div>
+    </div>
+    
+    <div>
+        <h3>Tests:</h3>
+        <button onclick="testDesktop()">Simulate Desktop (width: 1200px)</button>
+        <button onclick="testMobile()">Simulate Mobile (width: 600px)</button>
+        <br><br>
+        <button onclick="testCase1()">Test: page=1, limit=12 (desktop)</button>
+        <button onclick="testCase2()">Test: page=2, limit=12 (desktop)</button>
+        <button onclick="testCase3()">Test: page=1, limit=6 (mobile)</button>
+        <button onclick="testCase4()">Test: page=2, limit=6 (mobile)</button>
+        <br><br>
+        <button onclick="testCase5()">Test: page=3, limit=24 (both)</button>
+    </div>
+    
+    <div>
+        <h3>Results:</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Mock window object
+        let mockWindow = {
+            innerWidth: 1200,
+            location: { search: '', pathname: '/' },
+            history: { 
+                replaceState: function(state, title, url) {
+                    console.log('URL would be updated to:', url);
+                    document.getElementById('results').innerHTML += `<div>URL updated to: ${url}</div>`;
+                }
+            }
+        };
+        
+        function getDefaultLimit() {
+            const isMobile = mockWindow.innerWidth < 768;
+            return isMobile ? 6 : 12;
+        }
+        
+        function updateQueryParams(page, limit, replace = true) {
+            const urlParams = new URLSearchParams(mockWindow.location.search);
+            
+            // Remove parâmetros se forem valores padrão
+            if (page !== undefined) {
+                if (page > 1) {
+                    urlParams.set('page', page.toString());
+                } else {
+                    urlParams.delete('page');
+                }
+            }
+            
+            if (limit !== undefined) {
+                const defaultLimit = getDefaultLimit();
+                if (limit !== defaultLimit) {
+                    urlParams.set('limit', limit.toString());
+                } else {
+                    urlParams.delete('limit');
+                }
+            }
+            
+            const newUrl = `${mockWindow.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+            
+            if (replace) {
+                mockWindow.history.replaceState({}, '', newUrl);
+            }
+        }
+        
+        function updateCurrentState() {
+            document.getElementById('current-state').innerHTML = `
+                Screen Width: ${mockWindow.innerWidth}px (${mockWindow.innerWidth < 768 ? 'Mobile' : 'Desktop'})<br>
+                Default Limit: ${getDefaultLimit()}<br>
+                Current URL: ${mockWindow.location.pathname}${mockWindow.location.search}
+            `;
+        }
+        
+        function testDesktop() {
+            mockWindow.innerWidth = 1200;
+            updateCurrentState();
+            document.getElementById('results').innerHTML = '<div>🖥️ Desktop mode activated</div>';
+        }
+        
+        function testMobile() {
+            mockWindow.innerWidth = 600;
+            updateCurrentState();
+            document.getElementById('results').innerHTML = '<div>📱 Mobile mode activated</div>';
+        }
+        
+        function testCase1() {
+            mockWindow.innerWidth = 1200; // Desktop
+            mockWindow.location.search = '';
+            document.getElementById('results').innerHTML = '<div><strong>Test Case 1: Desktop - page=1, limit=12 (both defaults)</strong></div>';
+            updateQueryParams(1, 12);
+            updateCurrentState();
+        }
+        
+        function testCase2() {
+            mockWindow.innerWidth = 1200; // Desktop
+            mockWindow.location.search = '';
+            document.getElementById('results').innerHTML = '<div><strong>Test Case 2: Desktop - page=2, limit=12 (limit is default)</strong></div>';
+            updateQueryParams(2, 12);
+            updateCurrentState();
+        }
+        
+        function testCase3() {
+            mockWindow.innerWidth = 600; // Mobile
+            mockWindow.location.search = '';
+            document.getElementById('results').innerHTML = '<div><strong>Test Case 3: Mobile - page=1, limit=6 (both defaults)</strong></div>';
+            updateQueryParams(1, 6);
+            updateCurrentState();
+        }
+        
+        function testCase4() {
+            mockWindow.innerWidth = 600; // Mobile
+            mockWindow.location.search = '';
+            document.getElementById('results').innerHTML = '<div><strong>Test Case 4: Mobile - page=2, limit=6 (limit is default)</strong></div>';
+            updateQueryParams(2, 6);
+            updateCurrentState();
+        }
+        
+        function testCase5() {
+            mockWindow.location.search = '';
+            document.getElementById('results').innerHTML = '<div><strong>Test Case 5: page=3, limit=24 (both non-default)</strong></div>';
+            updateQueryParams(3, 24);
+            updateCurrentState();
+        }
+        
+        // Initialize
+        updateCurrentState();
+    </script>
+</body>
+</html>

@@ -1,11 +1,14 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import styled from "styled-components";
-import Toolbar from "./components/Toolbar";
 import { Discovery } from "./pages/Discovery";
 import { AppInitializer } from "./components/AppInitializer";
-import { AgeGate } from "./components/AgeGate";
 import { useViewportHeight } from "./hooks/useViewportHeight";
 import { useAgeGate } from "./hooks/useAgeGate";
+
+// Lazy load dos componentes menos críticos
+const Toolbar = lazy(() => import("./components/Toolbar"));
+const AgeGate = lazy(() => import("./components/AgeGate").then(module => ({ default: module.AgeGate })));
 
 const Wrapper = styled.div`
   width: 100vw;
@@ -41,11 +44,15 @@ function App() {
   return (
     <Wrapper>
       <AppInitializer />
-      { !isAccepted && <AgeGate onAccept={acceptAgeGate} />}
+      <Suspense fallback={null}>
+        { !isAccepted && <AgeGate onAccept={acceptAgeGate} />}
+      </Suspense>
       <Routes>
         <Route path="/" element={<Discovery />} />
       </Routes>
-      <Toolbar />
+      <Suspense fallback={null}>
+        <Toolbar />
+      </Suspense>
     </Wrapper>
   );
 }
