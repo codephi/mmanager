@@ -10,7 +10,7 @@ const PaginationContainer = styled.div`
   user-select: none;
 `;
 
-const PageButton = styled.button<{ $active?: boolean }>`
+const PageButton = styled(({ as: Component = 'button', ...props }) => <Component {...props} />)<{ $active?: boolean }>`
   font-weight: ${({ $active }) => ($active ? "bold" : "normal")};
   background: ${({ $active }) => ($active ? "var(--primary-color)" : "transparent")};
   border: none;
@@ -18,9 +18,24 @@ const PageButton = styled.button<{ $active?: boolean }>`
   padding: 6px 10px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  
+  &:hover:not(:disabled) {
+    background: var(--primary-color-hover);
+  }
 `;
 
-const NavButton = styled.button<{ disabled?: boolean }>`
+const NavButton = styled(({ as: Component = 'button', ...props }) => <Component {...props} />)<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,11 +47,22 @@ const NavButton = styled.button<{ disabled?: boolean }>`
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
   transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
   
   &:hover:not(:disabled) {
-    color: --var(--primary-color);
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  &:disabled {
+    pointer-events: none;
   }
 `;
 
@@ -114,9 +140,16 @@ export const Pagination: React.FC<PaginationProps> = ({
   return (
     <PaginationContainer>
       <NavButton
+        as="a"
+        href={`#page-${currentPage - 1}`}
         disabled={currentPage === 1}
-        onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+        onClick={(e) => {
+          e.preventDefault();
+          currentPage > 1 && onPageChange(currentPage - 1);
+        }}
         aria-label="Previous page"
+        role="button"
+        tabIndex={currentPage === 1 ? -1 : 0}
       >
         <ChevronLeft size={16} />
       </NavButton>
@@ -125,20 +158,31 @@ export const Pagination: React.FC<PaginationProps> = ({
           <span key={`ellipsis-${idx}`}>...</span>
         ) : (
           <PageButton
+            as="a"
+            href={`#page-${p}`}
             key={p}
             $active={p === currentPage}
-            onClick={() => onPageChange(p as number)}
+            onClick={(e) => {
+              e.preventDefault();
+              onPageChange(p as number);
+            }}
+            role="button"
           >
             {p}
           </PageButton>
         )
       )}
       <NavButton
+        as="a"
+        href={`#page-${currentPage + 1}`}
         disabled={currentPage === totalPages}
-        onClick={() =>
-          currentPage < totalPages && onPageChange(currentPage + 1)
-        }
+        onClick={(e) => {
+          e.preventDefault();
+          currentPage < totalPages && onPageChange(currentPage + 1);
+        }}
         aria-label="Next page"
+        role="button"
+        tabIndex={currentPage === totalPages ? -1 : 0}
       >
         <ChevronRight size={16} />
       </NavButton>

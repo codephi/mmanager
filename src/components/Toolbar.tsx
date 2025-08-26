@@ -88,8 +88,8 @@ const AudioMuteIcon = styled(AudioMute)`
   margin-right: 6px;
 `;
 
-const Button = styled.button<{ $active?: boolean }>`
-  display: flex;
+const Button = styled(({ as: Component = 'button', ...props }) => <Component {...props} />)<{ $active?: boolean }>`
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   background: ${({ $active }) =>
@@ -102,10 +102,26 @@ const Button = styled.button<{ $active?: boolean }>`
   transition: all 0.2s ease;
   border-radius: 6px;
   border: 1px solid var(--element-color);
+  text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+  font-size: inherit;
+  font-family: inherit;
+  height: 40px;
   
   &:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  
+  &:active {
+    transform: translateY(1px);
   }
 `;
 
@@ -158,17 +174,29 @@ function Toolbar() {
         {/* Linha 2: Todos os botões */}
         <LeftOptions $isMobile={isMobile}>
           <Button
+            as="a"
+            href="/"
             key={"discovery"}
-            onClick={() => navigate("/")}
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              e.preventDefault();
+              navigate("/");
+            }}
             $active={isDiscovery}
             title="Discovery"
+            role="button"
           >
             <Search size={16} />
           </Button>
-          <MobileButton onClick={handlerGlobalMuted} title="Mute All">
+          <MobileButton
+            onClick={handlerGlobalMuted}
+            title="Mute All"
+          >
             <AudioMute size={16} />
           </MobileButton>
-          <MobileButton onClick={() => rearrangeWindows(true)} title="Arrange">
+          <MobileButton
+            onClick={() => rearrangeWindows(true)}
+            title="Arrange"
+          >
             <Arrange size={16} />
           </MobileButton>
             <LimitSelector
@@ -188,15 +216,31 @@ function Toolbar() {
     <ToolbarContainer $isMobile={isMobile}>
       <LeftOptions $isMobile={isMobile}>
         <Button
+          as="a"
+          href="/"
           key={"discovery"}
-          onClick={() => navigate("/")}
+          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+            e.preventDefault();
+            navigate("/");
+          }}
           $active={isDiscovery}
+          role="button"
         >
           <Search size={16} style={{ marginRight: "6px" }} />
           Discovery
         </Button>
-        <button onClick={handlerGlobalMuted}><AudioMuteIcon size={16}/>Mute All</button>
-        <button onClick={() => rearrangeWindows(true)}><Arrange size={16} style={{ marginRight: "6px" }} />Arrange</button>
+        <Button
+          onClick={handlerGlobalMuted}
+        >
+          <AudioMuteIcon size={16}/>
+          Mute All
+        </Button>
+        <Button
+          onClick={() => rearrangeWindows(true)}
+        >
+          <Arrange size={16} style={{ marginRight: "6px" }} />
+          Arrange
+        </Button>
       </LeftOptions>
 
       <CenterOptions $isMobile={isMobile}>
