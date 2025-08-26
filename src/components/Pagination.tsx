@@ -143,7 +143,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         as="a"
         href={`#page-${currentPage - 1}`}
         disabled={currentPage === 1}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
           e.preventDefault();
           currentPage > 1 && onPageChange(currentPage - 1);
         }}
@@ -176,7 +176,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         as="a"
         href={`#page-${currentPage + 1}`}
         disabled={currentPage === totalPages}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
           e.preventDefault();
           currentPage < totalPages && onPageChange(currentPage + 1);
         }}

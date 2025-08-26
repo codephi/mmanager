@@ -204,7 +204,7 @@ export const HlsPlayer: React.FC<Props> = ({
     }
 
     // Otimizar detecção de carregamento do vídeo
-    let loadTimeout: NodeJS.Timeout;
+    let loadTimeout: ReturnType<typeof setTimeout>;
 
     const handleLoadedMetadata = () => {
       // Usar loadedmetadata ao invés de loadeddata para detecção mais rápida
@@ -272,7 +272,7 @@ export const HlsPlayer: React.FC<Props> = ({
       });
 
       // Debounce para otimizar mudanças de resolução
-      let resizeTimeout: NodeJS.Timeout;
+      let resizeTimeout: ReturnType<typeof setTimeout>;
       const debouncedResize = (entries: ResizeObserverEntry[]) => {
         for (const entry of entries) {
           selectLevel(entry.contentRect.height);
