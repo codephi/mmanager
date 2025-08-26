@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { Maximize, Minimize } from "../icons";
 import RecordButton from "./RecordButton";
 import { useDownloadStore } from "../store/downloadStore";
+import { trackMaximizeClick, trackRecordingClick, trackChatClick } from "../utils/analytics";
 
 export const WindowContainerWrapper = styled.div<{ $isMobile: boolean; $maximized: boolean }>`
   width: 100%;
@@ -299,6 +300,9 @@ export const WindowContainer: React.FC<Props> = ({
     
     // Atualiza o estado na store
     setWindowMaximized(id, value);
+    
+    // Track evento no Google Analytics
+    trackMaximizeClick(room, maximized);
 
     if (value) {
       onMaximize();
@@ -405,6 +409,9 @@ export const WindowContainer: React.FC<Props> = ({
       alert("Stream não disponível");
       return;
     }
+    
+    // Track evento no Google Analytics
+    trackRecordingClick(room, isRecording);
 
     if (!isRecording) {
       start(id, room, hlsSource);
@@ -487,6 +494,7 @@ export const WindowContainer: React.FC<Props> = ({
             volume={volume}
             onMuteToggle={toggleMute}
             onVolumeChange={setVolume}
+            streamTitle={room}
             className="no-drag"
           />
 
@@ -535,6 +543,7 @@ export const WindowContainer: React.FC<Props> = ({
         href={`https://chaturbate.com/in/?tour=YrCp&campaign=XW3KB&track=default&room=${typeof room === 'string' ? room : String(room)}`}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackChatClick(room)}
         $isMobile={isMobile}
         $maximized={maximized}
       >

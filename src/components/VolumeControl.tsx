@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import { AudioMute, AudioUnmute } from "../icons";
 import { WindowHeaderButton } from "./WindowContainer";
+import { trackVolumeClick } from "../utils/analytics";
 
 const SliderContainer = styled.div`
   position: absolute;
@@ -75,13 +76,15 @@ interface VolumeControlProps {
   onMuteToggle: () => void;
   onVolumeChange: (value: number) => void;
   className?: string;
+  streamTitle?: string; // Para tracking do Google Analytics
 }
 
 export const VolumeControl: React.FC<VolumeControlProps> = ({
   muted,
   volume,
   onMuteToggle,
-  onVolumeChange
+  onVolumeChange,
+  streamTitle = ''
 }) => {
   const [hover, setHover] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -128,7 +131,16 @@ export const VolumeControl: React.FC<VolumeControlProps> = ({
       style={{ position: "relative" }}
       className="no-drag"
     >
-      <WindowHeaderButton onClick={onMuteToggle} className="no-drag">
+      <WindowHeaderButton 
+        onClick={() => {
+          onMuteToggle();
+          // Track evento no Google Analytics
+          if (streamTitle) {
+            trackVolumeClick(streamTitle, muted ? 'unmute' : 'mute');
+          }
+        }} 
+        className="no-drag"
+      >
         {muted || volume === 0 ? <AudioMute /> : <AudioUnmute />}
       </WindowHeaderButton>
 
