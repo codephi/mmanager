@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import styled from "styled-components";
+import PlayerMetricsMonitor from "../utils/playerMetrics";
 
 const Wrapper = styled.div<{ backgroundImage?: string; $videoLoaded: boolean; $pannable?: boolean }>`
   width: 100%;
@@ -66,6 +67,7 @@ export const HlsPlayer: React.FC<Props> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const initialized = useRef(false);
+  const metricsMonitorRef = useRef<PlayerMetricsMonitor | null>(null);
   const [paused, setPaused] = useState(false);
   const [snapshot, setSnapshot] = useState<string | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -100,75 +102,93 @@ export const HlsPlayer: React.FC<Props> = ({
     // Se já estamos no nível correto, não fazer nada
     if (hls.currentLevel === newLevelIndex) return;
     
-    // Implementar transição suave
-    smoothLevelTransition(newLevelIndex);
+    // Aplicar mudança de qualidade com transição suave quando apropriado
+    const previousHeight = lastHeightRef.current;
+    lastHeightRef.current = height;
+    
+    smoothQualityTransition(newLevelIndex, previousHeight, height);
   };
 
-  const smoothLevelTransition = async (newLevelIndex: number) => {
+  const smoothQualityTransition = async (newLevelIndex: number, previousHeight: number, currentHeight: number) => {
     const hls = hlsRef.current;
     const video = videoRef.current;
     if (!hls || !video) return;
 
-    try {
-      // Salvar o tempo atual para sincronização
-      const currentTime = video.currentTime;
-      const wasPlaying = !video.paused;
+    const isMaximizing = currentHeight > previousHeight;
+    const heightDifference = Math.abs(currentHeight - previousHeight);
+    
+    // Só aplicar transição suave se a diferença de altura for significativa (maximização/minimização)
+    const shouldTransitionSmoothly = heightDifference > 200;
 
-      // Configurar um buffer maior temporariamente para suavizar a transição
-      const originalConfig = {
-        maxBufferLength: hls.config.maxBufferLength,
-        maxMaxBufferLength: hls.config.maxMaxBufferLength,
-        maxBufferSize: hls.config.maxBufferSize,
-      };
+    if (shouldTransitionSmoothly) {
+      try {
+        const currentTime = video.currentTime;
+        const wasPlaying = !video.paused;
 
-      // Aumentar buffer temporariamente
-      hls.config.maxBufferLength = 60; // 60 segundos
-      hls.config.maxMaxBufferLength = 120; // 120 segundos  
-      hls.config.maxBufferSize = 60 * 1000 * 1000; // 60MB
+        // Configurar buffer maior apenas quando maximizando para melhor qualidade
+        if (isMaximizing) {
+          const originalConfig = {
+            maxBufferLength: hls.config.maxBufferLength,
+            maxMaxBufferLength: hls.config.maxMaxBufferLength,
+            maxBufferSize: hls.config.maxBufferSize,
+          };
 
-      // Forçar a mudança de nível
-      hls.currentLevel = newLevelIndex;
+          // Aumentar buffer temporariamente
+          hls.config.maxBufferLength = 30;       // 30 segundos
+          hls.config.maxMaxBufferLength = 60;    // 60 segundos
+          hls.config.maxBufferSize = 60 * 1000 * 1000; // 60MB
 
-      // Aguardar alguns frames para o HLS processar a mudança
-      await new Promise(resolve => {
-        const checkBuffer = () => {
-          if (video.buffered.length > 0) {
-            const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-            if (bufferedEnd > currentTime + 2) { // 2 segundos de buffer à frente
-              resolve(void 0);
-              return;
+          // Forçar a mudança de nível
+          hls.currentLevel = newLevelIndex;
+
+          // Aguardar o buffer carregar
+          await new Promise(resolve => {
+            const checkBuffer = () => {
+              if (video.buffered.length > 0) {
+                const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                if (bufferedEnd > currentTime + 2) {
+                  resolve(void 0);
+                  return;
+                }
+              }
+              requestAnimationFrame(checkBuffer);
+            };
+            
+            setTimeout(resolve, 2000); // Timeout de segurança
+            checkBuffer();
+          });
+
+          // Restaurar configurações originais após 5 segundos
+          setTimeout(() => {
+            if (hls && hls.config) {
+              Object.assign(hls.config, originalConfig);
             }
+          }, 5000);
+        } else {
+          // Para minimização, trocar qualidade diretamente
+          hls.currentLevel = newLevelIndex;
+        }
+
+        // Tentar manter a reprodução contínua
+        if (wasPlaying && video.paused) {
+          try {
+            await video.play();
+          } catch (error) {
+            console.warn('Erro ao retomar reprodução:', error);
           }
-          requestAnimationFrame(checkBuffer);
-        };
-        
-        // Timeout de segurança
-        setTimeout(resolve, 1000);
-        checkBuffer();
-      });
-
-      // Tentar manter a reprodução contínua
-      if (wasPlaying && video.paused) {
-        try {
-          await video.play();
-        } catch (error) {
-          console.warn('Erro ao retomar reprodução:', error);
         }
+      } catch (error) {
+        console.warn('Erro na transição de qualidade:', error);
+        hls.currentLevel = newLevelIndex; // Fallback para mudança direta
       }
-
-      // Restaurar configurações originais após um tempo
-      setTimeout(() => {
-        if (hls && hls.config) {
-          Object.assign(hls.config, originalConfig);
-        }
-      }, 5000);
-
-    } catch (error) {
-      console.warn('Erro na transição suave de qualidade:', error);
-      // Fallback: mudança direta sem otimizações
+    } else {
+      // Para mudanças pequenas de tamanho, trocar diretamente
       hls.currentLevel = newLevelIndex;
     }
   };
+
+  // Manter referência da última altura para detectar maximização/minimização
+  const lastHeightRef = useRef<number>(0);
 
   const initializeHls = () => {
     const video = videoRef.current;
@@ -183,21 +203,47 @@ export const HlsPlayer: React.FC<Props> = ({
       hlsRef.current = null;
     }
 
-    // Adicionar event listeners para detectar quando o vídeo carregou
-    const handleLoadedData = () => {
+    // Otimizar detecção de carregamento do vídeo
+    let loadTimeout: NodeJS.Timeout;
+
+    const handleLoadedMetadata = () => {
+      // Usar loadedmetadata ao invés de loadeddata para detecção mais rápida
       setVideoLoaded(true);
+      clearTimeout(loadTimeout);
     };
 
-    const handleCanPlay = () => {
-      setVideoLoaded(true);
-    };
+    // Timeout de segurança para casos onde os eventos não disparam
+    loadTimeout = setTimeout(() => {
+      if (!videoLoaded) setVideoLoaded(true);
+    }, 2000);
 
-    video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
     if (Hls.isSupported()) {
-      const hls = new Hls({ progressive: true });
+      const hls = new Hls({
+        progressive: true,
+        // Configurações otimizadas para baixa latência
+        maxBufferSize: 30 * 1000 * 1000, // 30MB
+        maxBufferLength: 5,              // 5 segundos de buffer
+        liveSyncDurationCount: 3,        // Reduz buffer do stream ao vivo
+        liveMaxLatencyDurationCount: 5,  // Limita latência máxima
+        backBufferLength: 30,            // 30 segundos de buffer anterior
+        // Otimizações de qualidade
+        startLevel: -1,                  // Auto-select inicial
+        abrEwmaFastLive: 3,             // Seleção de qualidade mais rápida
+        // Configurações de baixa latência
+        lowLatencyMode: true,
+        liveDurationInfinity: true,
+        liveBackBufferLength: 0
+      });
       hlsRef.current = hls;
+      
+      // Inicializar monitor de métricas
+      if (metricsMonitorRef.current) {
+        metricsMonitorRef.current.destroy();
+      }
+      metricsMonitorRef.current = new PlayerMetricsMonitor(hls, video);
+      
       hls.loadSource(src);
       hls.attachMedia(video);
 
@@ -225,10 +271,17 @@ export const HlsPlayer: React.FC<Props> = ({
         if (data.fatal && onError) onError();
       });
 
-      const resizeObserver = new ResizeObserver((entries) => {
+      // Debounce para otimizar mudanças de resolução
+      let resizeTimeout: NodeJS.Timeout;
+      const debouncedResize = (entries: ResizeObserverEntry[]) => {
         for (const entry of entries) {
           selectLevel(entry.contentRect.height);
         }
+      };
+      
+      const resizeObserver = new ResizeObserver((entries) => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => debouncedResize(entries), 150);
       });
       resizeObserver.observe(container);
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -244,14 +297,22 @@ export const HlsPlayer: React.FC<Props> = ({
       // Limpar event listeners
       const video = videoRef.current;
       if (video) {
-        video.removeEventListener('loadeddata', () => setVideoLoaded(true));
-        video.removeEventListener('canplay', () => setVideoLoaded(true));
+        video.removeEventListener('loadedmetadata', () => setVideoLoaded(true));
       }
       
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+
+      // Limpar monitor de métricas
+      if (metricsMonitorRef.current) {
+        metricsMonitorRef.current.destroy();
+        metricsMonitorRef.current = null;
+      }
+
+      // Resetar referência de altura
+      lastHeightRef.current = 0;
     };
   }, [src]);
 
@@ -356,14 +417,19 @@ export const HlsPlayer: React.FC<Props> = ({
     const container = containerRef.current;
     if (!container) return;
 
+    // Otimizar observer de visibilidade
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        setPaused(!entry.isIntersecting);
+        const isIntersecting = entries[0]?.isIntersecting ?? false;
+        if (!isIntersecting && !paused) {
+          setPaused(true);
+        } else if (isIntersecting && paused) {
+          setPaused(false);
+        }
       },
       {
         root: null,
-        threshold: 0.1,
+        threshold: [0, 0.1], // Reduzir número de thresholds para melhor performance
       }
     );
 
