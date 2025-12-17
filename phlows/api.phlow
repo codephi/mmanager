@@ -10,21 +10,21 @@ modules:
 main: http_server
 
 steps:
-  - assert: !phs main.path == "/chatvideocontext" && main.method == "GET"
+  - assert: main.path == "/chatvideocontext" && main.method == "GET"
     then:
       !include handlers/chatvideocontext.phlow
-  - assert: !phs main.path == "/roomlist" && main.method == "GET"
+  - assert: main.path == "/roomlist" && main.method == "GET"
     then:
       !include handlers/roomlist.phlow
-  - assert: !phs main.path == "/stats" && main.method == "GET"
+  - assert: main.path == "/stats" && main.method == "GET"
     then:
       !include handlers/stats.phlow
   - return:
       status: 404
       body:
         error: "Not Found"
-        path: !phs main.path
-        method: !phs main.method
+        path: main.path
+        method: main.method
       headers:
         Content-Type: application/json
 
@@ -35,14 +35,14 @@ tests:
       method: GET
       query_params:
         room: luser2233
-    assert: !phs payload.status == 200
+    assert: payload.status == 200
   - describe: "Context Fetching on cache"
     main:
       path: /chatvideocontext
       method: GET
       query_params:
         room: luser2233
-    assert: !phs payload.status == 200
+    assert: payload.status == 200
 
   - describe: "Room List Fetching"
     main:
@@ -51,7 +51,7 @@ tests:
       query_params:
           limit: 5
           offset: 12
-    assert: !phs payload.status == 200 && len(payload.body.rooms) > 0
+    assert: payload.status == 200 && len(payload.body.rooms) > 0
   - describe: "Room List Fetching on cache"
     main:
       path: /roomlist
@@ -59,10 +59,10 @@ tests:
       query_params:
           limit: 5
           offset: 12
-    assert: !phs payload.status == 200 && len(payload.body.rooms) > 0
+    assert: payload.status == 200 && len(payload.body.rooms) > 0
 
   - describe: "Not Found"
     main:
       path: /nonexistent
       method: GET
-    assert: !phs payload.status == 404 && payload.body.error == "Not Found"
+    assert: payload.status == 404 && payload.body.error == "Not Found"

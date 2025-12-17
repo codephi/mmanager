@@ -1,5 +1,5 @@
 steps:
-  - assert: !phs is_empty(main.query_params.room)
+  - assert: is_empty(main.query_params.room)
     then:
       return:
         status: 400
@@ -10,33 +10,33 @@ steps:
 
   - id: query
     payload:
-      room: !phs main.query_params.room
+      room: main.query_params.room
 
   - use: cache
     input:
       action: get
-      key: !phs `chatvideocontext:${steps.query.room}`
+      key: `chatvideocontext:${steps.query.room}`
 
-  - assert: !phs payload.found && !is_empty(payload.value)
+  - assert: payload.found && !is_empty(payload.value)
     then:
       - use: log
         input:
-          message: !phs `Cache hit for room=${steps.query.room}`
+          message: `Cache hit for room=${steps.query.room}`
       - return:
           status: 200
-          body: !phs payload.value
+          body: payload.value
           headers:
             Content-Type: application/json
 
   - use: log
     input:
-      message: !phs `Fetching room list with room=${steps.query.room}`
+      message: `Fetching room list with room=${steps.query.room}`
 
   - id: chatvideocontext
     use: http_request
     input:
       method: GET
-      url: !phs `https://chaturbate.com/api/chatvideocontext/${steps.query.room}`
+      url: `https://chaturbate.com/api/chatvideocontext/${steps.query.room}`
       headers:
           Accept: application/json
           cache: true
@@ -44,21 +44,21 @@ steps:
   - use: log
     input:
       message:
-        status_code: !phs steps.chatvideocontext.response.status_code
-        body: !phs len(steps.chatvideocontext.response.body)
+        status_code: steps.chatvideocontext.response.status_code
+        body: len(steps.chatvideocontext.response.body)
 
   - id: result
-    assert: !phs steps.chatvideocontext.response.status_code == 200
-    payload: !phs steps.chatvideocontext.response.body
+    assert: steps.chatvideocontext.response.status_code == 200
+    payload: steps.chatvideocontext.response.body
 
   - use: cache
     input:
       action: set
-      key: !phs `chatvideocontext:${steps.query.room}`
-      value: !phs steps.result
+      key: `chatvideocontext:${steps.query.room}`
+      value: steps.result
 
   - return:
       status: 200
-      body: !phs steps.result
+      body: steps.result
       headers:
         Content-Type: application/json
