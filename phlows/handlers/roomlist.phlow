@@ -10,7 +10,7 @@ steps:
       action: get
       key: `roomlist:${steps.query.limit}-${steps.query.offset}`
 
-  - assert: payload.found && !!phs is_empty(payload.value)
+  - assert: payload.found && !is_empty(payload.value)
     then:
       - use: log
         input:
