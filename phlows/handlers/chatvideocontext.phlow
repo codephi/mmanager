@@ -1,5 +1,5 @@
 steps:
-  - assert: is_empty(main.query_params.room)
+  - assert: !phs is_empty(main.query_params.room)
     then:
       return:
         status: 400
@@ -17,7 +17,7 @@ steps:
       action: get
       key: `chatvideocontext:${steps.query.room}`
 
-  - assert: payload.found && !is_empty(payload.value)
+  - assert: payload.found && !!phs is_empty(payload.value)
     then:
       - use: log
         input:
