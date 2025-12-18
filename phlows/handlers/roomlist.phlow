@@ -2,8 +2,8 @@ steps:
   - id: query
     assert: true
     payload:
-      limit: if !phs is_empty(main.query_params.limit) { 10 } else { main.query_params.limit }
-      offset: if !phs is_empty(main.query_params.offset) { 12 } else { main.query_params.offset }
+      limit: if is_empty(main.query_params.limit) { 10 } else { main.query_params.limit }
+      offset: if is_empty(main.query_params.offset) { 12 } else { main.query_params.offset }
 
   - use: cache
     input:
